@@ -166,9 +166,20 @@ body {
     margin-bottom: 2rem;
 }
 
+.research-interests-section {
+    background-color: #ffffff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
 .interests-list {
     list-style: none;
     padding-left: 0;
+    display: inline-block;
+    text-align: left;
 }
 
 .interests-list li {
@@ -180,7 +191,7 @@ body {
 
 .interests-list li::before {
     content: '•';
-    color: #e74c3c;
+    color: #CFB87C;
     font-weight: bold;
     position: absolute;
     left: 0;
