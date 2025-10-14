@@ -4,201 +4,168 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nirajan Paudel</title>
-    <meta name="description" content="personal website">
-    <meta name="keywords" content="">
+    <meta name="description" content="Nirajan Paudel's personal website">
+    <meta name="keywords" content="Nirajan Paudel, Computer Science, AI, Machine Learning">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
 </head>
 <body>
-    <!-- Top Navigation Bar -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <ul class="nav-links">
-                <li><a href="#about" class="nav-link">About</a></li>
-                <li><a href="#research" class="nav-link">Research</a></li>
-                <li><a href="#projects" class="nav-link">Projects</a></li>
-                <li><a href="#courses-skills" class="nav-link">Courses & Skills</a></li>
-                <li><a href="#resume" class="nav-link">Resume</a></li>
-                <li><a href="#contact" class="nav-link">Contact</a></li>
-            </ul>
-        </div>
-    </nav>
-
-    <div class="container">
-        <!-- Main Content Area -->
-        <main class="main-content">
-            <!-- Home Section -->
-            <section id="home" class="home-section">
-                <div class="profile-image">
+    <div class="wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-content">
+                <div class="profile">
                     <img src="photo_for_website.jpg" alt="Nirajan Paudel" class="profile-img">
+                    <h1 class="name">Nirajan Paudel</h1>
+                    <p class="tagline">M.S. in Computer Science at CU Boulder</p>
                 </div>
-                <div class="home-description">
-                    <p>
-                        I’m Nirajan Paudel, a Master’s student in Computer Science at the University of Colorado Boulder, with a Bachelor’s in Electronics, Communication & Information Engineering from Tribhuwan University. I’m passionate about AI and machine learning, actively exploring multiple fields like NLP, Computer Vision, Reinforcement learning to build innovative solutions. My experience includes working on AI-driven chatbots during my internship at PalmMind Technology and teaching programming as a Teaching Assistant at Pashchimanchal Campus. Through personal projects like conversational AI applications, I’m learning to create efficient, context-aware systems using Python, C++, and frameworks like TensorFlow. I’m excited to continue growing and contributing to impactful AI projects.</p><br>
 
-                        <p>I wonder, Wil human be able to preserve their culture and langugae in AI models even though there are not human living those culture and language?</p>
-                    </p>
+                <nav class="main-nav">
+                    <ul>
+                        <li><a href="#about" class="nav-link">About</a></li>
+                        <li><a href="#research" class="nav-link">Research</a></li>
+                        <li><a href="#projects" class="nav-link">Projects</a></li>
+                        <li><a href="#courses-skills" class="nav-link">Courses & Skills</a></li>
+                        <li><a href="#publications" class="nav-link">Publications</a></li>
+                        <li><a href="#resume" class="nav-link">Resume</a></li>
+                    </ul>
+                </nav>
+
+                <div class="contact-info">
+                    <a href="mailto:nirajan.paudel@colorado.edu" class="contact-link" aria-label="Email"><i class="fas fa-envelope"></i></a>
+                    <a href="https://www.linkedin.com/in/nirajanpaudel17/" class="contact-link" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                    <a href="https://github.com/paudelnirajan" class="contact-link" target="_blank" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                    <a href="https://x.com/paudelnirajan17" class="contact-link" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <section id="about" class="section">
+                <h2 class="section-title">About Me</h2>
+                <p>
+                    I’m Nirajan Paudel, a Master’s student in Computer Science at the University of Colorado Boulder, with a Bachelor’s in Electronics, Communication & Information Engineering from Tribhuwan University. I’m passionate about AI and machine learning, actively exploring multiple fields like NLP, Computer Vision, Reinforcement learning to build innovative solutions. My experience includes working on AI-driven chatbots during my internship at PalmMind Technology and teaching programming as a Teaching Assistant at Pashchimanchal Campus. Through personal projects like conversational AI applications, I’m learning to create efficient, context-aware systems using Python, C++, and frameworks like TensorFlow. I’m excited to continue growing and contributing to impactful AI projects.
+                </p>
+                <p>
+                    I wonder, will humans be able to preserve their culture and language in AI models even though there are no humans or civilizations living those cultures and languages?
+                </p>
+            </section>
+
+            <section id="research" class="section">
+                <h2 class="section-title">Research Interests</h2>
+                <div class="interest-columns">
+                    <div>
+                        <h3 class="subsection-title">Primary Interests</h3>
+                        <ul class="interests-list">
+                            <li>Multilingual NLP and low-resource language modeling.</li>
+                            <li>Cross-lingual transfer learning and adaptation of high-resource LLMs.</li>
+                            <li>Exploring methods to transfer linguistic knowledge between languages.</li>
+                            <li>Enhancing accessibility and representation of low-resource languages in AI.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="subsection-title">Fields of Interest</h3>
+                        <ul class="interests-list">
+                            <li>Machine learning</li>
+                            <li>Data science</li>
+                            <li>Natural language processing</li>
+                            <li>Reinforcement learning</li>
+                            <li>Computer vision</li>
+                            <li>Autonomous vehicles</li>
+                        </ul>
+                    </div>
                 </div>
             </section>
-            
-            <!-- Research Interests Section -->
-            <section id="research-interests" class="research-interests-section">
-                <h2 class="subsection-title">Research Interests</h2>
-                <ul class="interests-list">
-                    <li>Multilingual NLP and low-resource language modeling.</li>
-                    <li>Cross-lingual transfer learning and adaptation of high-resource LLMs (like GPT) to low-resource languages.</li>
-                    <li>Exploring methods similar to transfer learning in computer vision to transfer linguistic knowledge between languages.</li>
-                    <li>Enhancing accessibility and representation of low-resource languages in modern AI systems.</li>
-                </ul>
-            </section>
 
-            <!-- Fields that interest me Section -->
-            <section id="fields-of-interest" class="research-interests-section">
-                <h2 class="subsection-title">Fields that interest me</h2>
-                <ul class="interests-list">
-                    <li>Machine learning</li>
-                    <li>Data science</li>
-                    <li>Natural language processing</li>
-                    <li>Reinforcement learning</li>
-                    <li>Computer vision</li>
-                    <li>Autonomous vehicles</li>
-                    <li>Quantum computing</li>
-                    <li>Human-computer interaction</li>
-                </ul>
-            </section>
-
-
-            <!-- Projects Section -->
-            <section id="projects" class="projects-section">
-                <h2 class="subsection-title">Projects</h2>
+            <section id="projects" class="section">
+                <h2 class="section-title">Projects</h2>
                 <div class="projects-grid">
                     <div class="project-card">
                         <h3 class="project-title">Audio RAG Assistant</h3>
                         <p class="project-description">
-                            Voice RAG Assistant is a web application that transcribes audio using OpenAI’s Whisper and enables intelligent question-answering with Retrieval-Augmented Generation (RAG). Powered by Groq’s LLM and HuggingFace embeddings, it allows users to upload audio, get accurate transcripts, and interact through contextual Q&A. The project features a modern FastAPI and Streamlit interface with responsive design and session-based memory for seamless conversations.
+                            A web application that transcribes audio using OpenAI’s Whisper and enables intelligent question-answering with Retrieval-Augmented Generation (RAG).
                         </p>
                         <div class="project-links">
-                            <a href="https://github.com/Nirajan17/Audio-RAG" class="project-link" target="_blank">
-                                <span class="link-icon">📁</span> GitHub Repository
-                            </a>
-                            <!-- <a href="https://demo-link.com" class="project-link" target="_blank"> -->
-                                <!-- <span class="link-icon">🌐</span> Live Demo -->
-                            </a>
+                            <a href="https://github.com/Nirajan17/Audio-RAG" class="project-link" target="_blank">GitHub Repository</a>
                         </div>
                     </div>
-
                     <div class="project-card">
                         <h3 class="project-title">digitalME-Personal Assistant</h3>
                         <p class="project-description">
-                            digitalME is a personal AI-powered chatbot designed to have natural, intelligent conversations while assisting with tasks like document retrieval and database queries. Built with Groq’s LLM, Pinecone for vector storage, and Hugging Face embeddings for semantic understanding, it can store, search, and recall information efficiently. The project supports file interaction, SQL querying, and comes with both CLI and GUI interfaces, making it a versatile personal assistant.
+                            A personal AI-powered chatbot designed for natural conversations and assisting with tasks like document retrieval and database queries.
                         </p>
                         <div class="project-links">
-                            <a href="https://github.com/Nirajan17/digitalME--Personal-Chatbot" class="project-link" target="_blank">
-                                <span class="link-icon">📁</span> GitHub Repository
-                            </a>
+                            <a href="https://github.com/Nirajan17/digitalME--Personal-Chatbot" class="project-link" target="_blank">GitHub Repository</a>
                         </div>
                     </div>
-
                     <div class="project-card">
                         <h3 class="project-title">PDF Chat Assistant</h3>
                         <p class="project-description">
-                            PDF Chat Assistant is an AI-powered chatbot that allows users to upload PDF documents and interact with them through natural conversations. Using the Mistral-7B-Instruct model, LangChain, and Hugging Face embeddings, it processes PDFs, retrieves relevant context, and provides accurate, context-aware answers. The project supports both a GUI and CLI interface, includes conversation memory, and makes document analysis simple and interactive.
+                            An AI-powered chatbot that allows users to upload PDF documents and interact with them through natural conversations using the Mistral-7B-Instruct model.
                         </p>
                         <div class="project-links">
-                            <a href="https://github.com/Nirajan17/PDF-Chat-Assistant" class="project-link" target="_blank">
-                                <span class="link-icon">📁</span> GitHub Repository
-                            </a>
-                            <!-- <a href="https://demo-link.com" class="project-link" target="_blank"> -->
-                                <!-- <span class="link-icon">🌐</span> Live Demo -->
-                            </a>
+                            <a href="https://github.com/Nirajan17/PDF-Chat-Assistant" class="project-link" target="_blank">GitHub Repository</a>
                         </div>
                     </div>
-
                     <div class="project-card">
                         <h3 class="project-title">Tour Recommender-Pokhara</h3>
                         <p class="project-description">
-                            The Tour Recommendation System is a Python-based project that suggests travel destinations using a dataset of 50 tours. It combines tour descriptions, genres, and keywords, applies text preprocessing (lowercasing, stemming), and uses CountVectorizer and cosine similarity to recommend the top 5 similar tours. Built with pandas, scikit-learn, and NLTK, it’s ideal for travel planning and personalized tour suggestions.
+                            A Python-based system that suggests travel destinations using a dataset of 50 tours by combining descriptions, genres, and keywords.
                         </p>
                         <div class="project-links">
-                            <a href="https://github.com/Nirajan17/Tour-Recommender-Pokhara" class="project-link" target="_blank">
-                                <span class="link-icon">📁</span> GitHub Repository
-                            </a>
+                            <a href="https://github.com/Nirajan17/Tour-Recommender-Pokhara" class="project-link" target="_blank">GitHub Repository</a>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Relevant Courses & Skills Section -->
-            <section id="courses-skills" class="courses-skills-section">
-                <h2 class="subsection-title">Relevant Courses & Skills</h2>
-                
-                <!-- Courses Section -->
+            <section id="courses-skills" class="section">
+                <h2 class="section-title">Courses & Skills</h2>
                 <div class="courses-skills-grid">
                     <div class="courses-column">
-                        <h3 class="section-subtitle">Relevant Courses</h3>
-                        <ul class="courses-list">
+                        <h3 class="subsection-title">Relevant Courses</h3>
+                        <ul class="list">
                             <li>Data Center Scale Computing - CSCI 5253</li>
                             <li>Object Oriented Analysis and Design - CSCI 5448</li>
-
                         </ul>
                     </div>
-
-                    <!-- Skills Section -->
                     <div class="skills-column">
-                        <h3 class="section-subtitle">Technical Skills</h3>
-                        <ul class="skills-list">
-                            <li>C, C++, Python, SQL</li>
-                            <li>Pandas, Numpy, Seaborn</li>
-                            <li>TensorFlow, PyTorch, Scikit-learn, Keras</li>
-                            <li>LangChain, LangGraph</li>
-                            <li>CNNs, RNNs, Transformers</li>
-                            <li>Linear/Logistic Regression, Clustering (K-means, DBSCAN)</li>
-                            <li>Jupyter Notebook, Google Colab, Kaggle</li>
-                            <li>Git, Selenium, Django, pytesseract</li>
+                        <h3 class="subsection-title">Technical Skills</h3>
+                        <ul class="list">
+                            <li><b>Languages:</b> C, C++, Python, SQL</li>
+                            <li><b>Libraries:</b> Pandas, Numpy, TensorFlow, PyTorch, Scikit-learn</li>
+                            <li><b>AI/ML:</b> LangChain, CNNs, RNNs, Transformers, Regression, Clustering</li>
+                            <li><b>Tools:</b> Git, Django, Jupyter Notebook, Google Colab</li>
                         </ul>
                     </div>
                 </div>
             </section>
 
-            <section id="resume" class="resume-section section">
+            <section id="publications" class="section">
+                <h2 class="section-title">Publications</h2>
+                <div class="publication-list">
+                    <div class="publication-item">
+                        <h3 class="publication-title"><a href="https://doi.org/10.36548/jismac.2024.1.005" target="_blank">Drowsiness and Crash Detection Mobile Application for Vehicle’s Safety</a></h3>
+                        <p class="publication-authors">Subedi, Nabaraj, <strong>Nirajan Paudel</strong>, Manish Chhetri, Sudarshan Acharya, and Nabin Lamichhane</p>
+                        <p class="publication-venue"><em>Journal of IoT in Social, Mobile, Analytics, and Cloud 6.1, pp. 54–66, Jan. 2024</em></p>
+                    </div>
+                    <div class="publication-item">
+                        <h3 class="publication-title"><a href="https://doi.org/10.36548/jscp.2024.1.006" target="_blank">Nepali Image Captioning: Generating Coherent Paragraph-Length Descriptions Using Transformer</a></h3>
+                        <p class="publication-authors">Subedi, Nabaraj, <strong>Nirajan Paudel</strong>, Manish Chhetri, Sudarshan Acharya, and Nabin Lamichhane.</p>
+                        <p class="publication-venue"><em>Journal of Soft Computing Paradigm 6.1, pp. 70–84, Jan. 2024</em></p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="resume" class="section">
                 <h2 class="section-title">Resume</h2>
                 <div class="resume-content">
                     <p>Click the button below to download my resume.</p>
                     <a href="Nirajan_Paudel_Resume.pdf" class="resume-download-btn" download>Download Resume</a>
                 </div>
             </section>
-
-            <!-- Contact Me Section -->
-            <section id="contact" class="contact-section">
-                <h2 class="subsection-title">Contact Me</h2>
-                <div class="contact-content">
-                    <div class="contact-item">
-                        <span class="contact-icon">📧</span>
-                        <span class="contact-label">Email:</span>
-                        <a href="mailto:your.email@colorado.edu" class="contact-link">nirajan.paudel@colorado.edu</a>
-                    </div>
-                    <div class="contact-item">
-                        <span class="contact-icon">🌍</span>
-                        <span class="contact-label">Location:</span>
-                        <span class="contact-text">Boulder, Colorado, United States</span>
-                    </div>
-                </div>
-                
-                <!-- Social Media Links -->
-                <div class="social-icons">
-                    <a href="https://www.linkedin.com/in/nirajanpaudel17/" class="social-link" target="_blank">
-                        LinkedIn
-                    </a>
-                    <a href="https://github.com/paudelnirajan" class="social-link" target="_blank">
-                        GitHub
-                    </a>
-                    <a href="https://x.com/paudelnirajan17" class="social-link" target="_blank">
-                        Twitter
-                    </a>
-                </div>
-            </section>
         </main>
     </div>
-
     <script src="script.js"></script>
 </body>
-</html> 
+</html>
