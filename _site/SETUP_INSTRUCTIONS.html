@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Setup Instructions</title>
+    <meta name="description" content="Personal website and blog of Nirajan Paudel.">
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
+    <div class="wrapper">
+        <aside class="sidebar">
+    <div class="sidebar-content">
+        <div class="profile">
+            <img src="/assets/images/photo_for_website.jpg" alt="Nirajan Paudel" class="profile-img">
+            <h1 class="name">Nirajan Paudel</h1>
+            <p class="tagline">M.S. in Computer Science at CU Boulder</p>
+        </div>
+        <nav class="main-nav">
+            <ul>
+                <li><a href="/#about" class="nav-link">About</a></li>
+                <li><a href="/#research" class="nav-link">Research</a></li>
+                <li><a href="/#projects" class="nav-link">Projects</a></li>
+                <li><a href="/#courses-skills" class="nav-link">Courses & Skills</a></li>
+                <li><a href="/#publications" class="nav-link">Publications</a></li>
+                <li><a href="/#resume" class="nav-link">Resume</a></li>
+                <li><a href="/blog.html" class="nav-link">Blog</a></li>
+            </ul>
+        </nav>
+        <div class="contact-info">
+            <a href="mailto:nirajan.paudel@colorado.edu" class="contact-link" aria-label="Email"><i class="fas fa-envelope"></i></a>
+            <a href="https://www.linkedin.com/in/nirajanpaudel17/" class="contact-link" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+            <a href="https://github.com/paudelnirajan" class="contact-link" target="_blank" aria-label="GitHub"><i class="fab fa-github"></i></a>
+            <a href="https://x.com/paudelnirajan17" class="contact-link" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+        </div>
+    </div>
+</aside>
+
+        <main class="main-content">
+            <h1 id="website-setup-instructions">Website Setup Instructions</h1>
+
+<h2 id="the-problem">The Problem</h2>
+<p>The <code class="language-plaintext highlighter-rouge">eventmachine</code> gem (required by Jekyll) has compilation issues on Apple Silicon Macs with Ruby 3.1.4.</p>
+
+<h2 id="-recommended-solution-deploy-to-github-pages">✅ RECOMMENDED SOLUTION: Deploy to GitHub Pages</h2>
+
+<p>Since your repository is <code class="language-plaintext highlighter-rouge">paudelnirajan.github.io</code>, GitHub Pages will automatically build and serve your Jekyll site.</p>
+
+<h3 id="steps">Steps:</h3>
+
+<ol>
+  <li><strong>Commit and push your changes:</strong>
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git add <span class="nb">.</span>
+git commit <span class="nt">-m</span> <span class="s2">"Add blog functionality and fix structure"</span>
+git push origin main
+</code></pre></div>    </div>
+  </li>
+  <li><strong>Enable GitHub Pages (if not already enabled):</strong>
+    <ul>
+      <li>Go to your repository on GitHub</li>
+      <li>Click <strong>Settings</strong> → <strong>Pages</strong></li>
+      <li>Under “Source”, select <strong>Deploy from a branch</strong></li>
+      <li>Select branch: <strong>main</strong> and folder: <strong>/ (root)</strong></li>
+      <li>Click <strong>Save</strong></li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Wait 1-2 minutes</strong> for GitHub to build your site</p>
+  </li>
+  <li><strong>Visit:</strong> <code class="language-plaintext highlighter-rouge">https://paudelnirajan.github.io</code></li>
+</ol>
+
+<p>That’s it! GitHub handles all the Jekyll compilation for you.</p>
+
+<hr />
+
+<h2 id="alternative-fix-local-jekyll-installation">Alternative: Fix Local Jekyll Installation</h2>
+
+<p>If you need to run Jekyll locally, try these solutions:</p>
+
+<h3 id="option-1-install-with-specific-compiler-flags">Option 1: Install with specific compiler flags</h3>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Install Xcode Command Line Tools</span>
+xcode-select <span class="nt">--install</span>
+
+<span class="c"># Install eventmachine with C++17 support</span>
+gem <span class="nb">install </span>eventmachine <span class="nt">--</span> <span class="nt">--with-cxxflags</span><span class="o">=</span><span class="s2">"-std=c++17"</span>
+
+<span class="c"># Then install bundle</span>
+bundle <span class="nb">install</span>
+
+<span class="c"># Run Jekyll</span>
+bundle <span class="nb">exec </span>jekyll serve
+</code></pre></div></div>
+
+<h3 id="option-2-use-docker-easiest-for-local-development">Option 2: Use Docker (Easiest for local development)</h3>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Install Docker Desktop for Mac first, then:</span>
+docker run <span class="nt">--rm</span> <span class="nt">-v</span> <span class="s2">"</span><span class="nv">$PWD</span><span class="s2">"</span>:/srv/jekyll <span class="nt">-p</span> 4000:4000 jekyll/jekyll jekyll serve
+</code></pre></div></div>
+
+<p>Visit: <code class="language-plaintext highlighter-rouge">http://localhost:4000</code></p>
+
+<h3 id="option-3-use-a-newer-ruby-version">Option 3: Use a newer Ruby version</h3>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Install Ruby 3.2+ which has better Apple Silicon support</span>
+rbenv <span class="nb">install </span>3.2.2
+rbenv <span class="nb">local </span>3.2.2
+
+<span class="c"># Then try bundle install again</span>
+bundle <span class="nb">install
+</span>bundle <span class="nb">exec </span>jekyll serve
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="what-was-fixed">What Was Fixed</h2>
+
+<p>✅ Moved <code class="language-plaintext highlighter-rouge">includes/</code> → <code class="language-plaintext highlighter-rouge">_includes/</code> (Jekyll standard)
+✅ Moved <code class="language-plaintext highlighter-rouge">posts/</code> → <code class="language-plaintext highlighter-rouge">_posts/</code> (Jekyll standard)<br />
+✅ Renamed blog post to follow Jekyll convention: <code class="language-plaintext highlighter-rouge">2025-10-14-welcome-to-my-blog.md</code>
+✅ Created blog index page (<code class="language-plaintext highlighter-rouge">blog.html</code>)
+✅ Created blog post layout (<code class="language-plaintext highlighter-rouge">_layouts/post.html</code>)
+✅ Added Blog link to navigation
+✅ Added comprehensive blog CSS styles
+✅ Created <code class="language-plaintext highlighter-rouge">assets/images/</code> directory for your profile photo</p>
+
+<h2 id="next-steps">Next Steps</h2>
+
+<ol>
+  <li><strong>Add your profile photo:</strong> Place <code class="language-plaintext highlighter-rouge">photo_for_website.jpg</code> in <code class="language-plaintext highlighter-rouge">assets/images/</code></li>
+  <li><strong>Deploy to GitHub Pages</strong> (recommended)</li>
+  <li><strong>Create more blog posts:</strong> Add files in <code class="language-plaintext highlighter-rouge">_posts/</code> with format: <code class="language-plaintext highlighter-rouge">YYYY-MM-DD-title.md</code></li>
+</ol>
+
+<h2 id="creating-new-blog-posts">Creating New Blog Posts</h2>
+
+<p>Create a new file in <code class="language-plaintext highlighter-rouge">_posts/</code> with this format:</p>
+
+<p><strong>Filename:</strong> <code class="language-plaintext highlighter-rouge">_posts/2025-10-15-my-second-post.md</code></p>
+
+<p><strong>Content:</strong></p>
+<div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="na">layout</span><span class="pi">:</span> <span class="s">post</span>
+<span class="na">title</span><span class="pi">:</span> <span class="s2">"</span><span class="s">My</span><span class="nv"> </span><span class="s">Second</span><span class="nv"> </span><span class="s">Blog</span><span class="nv"> </span><span class="s">Post"</span>
+<span class="na">date</span><span class="pi">:</span> <span class="s">2025-10-15</span>
+<span class="nn">---</span>
+
+<span class="gu">## Your content here</span>
+
+Write your blog post using Markdown...
+</code></pre></div></div>
+
+        </main>
+    </div>
+    <script src="/script.js"></script>
+</body>
+</html>
