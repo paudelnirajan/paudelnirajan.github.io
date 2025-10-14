@@ -11,10 +11,9 @@ html {
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    line-height: 1.5;
+    line-height: 1.6;
     color: #444;
     background-color: #fdfdfd;
-    font-size: 14px; /* Reduced from default */
 }
 
 .wrapper {
@@ -24,68 +23,51 @@ body {
 
 /* Sidebar Styles */
 .sidebar {
-    width: 250px; /* Reduced from 300px */
+    width: 300px;
     background-color: #f8f9fa;
     border-right: 1px solid #e9ecef;
-    height: 100vh;
     position: fixed;
-    top: 0;
-    left: 0;
-    padding: 1.25rem; /* Reduced from 1.5rem */
+    height: 100%;
+    overflow-y: auto;
+    padding: 2rem;
     display: flex;
     flex-direction: column;
-    z-index: 100;
 }
+
+.sidebar-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
 .profile {
     text-align: center;
 }
 
 .profile-img {
-    width: 100px;
-    height: 100px;
+    width: 150px;
+    height: 150px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid #CFB87C;
-    margin: 0.5rem 3.2rem 0.5rem auto; /* Slightly more right margin for left bias */
-    background-color: #e9ecef;
-    display: block;
-}
-
-.profile-img:not([src]),
-.profile-img[src=""] {
-    background-color: #CFB87C;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.75rem;
-    font-weight: bold;
+    border: 4px solid #CFB87C;
+    margin-bottom: 1rem;
 }
 
 .name {
-    font-size: 1.1rem;
+    font-size: 1.5rem;
     font-weight: 600;
     color: #333;
-    margin-bottom: 0.25rem;
 }
 
 .tagline {
-    font-size: 0.8rem;
+    font-size: 1rem;
     color: #666;
-    line-height: 1.3;
 }
 
 /* Navigation Styles */
-.main-nav {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
 .main-nav ul {
     list-style: none;
     padding: 0;
-    flex: 1;
 }
 
 .main-nav li {
@@ -97,10 +79,9 @@ body {
     color: #555;
     text-decoration: none;
     font-weight: 500;
-    padding: 0.4rem 0.8rem; /* Reduced from 0.5rem 1rem */
+    padding: 0.5rem 1rem;
     border-radius: 4px;
     transition: all 0.2s ease-in-out;
-    font-size: 0.9rem; /* Slightly smaller font */
 }
 
 .nav-link:hover {
@@ -117,14 +98,14 @@ body {
 .contact-info {
     display: flex;
     justify-content: center;
-    gap: 1.25rem; /* Reduced from 1.5rem */
-    margin-top: auto;
+    gap: 1.5rem;
+    margin-top: auto; /* Pushes contact info to the bottom */
 }
 
 .contact-link {
     color: #555;
     text-decoration: none;
-    font-size: 1.1rem; /* Reduced from 1.25rem */
+    font-size: 1.5rem; /* Increased size for icons */
     transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
 }
 
@@ -135,10 +116,9 @@ body {
 
 /* Main Content Styles */
 .main-content {
-    margin-left: 250px;
-    padding: 2rem;
-    width: calc(100% - 250px);
-    min-height: 100vh;
+    margin-left: 300px;
+    padding: 3rem;
+    width: calc(100% - 300px);
 }
 
 #about p {
@@ -160,7 +140,7 @@ body {
     padding: 0.5rem 1.5rem;
     border-bottom: 3px solid #dca10c;
     border-radius: 8px;
-    font-size: 1.75rem; /* Reduced from 2rem */
+    font-size: 2rem;
     font-weight: 700;
     margin-bottom: 1.5rem;
     color: #2c3e50;
@@ -259,7 +239,7 @@ ul.list {
 .publication-list {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem; /* Reduced from 2rem */
+    gap: 2rem;
 }
 
 .publication-item {
@@ -310,135 +290,6 @@ ul.list {
     background-color: #c0a768;
 }
 
-/* Blog Styles */
-.blog-posts {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-}
-
-.blog-post-preview {
-    padding-bottom: 2rem;
-    border-bottom: 1px solid #e9ecef;
-}
-
-.blog-post-preview:last-child {
-    border-bottom: none;
-}
-
-.blog-post-title {
-    font-size: 1.25rem; /* Reduced from 1.5rem */
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-}
-
-.blog-post-title a {
-    color: #2c3e50;
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-.blog-post-title a:hover {
-    color: #CFB87C;
-}
-
-.blog-post-date {
-    font-size: 0.9rem;
-    color: #999;
-    margin-bottom: 1rem;
-}
-
-.blog-post-excerpt {
-    color: #666;
-    margin-bottom: 1rem;
-}
-
-.read-more-link {
-    color: #CFB87C;
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s ease;
-}
-
-.read-more-link:hover {
-    color: #c0a768;
-}
-
-/* Individual Blog Post */
-.blog-post {
-    max-width: 800px;
-}
-
-.blog-post-header {
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #e9ecef;
-}
-
-.blog-post-content {
-    line-height: 1.8;
-    color: #444;
-}
-
-.blog-post-content h2 {
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-    color: #2c3e50;
-}
-
-.blog-post-content h3 {
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
-    color: #34495e;
-}
-
-.blog-post-content p {
-    margin-bottom: 1.5rem;
-}
-
-.blog-post-content ul,
-.blog-post-content ol {
-    margin-bottom: 1.5rem;
-    padding-left: 2rem;
-}
-
-.blog-post-content li {
-    margin-bottom: 0.5rem;
-}
-
-.blog-post-content code {
-    background-color: #f8f9fa;
-    padding: 0.2rem 0.4rem;
-    border-radius: 3px;
-    font-family: 'Courier New', monospace;
-    font-size: 0.9em;
-}
-
-.blog-post-content pre {
-    background-color: #f8f9fa;
-    padding: 1rem;
-    border-radius: 4px;
-    overflow-x: auto;
-    margin-bottom: 1.5rem;
-}
-
-.blog-post-footer {
-    margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 1px solid #e9ecef;
-}
-
-.back-to-blog {
-    color: #CFB87C;
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s ease;
-}
-
-.back-to-blog:hover {
-    color: #c0a768;
-}
-
 /* Responsive Design */
 @media (max-width: 992px) {
     .wrapper {
@@ -451,7 +302,6 @@ ul.list {
         height: auto;
         border-right: none;
         border-bottom: 1px solid #e9ecef;
-        z-index: auto;
     }
 
     .main-content {
@@ -462,13 +312,9 @@ ul.list {
 }
 
 @media (max-width: 768px) {
-    .sidebar {
-        padding: 1.5rem;
-    }
-
-    .profile-img {
-        width: 120px;
-        height: 120px;
+    .interest-columns,
+    .courses-skills-grid {
+        grid-template-columns: 1fr;
     }
 
     .main-content {
@@ -477,10 +323,5 @@ ul.list {
 
     .section-title {
         font-size: 1.8rem;
-    }
-
-    .interest-columns,
-    .courses-skills-grid {
-        grid-template-columns: 1fr;
     }
 }
