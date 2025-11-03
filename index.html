@@ -81,6 +81,25 @@
                 <h2 class="section-title">Projects</h2>
                 <div class="projects-grid">
                     <div class="project-card">
+                        <h3 class="project-title">Music Separation as a Service (MSaaS)</h3>
+                        <p class="project-description">
+                            Architected and deployed a highly scalable, fault-tolerant microservices application on Google Kubernetes Engine (GKE) to perform AI-driven music source separation.
+                        </p>
+                        <div class="full-description" style="display: none;">
+                            <p>The system processes user-uploaded MP3s through an asynchronous pipeline, separating them into four distinct instrumental stems (vocals, drums, etc.) for download.</p>
+                            <ul>
+                                <li><strong>Spearheaded a critical infrastructure migration from self-hosted MinIO to Google Cloud Storage (GCS),</strong> boosting data durability from an ephemeral, non-persistent state to <strong>99.999999999%</strong>. This move eliminated a critical single point of failure and reduced operational overhead by leveraging a fully managed, enterprise-grade storage solution.</li>
+                                <li><strong>Engineered an asynchronous processing queue using Redis,</strong> which decoupled the lightweight Flask REST API from the resource-intensive Python ML worker. This design choice dramatically improved user experience, reducing the initial API response time to <strong>under 200ms</strong> while offloading ML inference tasks that averaged <strong>2-5 minutes per song</strong>.</li>
+                                <li><strong>Optimized for scalability and cost-efficiency on GKE,</strong> designing the worker pool for horizontal scaling. The architecture is capable of processing hundreds of songs per hour by dynamically adjusting worker pod replicas based on queue depth, ensuring performance scales with demand.</li>
+                                <li><strong>Implemented robust resource management by defining precise Kubernetes resource requests and limits</strong> (e.g., <strong>6Gi of RAM</strong> for the <code>Demucs</code> worker pods). This prevented pod evictions caused by memory spikes, increased overall cluster stability, and ensured predictable performance for the ML workload.</li>
+                                <li><strong>Developed a dynamic frontend with JavaScript to provide real-time job status updates.</strong> The UI polls a custom status endpoint, transitioning from an "upload" state to a "processing" indicator and finally revealing download links upon completion, providing a seamless user journey for a long-running background task.</li>
+                            </ul>
+                        </div>
+                        <div class="project-links">
+                            <button class="see-more-btn">See More</button>
+                        </div>
+                    </div>
+                    <div class="project-card">
                         <h3 class="project-title">AI-Powered Question Assistant (IOE-GPT)</h3>
                         <p class="project-description">
                         Developed an AI-powered system for IOE students, leveraging LangChain and Groq LLM to retrieve and answer past questions with semantic and metadata-based search.
@@ -184,6 +203,13 @@
                 </div>
             </section>
         </main>
+    </div>
+    <div id="project-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 id="modal-title"></h3>
+            <div id="modal-description"></div>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
