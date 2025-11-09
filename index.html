@@ -81,6 +81,61 @@
                 <h2 class="section-title">Projects</h2>
                 <div class="projects-grid">
                     <div class="project-card">
+                        <h3 class="project-title">Zenco: AI-Powered Multi-Language Code Analysis Platform</h3>
+                        <p class="project-description">
+                            An open-source CLI tool leveraging Large Language Models to automate code documentation, refactoring, and quality enhancement across 5 programming languages, reducing development time by 20-30% and LLM API costs by 30-50%.
+                        </p>
+                        <div class="full-description" style="display: none;">
+                            <h4>The Challenge</h4>
+                            <p>Software developers spend 20-30% of their time on repetitive tasks like writing docstrings, adding type hints, and identifying dead code. These essential maintenance tasks are time-consuming and expensive when using LLM APIs inefficiently on large codebases.</p>
+                            
+                            <h4>The Solution</h4>
+                            <p>Zenco provides an intelligent code analysis pipeline with a breakthrough execution priority system that processes dead code detection first, then skips dead code in subsequent analysis stages—achieving 30-50% reduction in LLM API calls and processing time.</p>
+                            
+                            <h4>Technical Architecture</h4>
+                            <ul>
+                                <li><strong>Multi-Language Support:</strong> Implemented Tree-sitter for universal parsing across Python, JavaScript, Java, C++, and Go with language-specific documentation formatters</li>
+                                <li><strong>Modular Design:</strong> Refactored monolithic 2,057-line codebase into 4 independent processors (DeadCodeProcessor, DocstringProcessor, TypeHintProcessor, MagicNumberProcessor), reducing core module to 603 lines—a 70% reduction</li>
+                                <li><strong>Design Patterns:</strong> Applied Strategy pattern for pluggable LLM providers, Factory pattern for dynamic instantiation, Visitor pattern for AST traversal, and Adapter pattern for unified LLM interfaces</li>
+                                <li><strong>LLM Integration:</strong> Unified API interface supporting Groq, OpenAI, Anthropic, and Google Gemini with intelligent error handling and fallback strategies</li>
+                            </ul>
+                            
+                            <h4>Key Innovation: Execution Priority Optimization</h4>
+                            <p>Traditional tools process all code uniformly, wasting resources on code that will be removed. Zenco's multi-stage pipeline identifies unused functions and variables first, then subsequent processors skip dead code entirely—dramatically reducing costs and processing time.</p>
+                            
+                            <h4>DevOps & Quality Assurance</h4>
+                            <ul>
+                                <li><strong>Comprehensive CI/CD:</strong> GitHub Actions pipeline with matrix testing across 3 operating systems (Ubuntu, macOS, Windows) and 4 Python versions (3.9-3.12)—12 platform combinations</li>
+                                <li><strong>Test Coverage:</strong> Achieved 95.5% test pass rate with unit and integration tests, ensuring production reliability</li>
+                                <li><strong>Package Distribution:</strong> Published on PyPI with automated versioning and release management</li>
+                                <li><strong>Developer Experience:</strong> Rich terminal UI with color-coded output, interactive configuration wizard, and comprehensive documentation</li>
+                            </ul>
+                            
+                            <h4>Performance & Impact</h4>
+                            <ul>
+                                <li><strong>Cost Efficiency:</strong> 30-50% reduction in LLM API costs through dead code optimization</li>
+                                <li><strong>Code Quality:</strong> 95.5% test coverage with production-ready reliability</li>
+                                <li><strong>Maintainability:</strong> 70% reduction in core module complexity</li>
+                                <li><strong>Scalability:</strong> Processes codebases of any size with configurable batch processing</li>
+                                <li><strong>Compatibility:</strong> Tested across 12 platform/version combinations</li>
+                            </ul>
+                            
+                            <h4>Skills Demonstrated</h4>
+                            <p><strong>Software Engineering:</strong> Advanced Python, OOP, SOLID principles, design patterns, API integration, async programming</p>
+                            <p><strong>AI/ML:</strong> LLM API integration, prompt engineering, context-aware systems, cost optimization</p>
+                            <p><strong>DevOps:</strong> CI/CD pipelines, GitHub Actions, multi-platform testing, PyPI distribution</p>
+                            <p><strong>Architecture:</strong> Modular design, separation of concerns, plugin architecture, extensible frameworks</p>
+                            
+                            <div class="project-links" style="margin-top: 1rem;">
+                                <a href="https://github.com/paudelnirajan/autodoc" class="project-link" target="_blank" style="margin-right: 0.5rem;">GitHub</a>
+                                <a href="https://pypi.org/project/zenco/" class="project-link" target="_blank">PyPI Package</a>
+                            </div>
+                        </div>
+                        <div class="project-links">
+                            <button class="see-more-btn">See More</button>
+                        </div>
+                    </div>
+                    <div class="project-card">
                         <h3 class="project-title">Music Separation as a Service (MSaaS)</h3>
                         <p class="project-description">
                             Architected and deployed a highly scalable, fault-tolerant microservices application on Google Kubernetes Engine (GKE) to perform AI-driven music source separation.
