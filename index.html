@@ -136,6 +136,61 @@
                         </div>
                     </div>
                     <div class="project-card">
+                        <h3 class="project-title">Serverless vs Kubernetes: NLP Inference Benchmark Platform</h3>
+                        <p class="project-description">
+                            A production-grade cloud infrastructure project comparing AWS Lambda (serverless) and EKS (Kubernetes) for deploying DistilBERT sentiment analysis. Built end-to-end with Infrastructure as Code, CI/CD, and observability.
+                        </p>
+                        <div class="full-description" style="display: none;">
+                            <h4>The Challenge</h4>
+                            <p>Compare serverless and containerized deployments for ML inference, analyzing cold start behavior, latency, scalability, and cost trade-offs. Key constraint: DistilBERT model load time (~60s) exceeds API Gateway's 29s timeout.</p>
+                            
+                            <h4>Solution Architecture</h4>
+                            <ul>
+                                <li><strong>AWS Lambda (Serverless):</strong> Container-based Lambda function (3008 MB RAM) with API Gateway REST API integration and pay-per-request pricing</li>
+                                <li><strong>Kubernetes (EKS):</strong> EKS cluster with managed node groups, 2-replica deployment for high availability, and Classic Load Balancer</li>
+                                <li><strong>FastAPI Backend:</strong> Request router with exponential backoff retry for Lambda cold starts, Prometheus metrics integration</li>
+                                <li><strong>Streamlit Dashboard:</strong> Real-time side-by-side comparison with Locust load testing and AI-powered analysis (Groq API/Llama 3)</li>
+                            </ul>
+                            
+                            <h4>Infrastructure as Code</h4>
+                            <ul>
+                                <li><strong>Terraform Modules:</strong> VPC with public/private subnets across 2 AZs, EKS cluster, EC2 instances, ECR repositories, IAM roles, and Lambda configuration</li>
+                                <li><strong>One-Click Deployment:</strong> Automated scripts for Terraform initialization, ECR imports, image verification, and full infrastructure provisioning</li>
+                                <li><strong>CI/CD Pipeline:</strong> GitHub Actions for automated Docker builds, AWS authentication, and ECR pushes</li>
+                            </ul>
+                            
+                            <h4>Key Technical Achievements</h4>
+                            <ul>
+                                <li><strong>Cold Start Solution:</strong> Implemented exponential backoff retry—first request warms Lambda, automatic retry succeeds. Achieved 100% success rate despite timeout limitations.</li>
+                                <li><strong>Secure ECR Access:</strong> IAM Instance Profiles with <code>AmazonEC2ContainerRegistryReadOnly</code> policy—no credentials stored on disk</li>
+                                <li><strong>Async Resource Handling:</strong> Proper Terraform state management for Kubernetes LoadBalancer provisioning (2-5 min delay)</li>
+                                <li><strong>Comprehensive Testing:</strong> pytest with mocks, integration tests, Locust load testing, custom benchmarking (P50, P95), and AI-powered SRE reports</li>
+                            </ul>
+                            
+                            <h4>Results & Impact</h4>
+                            <ul>
+                                <li><strong>Deployment Time:</strong> Reduced from manual 2+ hours to automated 15 minutes</li>
+                                <li><strong>Infrastructure Reliability:</strong> 100% reproducible deployments via Terraform</li>
+                                <li><strong>Code Quality:</strong> 90%+ test coverage with unit, integration, and load tests</li>
+                                <li><strong>Cost Analysis:</strong> Quantified cost trade-offs between serverless and containerized approaches</li>
+                            </ul>
+                            
+                            <h4>Skills Demonstrated</h4>
+                            <p><strong>Cloud & DevOps:</strong> AWS (Lambda, EKS, EC2, ECR, API Gateway, VPC, IAM), Terraform, Kubernetes, Docker, GitHub Actions CI/CD</p>
+                            <p><strong>Backend:</strong> FastAPI, Python, Prometheus metrics, exponential backoff patterns, microservices architecture</p>
+                            <p><strong>Frontend & Testing:</strong> Streamlit, Plotly visualization, pytest, Locust load testing, Groq API integration</p>
+                            
+                            <div class="project-links" style="margin-top: 1rem;">
+                                <a href="https://github.com/paudelnirajan/k8s-vs-lambda-nlp-benchmark.git" class="project-link" target="_blank">GitHub</a>
+                                <!-- Add demo video link if available -->
+                                <!-- <a href="#" class="project-link" target="_blank" style="margin-left: 0.5rem;">Demo Video</a> -->
+                            </div>
+                        </div>
+                        <div class="project-links">
+                            <button class="see-more-btn">See More</button>
+                        </div>
+                    </div>
+                    <div class="project-card">
                         <h3 class="project-title">Music Separation as a Service (MSaaS)</h3>
                         <p class="project-description">
                             Architected and deployed a highly scalable, fault-tolerant microservices application on Google Kubernetes Engine (GKE) to perform AI-driven music source separation.
