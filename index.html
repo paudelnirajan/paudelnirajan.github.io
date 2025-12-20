@@ -158,7 +158,154 @@
             </div>
 
             <div class="projects-grid">
-                <!-- Featured Project 1: Zenco -->
+                <!-- Featured Project 1: Tensor -->
+                <article class="project-card featured" data-category="featured ai">
+                    <div class="project-header">
+                        <div class="project-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="project-links-top">
+                            <a href="https://tensor-h3v4h351a-nirajans-projects-f6261255.vercel.app/" target="_blank" aria-label="Live Demo" id="tensor-demo-link">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <span class="project-badge">Featured</span>
+                    <h3 class="project-title">Tensor: Agentic RAG Academic AI</h3>
+                    <p class="project-description">
+                        Advanced RAG conversational AI platform engineered for engineering students, solving fragmented
+                        academic resource navigation by providing centralized access to past exam papers, syllabuses, and
+                        technical notes with intelligent question answering.
+                    </p>
+                    <div class="project-tech">
+                        <span>FastAPI</span>
+                        <span>React</span>
+                        <span>Pinecone</span>
+                        <span>Redis</span>
+                    </div>
+                    <button class="project-expand" aria-label="Expand details">
+                        <span>Details</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <div class="project-details">
+                        <h4>The Challenge</h4>
+                        <p>Engineering students at the Institute of Engineering, Nepal struggle to navigate fragmented
+                            academic resources—thousands of pages of legacy PDFs, multi-page syllabuses, and complex
+                            technical notes. Traditional search tools fail when students ask year-specific or
+                            chapter-specific questions (e.g., "Show me 8-mark numericals on Sorting from 2076") because
+                            engineering documents contain both semantic meaning and rigid metadata.</p>
+
+                        <h4>The Solution</h4>
+                        <p>Tensor is an advanced Retrieval-Augmented Generation (RAG) conversational AI platform that
+                            provides a centralized, intelligent interface capable of answering specific technical
+                            questions, retrieving relevant past papers, and providing study guidance through a
+                            Multi-Stage Agentic RAG pipeline.</p>
+
+                        <h4>Challenge 1: Semantic Search in Highly Structured Technical Data</h4>
+                        <p><strong>Problem:</strong> Traditional search tools fail with year-specific or chapter-specific
+                            queries because engineering documents contain both semantic meaning and rigid metadata.</p>
+                        <p><strong>Solution:</strong> Implemented a Hybrid Query Architecture that combines:</p>
+                        <ul>
+                            <li><strong>AI Metadata Extraction (Smart Filtering):</strong> Using GPT-4o-mini to
+                                dynamically extract filters (year, subject, chapter, marks) from natural language queries
+                            </li>
+                            <li><strong>Vector Search:</strong> Using OpenAI/Gemini Embeddings and Pinecone Serverless for
+                                high-precision semantic retrieval</li>
+                            <li><strong>Metadata Filtering:</strong> Engineered a layer that converts natural language into
+                                complex Pinecone filter objects, ensuring zero-noise results for year-specific queries
+                            </li>
+                            <li><strong>Intent Routing:</strong> An LLM-based router classifies queries into four
+                                categories: Structured (Syllabus/Marks), Semantic (Explanations), Past Question (Historical
+                                papers), or Hybrid</li>
+                        </ul>
+
+                        <h4>Challenge 2: Precision in Complex Engineering Papers</h4>
+                        <p><strong>Problem:</strong> Engineering questions often involve diagrams, formulas, and specific
+                            marking schemes that basic PDF parsers fail to capture.</p>
+                        <p><strong>Solution:</strong> Developed a specialized Ingestion Pipeline:</p>
+                        <ul>
+                            <li><strong>Multimodal PDF Parsing:</strong> Used LlamaParse for high-fidelity parsing to
+                                preserve diagrams, tables, mathematical notations, and structured content</li>
+                            <li><strong>Question-Boundary Aware Chunking:</strong> Instead of arbitrary character splits,
+                                the system detects question boundaries (e.g., "1a", "2b") to ensure context remains intact
+                                and respects document hierarchy (Chapters > Sections > Paragraphs)</li>
+                            <li><strong>Two-Stage Reranking:</strong> Implemented a retrieval pool of 50 candidates,
+                                followed by a Reranker Service using Cross-Encoder Model (ms-marco-MiniLM-L-6-v2) to
+                                narrow down the top 10 most relevant chunks for the LLM</li>
+                            <li><strong>Automated Syllabus Mapping:</strong> Built a custom curriculum engine that maps
+                                10+ engineering programs (BCT, BCE, BEL, etc.) across 8 semesters, ensuring data is tagged
+                                with precise metadata (Program, Year, Semester, Subject Code)</li>
+                            <li><strong>Markdown Cleanup Pipeline:</strong> Custom pipeline that strips non-semantic
+                                headers/footers and identifies Page Context to inject metadata into every chunk, allowing
+                                the AI to cite specific pages in responses</li>
+                        </ul>
+
+                        <h4>Challenge 3: Cost and Latency in LLM Workflows</h4>
+                        <p><strong>Problem:</strong> Frequent RAG lookups and LLM calls can lead to high latency (>10s)
+                            and ballooning API costs.</p>
+                        <p><strong>Solution:</strong> Built a Multi-Layer Distributed Caching System using Async Redis
+                            (Upstash):</p>
+                        <ul>
+                            <li><strong>Result Caching:</strong> Immediate response for identical queries, delivering
+                                instant answers for frequent student queries</li>
+                            <li><strong>Intent/Metadata Caching:</strong> Caching the AI-extracted filters themselves,
+                                preventing re-classifying similar questions and reducing LLM "thought" time</li>
+                            <li><strong>Embedding Cache:</strong> Saves 100% of LLM costs for repeated query vectors</li>
+                            <li><strong>Streaming Architecture:</strong> Implemented Server-Sent Events (SSE) for
+                                real-time response streaming</li>
+                        </ul>
+                        <p><strong>Outcome:</strong> Achieved a 60%+ cache hit rate, reducing total query costs by
+                            approximately $0.001 per query and cutting P95 response times to under 3 seconds.</p>
+
+                        <h4>Engineering Challenges & Solutions</h4>
+                        <ul>
+                            <li><strong>Memory Constraints on Free-Tier Hosting:</strong> Loading the Cross-Encoder
+                                model into memory required ~400MB of RAM, causing the 512MB Render server to experience
+                                Out-Of-Memory crashes. Solution: Implemented Feature Toggling and Lazy Loading with a
+                                configuration-driven switch that detects the hosting environment and toggles the heavy ML
+                                model off in favor of optimized similarity search when resources are low, maintaining
+                                99.9% uptime</li>
+                            <li><strong>Python 3.11 Environment Stability:</strong> Modern f-string features caused
+                                syntax errors in certain server-side environments. Solution: Performed a codebase-wide
+                                refactor of the formatting logic, replacing complex f-strings with robust string
+                                concatenation and pathlib for file routing, ensuring 100% environmental portability</li>
+                        </ul>
+
+                        <h4>Key Metrics & Impact</h4>
+                        <ul>
+                            <li><strong>Data Scale:</strong> Ingested and indexed 25+ comprehensive engineering past
+                                papers (Mathematics, C Programming) with dynamic metadata tagging</li>
+                            <li><strong>Performance:</strong> Optimized response latency to under 3 seconds (P95) through
+                                streaming architecture and Redis caching, with less than 200ms TTFT (Time To First Token)
+                            </li>
+                            <li><strong>Efficiency:</strong> Reduced OpenAI/Gemini API dependency by establishing a 60%+
+                                cache hit rate for common student queries, reducing LLM API overhead by 70%</li>
+                            <li><strong>Scalability:</strong> Designed a system capable of handling 100,000+ vectors using
+                                Pinecone Serverless architecture</li>
+                            <li><strong>Precision:</strong> Achieved 85%+ query accuracy through dual-stage "Retrieve &
+                                Rerank" pipeline, with reranking layer improving Top-1 retrieval accuracy by 40% compared
+                                to standard vector search</li>
+                            <li><strong>Architecture:</strong> Managed 7+ micro-services/mixins in the backend (RAG,
+                                Reranker, Intent Router, Multi-Doc Chunker) to ensure modularity</li>
+                        </ul>
+
+                        <h4>Tech Stack</h4>
+                        <p><strong>Backend:</strong> Python, FastAPI, SQLAlchemy, Pydantic</p>
+                        <p><strong>Frontend:</strong> React, Vite, Tailwind CSS, Vercel AI SDK (for streaming)</p>
+                        <p><strong>AI/ML:</strong> OpenAI (GPT-4o/mini), Gemini (Embeddings), Pinecone (Vector DB),
+                            LlamaParse, Sentence-Transformers</p>
+                        <p><strong>Infrastructure:</strong> Redis (Async/Upstash Caching), Vercel (Frontend Deployment),
+                            Railway/Local (Backend), GitHub Actions (CI/CD)</p>
+                        <p><strong>Integrations:</strong> Multi-LLM provider support (Groq, Gemini, OpenAI)</p>
+
+                        <h4>Skills Demonstrated</h4>
+                        <p>This project demonstrates expertise in RAG systems, vector databases, distributed caching
+                            strategies, production ML deployment, and building scalable AI architectures that solve
+                            real-world problems in academic settings.</p>
+                    </div>
+                </article>
+
+                <!-- Featured Project 2: Zenco -->
                 <article class="project-card featured" data-category="featured ai">
                     <div class="project-header">
                         <div class="project-icon">
@@ -170,6 +317,9 @@
                             </a>
                             <a href="https://pypi.org/project/zenco/" target="_blank" aria-label="PyPI">
                                 <i class="fas fa-external-link-alt"></i>
+                            </a>
+                            <a href="https://github.com/paudelnirajan/zenco-vscode-extension" target="_blank" aria-label="VS Code Extension">
+                                <i class="fas fa-code"></i>
                             </a>
                         </div>
                     </div>
@@ -240,13 +390,40 @@
                                 processing</li>
                         </ul>
 
+                        <h4>VS Code Extension</h4>
+                        <p>Developed an official Visual Studio Code extension that brings Zenco's AI-powered code analysis
+                            directly into the IDE, providing seamless integration for developers.</p>
+                        <ul>
+                            <li><strong>IDE Integration:</strong> Built a TypeScript-based VS Code extension that
+                                integrates the Zenco CLI tool directly into the editor workflow, eliminating the need to
+                                switch between terminal and IDE</li>
+                            <li><strong>Core Features:</strong> Provides all CLI functionality including file refactoring,
+                                automatic docstring generation (Google, NumPy, RST styles), type hint addition, magic
+                                number detection, and dead code removal</li>
+                            <li><strong>User Experience:</strong> Implemented a diff view for side-by-side comparison
+                                of proposed changes before applying, giving developers full control over code
+                                modifications</li>
+                            <li><strong>Automatic CLI Management:</strong> Engineered automatic installation and
+                                management of the Zenco CLI tool, with smart path resolution across Windows, macOS, and
+                                Linux platforms</li>
+                            <li><strong>Multi-Provider Support:</strong> Configured extension settings for seamless
+                                integration with Groq, OpenAI, Anthropic, and Google Gemini LLM providers</li>
+                            <li><strong>Developer Workflow:</strong> Streamlined access through status bar integration,
+                                allowing developers to trigger code analysis with a single click without leaving the
+                                editor</li>
+                            <li><strong>Cross-Platform Compatibility:</strong> Ensured robust error handling and
+                                cross-platform compatibility for CLI detection and execution</li>
+                        </ul>
+
                         <h4>Skills Demonstrated</h4>
-                        <p><strong>Software Engineering:</strong> Advanced Python, OOP, SOLID principles, design
-                            patterns, API integration, async programming</p>
+                        <p><strong>Software Engineering:</strong> Advanced Python, TypeScript, OOP, SOLID principles,
+                            design patterns, API integration, async programming</p>
                         <p><strong>AI/ML:</strong> LLM API integration, prompt engineering, context-aware systems, cost
                             optimization</p>
                         <p><strong>DevOps:</strong> CI/CD pipelines, GitHub Actions, multi-platform testing, PyPI
                             distribution</p>
+                        <p><strong>IDE Development:</strong> VS Code Extension API, TypeScript, cross-platform CLI
+                            integration, developer tooling</p>
                     </div>
                 </article>
 
@@ -343,93 +520,6 @@
                             microservices architecture</p>
                         <p><strong>Testing:</strong> pytest, Locust load testing, Groq API integration for automated
                             analysis</p>
-                    </div>
-                </article>
-
-                <!-- Featured Project 3: MSaaS -->
-                <article class="project-card featured" data-category="featured cloud">
-                    <div class="project-header">
-                        <div class="project-icon">
-                            <i class="fas fa-music"></i>
-                        </div>
-                        <div class="project-links-top">
-                            <a href="#" target="_blank" aria-label="GitHub">
-                                <i class="fab fa-github"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <span class="project-badge">Featured</span>
-                    <h3 class="project-title">Music Separation as a Service</h3>
-                    <p class="project-description">
-                        Scalable microservices on GKE for AI-driven music source separation. Processes MP3s into 4
-                        instrumental stems with async pipeline.
-                    </p>
-                    <div class="project-tech">
-                        <span>GKE</span>
-                        <span>Redis</span>
-                        <span>Flask</span>
-                        <span>Demucs</span>
-                    </div>
-                    <button class="project-expand" aria-label="Expand details">
-                        <span>Details</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </button>
-                    <div class="project-details">
-                        <h4>Overview</h4>
-                        <p>The system processes user-uploaded MP3s through an asynchronous pipeline, separating them
-                            into four distinct instrumental stems (vocals, drums, bass, other) for download.</p>
-
-                        <h4>Key Achievements</h4>
-                        <ul>
-                            <li><strong>Infrastructure Migration:</strong> Spearheaded critical migration from
-                                self-hosted MinIO to Google Cloud Storage (GCS), boosting data durability from ephemeral
-                                state to <strong>99.99%</strong>. Eliminated single point of failure and reduced
-                                operational overhead.</li>
-                            <li><strong>Asynchronous Processing:</strong> Engineered async processing queue using Redis,
-                                decoupling lightweight Flask REST API from resource-intensive ML worker. Reduced API
-                                response time to <strong>under 200ms</strong> while handling ML inference tasks
-                                averaging <strong>2-5 minutes per song</strong>.</li>
-                            <li><strong>Scalability & Cost-Efficiency:</strong> Designed worker pool for horizontal
-                                scaling on GKE. Architecture capable of processing hundreds of songs per hour by
-                                dynamically adjusting worker pod replicas based on queue depth.</li>
-                            <li><strong>Resource Management:</strong> Implemented precise Kubernetes resource requests
-                                and limits (<strong>6Gi RAM</strong> for Demucs worker pods). Prevented pod evictions
-                                from memory spikes and ensured predictable performance.</li>
-                            <li><strong>Real-time Frontend:</strong> Developed dynamic frontend with JavaScript
-                                providing real-time job status updates. UI transitions from upload → processing →
-                                download links seamlessly.</li>
-                        </ul>
-
-                        <h4>Skills Demonstrated</h4>
-                        <p><strong>Cloud:</strong> Google Kubernetes Engine (GKE), Google Cloud Storage, container
-                            orchestration</p>
-                        <p><strong>Backend:</strong> Flask, Redis, asynchronous processing, microservices architecture
-                        </p>
-                        <p><strong>ML/AI:</strong> Demucs model deployment, resource optimization for ML workloads</p>
-                    </div>
-                </article>
-
-                <!-- AI/ML Project: IOE-GPT -->
-                <article class="project-card" data-category="ai">
-                    <div class="project-header">
-                        <div class="project-icon">
-                            <i class="fas fa-graduation-cap"></i>
-                        </div>
-                        <div class="project-links-top">
-                            <a href="https://github.com/paudelnirajan/IOE-GPT" target="_blank" aria-label="GitHub">
-                                <i class="fab fa-github"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <h3 class="project-title">IOE-GPT Question Assistant</h3>
-                    <p class="project-description">
-                        AI system for IOE students using LangChain and Groq LLM for semantic search and question
-                        answering from past exams.
-                    </p>
-                    <div class="project-tech">
-                        <span>LangChain</span>
-                        <span>Groq</span>
-                        <span>RAG</span>
                     </div>
                 </article>
 
@@ -553,6 +643,68 @@
                         <span>Python</span>
                         <span>ML</span>
                         <span>NLP</span>
+                    </div>
+                </article>
+
+                <!-- Cloud Project: Music Separation as a Service -->
+                <article class="project-card" data-category="cloud">
+                    <div class="project-header">
+                        <div class="project-icon">
+                            <i class="fas fa-music"></i>
+                        </div>
+                        <div class="project-links-top">
+                            <a href="#" target="_blank" aria-label="GitHub">
+                                <i class="fab fa-github"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <h3 class="project-title">Music Separation as a Service</h3>
+                    <p class="project-description">
+                        Scalable microservices on GKE for AI-driven music source separation. Processes MP3s into 4
+                        instrumental stems with async pipeline.
+                    </p>
+                    <div class="project-tech">
+                        <span>GKE</span>
+                        <span>Redis</span>
+                        <span>Flask</span>
+                        <span>Demucs</span>
+                    </div>
+                    <button class="project-expand" aria-label="Expand details">
+                        <span>Details</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <div class="project-details">
+                        <h4>Overview</h4>
+                        <p>The system processes user-uploaded MP3s through an asynchronous pipeline, separating them
+                            into four distinct instrumental stems (vocals, drums, bass, other) for download.</p>
+
+                        <h4>Key Achievements</h4>
+                        <ul>
+                            <li><strong>Infrastructure Migration:</strong> Spearheaded critical migration from
+                                self-hosted MinIO to Google Cloud Storage (GCS), boosting data durability from ephemeral
+                                state to <strong>99.99%</strong>. Eliminated single point of failure and reduced
+                                operational overhead.</li>
+                            <li><strong>Asynchronous Processing:</strong> Engineered async processing queue using Redis,
+                                decoupling lightweight Flask REST API from resource-intensive ML worker. Reduced API
+                                response time to <strong>under 200ms</strong> while handling ML inference tasks
+                                averaging <strong>2-5 minutes per song</strong>.</li>
+                            <li><strong>Scalability & Cost-Efficiency:</strong> Designed worker pool for horizontal
+                                scaling on GKE. Architecture capable of processing hundreds of songs per hour by
+                                dynamically adjusting worker pod replicas based on queue depth.</li>
+                            <li><strong>Resource Management:</strong> Implemented precise Kubernetes resource requests
+                                and limits (<strong>6Gi RAM</strong> for Demucs worker pods). Prevented pod evictions
+                                from memory spikes and ensured predictable performance.</li>
+                            <li><strong>Real-time Frontend:</strong> Developed dynamic frontend with JavaScript
+                                providing real-time job status updates. UI transitions from upload → processing →
+                                download links seamlessly.</li>
+                        </ul>
+
+                        <h4>Skills Demonstrated</h4>
+                        <p><strong>Cloud:</strong> Google Kubernetes Engine (GKE), Google Cloud Storage, container
+                            orchestration</p>
+                        <p><strong>Backend:</strong> Flask, Redis, asynchronous processing, microservices architecture
+                        </p>
+                        <p><strong>ML/AI:</strong> Demucs model deployment, resource optimization for ML workloads</p>
                     </div>
                 </article>
             </div>
