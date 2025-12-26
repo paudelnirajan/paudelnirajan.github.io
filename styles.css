@@ -6,28 +6,36 @@
 /* CSS Custom Properties - Dark Theme (Default) */
 /* CU Boulder Colors: Gold #CFB87C, Black #000000, Dark Gray #565A5C, Light Gray #A2A4A3 */
 :root {
-    /* Dark Theme Colors - CU Boulder Inspired */
-    --bg-primary: #000000;
-    --bg-secondary: #0a0a0a;
-    --bg-tertiary: #141414;
-    --bg-card: rgba(20, 20, 20, 0.9);
-    --bg-card-hover: rgba(30, 30, 30, 0.95);
+    /* Crystal Indigo - High Clarity & Vibrant Balance */
+    --bg-primary: #0F1115;
+    /* Deep Slate (Less Blue) */
+    --bg-secondary: #181A20;
+    /* Neutral Slate */
+    --bg-tertiary: #21252B;
+    /* Mid Slate */
+    --bg-card: rgba(24, 26, 32, 0.85);
+    --bg-card-hover: rgba(33, 37, 43, 0.98);
 
-    --text-primary: #f5f5f5;
-    --text-secondary: #A2A4A3;
-    --text-muted: #565A5C;
+    --text-primary: #F1F5F9;
+    /* Bright Crisp White */
+    --text-secondary: #94A3B8;
+    /* Clear Slate Blue */
+    --text-muted: #64748B;
+    /* Muted Slate Gray */
 
-    --accent-primary: #CFB87C;
-    --accent-secondary: #E8D5A3;
-    --accent-gradient: linear-gradient(135deg, #CFB87C 0%, #E8D5A3 100%);
+    --accent-primary: #82D1F1;
+    /* User-requested Sky Blue */
+    --accent-secondary: #BAE6FD;
+    /* Lighter variant */
+    --accent-gradient: linear-gradient(135deg, #82D1F1 0%, #38BDF8 100%);
 
-    --border-color: rgba(207, 184, 124, 0.15);
-    --border-color-hover: rgba(207, 184, 124, 0.3);
+    --border-color: rgba(130, 209, 241, 0.2);
+    --border-color-hover: rgba(130, 209, 241, 0.4);
 
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.6);
-    --shadow-glow: 0 0 30px rgba(207, 184, 124, 0.2);
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    --shadow-glow: 0 0 25px rgba(130, 209, 241, 0.15);
 
     /* Typography */
     --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -43,34 +51,37 @@
     --transition-slow: 0.5s ease;
 }
 
-/* Light Theme - CU Boulder Inspired */
 [data-theme="light"] {
-    /* Premium Light Theme */
-    --bg-primary: #F9FAFB;
-    /* Very subtle cool gray */
-    --bg-secondary: #F3F4F6;
-    --bg-tertiary: #E5E7EB;
+    /* Arctic Clarity - Crisp & Bright Light Mode */
+    --bg-primary: #F8FAFC;
+    /* Clean cool white */
+    --bg-secondary: #F1F5F9;
+    /* Light Slate wash */
+    --bg-tertiary: #E2E8F0;
+    /* Mid Slate depth */
     --bg-card: #FFFFFF;
     --bg-card-hover: #FFFFFF;
 
-    --text-primary: #111827;
-    /* Near black, softer */
-    --text-secondary: #374151;
-    /* Dark gray for good contrast */
-    --text-muted: #6B7280;
+    --text-primary: #0F172A;
+    /* Deep Slate Black */
+    --text-secondary: #334155;
+    /* Dark Slate Gray */
+    --text-muted: #64748B;
+    /* Muted Slate */
 
-    /* Slightly darker gold for better visibility on light backgrounds */
-    --accent-primary: #B8A066;
-    --accent-secondary: #CFB87C;
-    --accent-gradient: linear-gradient(135deg, #B8A066 0%, #CFB87C 100%);
+    --accent-primary: #0EA5E9;
+    /* Deep Sky Blue for Light Mode */
+    --accent-secondary: #82D1F1;
+    /* User Sky Blue */
+    --accent-gradient: linear-gradient(135deg, #0EA5E9 0%, #82D1F1 100%);
 
-    --border-color: rgba(0, 0, 0, 0.08);
-    --border-color-hover: rgba(184, 160, 102, 0.4);
+    --border-color: rgba(14, 165, 233, 0.1);
+    --border-color-hover: rgba(14, 165, 233, 0.3);
 
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
-    --shadow-glow: 0 0 20px rgba(184, 160, 102, 0.15);
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-glow: 0 0 15px rgba(14, 165, 233, 0.1);
 }
 
 /* ============================================
@@ -262,12 +273,14 @@ body {
 }
 
 .btn-primary {
-    background: var(--accent-gradient);
-    color: #000;
-    border: none;
+    background: var(--bg-tertiary);
+    color: var(--accent-primary);
+    border: 1px solid var(--accent-primary);
 }
 
 .btn-primary:hover {
+    background: var(--accent-primary);
+    color: #fff;
     transform: translateY(-2px);
     box-shadow: var(--shadow-glow);
 }
@@ -466,7 +479,7 @@ body {
 
 .btn-nav:hover {
     background: var(--accent-primary);
-    color: #000 !important;
+    color: #fff !important;
 }
 
 .btn-nav::after {
@@ -628,7 +641,7 @@ body {
 
 .filter-btn.active {
     background: var(--accent-gradient);
-    color: #000;
+    color: #fff;
     border-color: transparent;
 }
 
@@ -715,7 +728,7 @@ body {
     font-size: 0.75rem;
     font-family: var(--font-mono);
     background: var(--accent-gradient);
-    color: #000;
+    color: #fff;
     border-radius: 4px;
     margin-bottom: 1rem;
     font-weight: 600;
@@ -838,7 +851,7 @@ body {
 
 .skill-tag:hover {
     background: var(--accent-primary);
-    color: #000;
+    color: #fff;
     transform: translateY(-2px);
 }
 
@@ -1485,5 +1498,5 @@ body {
 /* Selection styling */
 ::selection {
     background: var(--accent-primary);
-    color: #000;
+    color: #fff;
 }

@@ -66,8 +66,8 @@ function initParticles() {
 
         draw() {
             const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-            // CU Gold color: #CFB87C = rgb(207, 184, 124)
-            const color = isDark ? `rgba(207, 184, 124, ${this.opacity})` : `rgba(184, 160, 102, ${this.opacity})`;
+            // Sky Blue: #82D1F1 for dark, #0EA5E9 for light
+            const color = isDark ? `rgba(130, 209, 241, ${this.opacity})` : `rgba(14, 165, 233, ${this.opacity})`;
 
             ctx.fillStyle = color;
             ctx.beginPath();
@@ -82,8 +82,8 @@ function initParticles() {
         }
     }
 
-    // Create particles
-    const particleCount = Math.min(50, Math.floor((canvas.width * canvas.height) / 20000));
+    // Create particles - Increased density
+    const particleCount = Math.min(120, Math.floor((canvas.width * canvas.height) / 12000));
     for (let i = 0; i < particleCount; i++) {
         particles.push(new Particle());
     }
@@ -97,18 +97,18 @@ function initParticles() {
             particle.draw();
         });
 
-        // Draw connections between nearby particles
+        // Draw connections between nearby particles - slightly increased distance
         particles.forEach((p1, i) => {
             particles.slice(i + 1).forEach(p2 => {
                 const dx = p1.x - p2.x;
                 const dy = p1.y - p2.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
-                if (distance < 150) {
+                if (distance < 180) {
                     const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-                    const opacity = (1 - distance / 150) * 0.15;
-                    // CU Gold color for connections
-                    const color = isDark ? `rgba(207, 184, 124, ${opacity})` : `rgba(184, 160, 102, ${opacity})`;
+                    const opacity = (1 - distance / 180) * 0.15;
+                    // Sky Blue Glow for connections
+                    const color = isDark ? `rgba(130, 209, 241, ${opacity})` : `rgba(14, 165, 233, ${opacity})`;
 
                     ctx.strokeStyle = color;
                     ctx.lineWidth = 0.5;
