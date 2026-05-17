@@ -591,7 +591,7 @@ function renderBlog() {
             <div class="blog-tags">
                 ${post.tags.map(t => `<span>${t}</span>`).join('')}
             </div>
-            <a href="${post.link}" class="blog-link">
+            <a href="blog-post.html?post=${post.slug}" class="blog-link">
                 Read more <i class="fas fa-arrow-right"></i>
             </a>
         </article>
