@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,123 +11,59 @@
     <meta property="og:type" content="website">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-    <!-- Particle Canvas -->
-    <canvas id="particles-canvas" aria-hidden="true"></canvas>
-
-    <!-- ============================================================
-         SIDEBAR — desktop fixed left panel
-    ============================================================ -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sb-body">
-
-            <div class="sb-top">
-                <a href="#hero" class="sb-logo">NP</a>
-            </div>
-
-            <nav class="sb-nav" aria-label="Site navigation">
-                <a href="#about"        class="sb-link" data-target="about">
-                    <i class="fas fa-user"         aria-hidden="true"></i>
-                    <span class="sb-link-text">About</span>
-                </a>
-                <a href="#projects"     class="sb-link" data-target="projects">
-                    <i class="fas fa-folder"       aria-hidden="true"></i>
-                    <span class="sb-link-text">Projects</span>
-                </a>
-                <a href="#skills"       class="sb-link" data-target="skills">
-                    <i class="fas fa-layer-group"  aria-hidden="true"></i>
-                    <span class="sb-link-text">Skills</span>
-                </a>
-                <a href="#publications" class="sb-link" data-target="publications">
-                    <i class="fas fa-flask"        aria-hidden="true"></i>
-                    <span class="sb-link-text">Research</span>
-                </a>
-                <a href="#blog"         class="sb-link" data-target="blog">
-                    <i class="fas fa-pen"          aria-hidden="true"></i>
-                    <span class="sb-link-text">Blog</span>
-                </a>
-            </nav>
-
-            <div class="sb-foot">
-                <a href="Nirajan_Paudel.pdf" class="sb-resume" download>
-                    <i class="fas fa-download"></i>
-                    <span class="sb-link-text">Resume</span>
-                </a>
-                <div class="sb-socials-wrap">
-                    <!-- Collapsed: single @-handle stub icon -->
-                    <div class="sb-socials-stub" aria-hidden="true">
-                        <i class="fas fa-at"></i>
-                    </div>
-                    <!-- Expanded: individual social links -->
-                    <div class="sb-socials">
-                        <a href="mailto:nirajan.paudel@colorado.edu" aria-label="Email"><i class="fas fa-envelope"></i></a>
-                        <a href="https://github.com/paudelnirajan"             target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
-                        <a href="https://www.linkedin.com/in/nirajanpaudel17/" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
-                        <a href="https://x.com/paudelnirajan17"                target="_blank" rel="noopener" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                    </div>
-                </div>
-                <button id="theme-toggle" class="sb-theme" aria-label="Toggle theme">
-                    <i class="fas fa-moon" id="theme-icon"></i>
-                    <span id="theme-label" class="sb-link-text">Light mode</span>
-                </button>
-            </div>
-
+    <nav class="navbar" id="navbar" aria-label="Site navigation">
+        <a href="#hero" class="nav-logo">Nirajan<span>.</span></a>
+        <div class="nav-links">
+            <a href="#about" data-target="about">About</a>
+            <a href="#projects" data-target="projects">Projects</a>
+            <a href="#skills" data-target="skills">Skills</a>
+            <a href="#publications" data-target="publications">Research</a>
+            <a href="#blog" data-target="blog">Blog</a>
         </div>
-    </aside>
-
-    <!-- ============================================================
-         MOBILE TOP BAR
-    ============================================================ -->
-    <nav class="mob-bar" id="mob-bar" aria-label="Mobile navigation">
-        <a href="#hero" class="mob-logo">NP</a>
-        <div class="mob-right">
-            <button id="mob-theme" class="mob-theme-btn" aria-label="Toggle theme">
-                <i class="fas fa-moon" id="mob-theme-icon"></i>
+        <div class="nav-actions">
+            <a href="Nirajan_Paudel.pdf" class="nav-resume" download>
+                <i class="fas fa-download"></i> Resume
+            </a>
+            <button id="theme-toggle" class="nav-theme" aria-label="Toggle theme">
+                <i class="fas fa-moon" id="theme-icon"></i>
             </button>
-            <button id="mob-toggle" class="mob-hamburger" aria-label="Open menu">
+            <button id="mob-toggle" class="nav-hamburger" aria-label="Open menu">
                 <span></span><span></span><span></span>
             </button>
         </div>
     </nav>
 
-    <!-- Mobile Drawer -->
     <div class="mob-drawer" id="mob-drawer" aria-hidden="true">
-        <nav>
-            <a href="#about"        class="mob-drawer-link">About</a>
-            <a href="#projects"     class="mob-drawer-link">Projects</a>
-            <a href="#skills"       class="mob-drawer-link">Skills</a>
-            <a href="#publications" class="mob-drawer-link">Research</a>
-            <a href="#blog"         class="mob-drawer-link">Blog</a>
-            <a href="Nirajan_Paudel.pdf" class="mob-drawer-link mob-resume-link" download>
-                <i class="fas fa-download"></i> Resume
-            </a>
-        </nav>
+        <a href="#about">About</a>
+        <a href="#projects">Projects</a>
+        <a href="#skills">Skills</a>
+        <a href="#publications">Research</a>
+        <a href="#blog">Blog</a>
+        <a href="Nirajan_Paudel.pdf" download>
+            <i class="fas fa-download"></i> Resume
+        </a>
         <div class="mob-drawer-socials">
             <a href="mailto:nirajan.paudel@colorado.edu" aria-label="Email"><i class="fas fa-envelope"></i></a>
-            <a href="https://github.com/paudelnirajan"             target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
+            <a href="https://github.com/paudelnirajan" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
             <a href="https://www.linkedin.com/in/nirajanpaudel17/" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
-            <a href="https://x.com/paudelnirajan17"                target="_blank" rel="noopener" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+            <a href="https://x.com/paudelnirajan17" target="_blank" rel="noopener" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
         </div>
     </div>
     <div class="mob-backdrop" id="mob-backdrop"></div>
 
-    <!-- ============================================================
-         MAIN CONTENT
-    ============================================================ -->
     <main class="main" id="main">
 
-        <!-- ─── HERO ──────────────────────────────────────────────── -->
         <section id="hero" class="hero">
             <div class="hero-inner">
                 <p class="hero-eyebrow">Hello, I'm</p>
                 <h1 class="hero-name">
-                    <span class="hero-name-line">Nirajan</span>
-                    <span class="hero-name-line hero-name-accent">Paudel.</span>
+                    Nirajan <span class="hero-name-accent">Paudel.</span>
                 </h1>
                 <div class="hero-role">
                     <span id="typewriter"></span><span class="cursor" aria-hidden="true">|</span>
@@ -139,7 +75,13 @@
                 </p>
                 <div class="hero-cta">
                     <a href="#projects" class="btn btn-primary">View Work</a>
-                    <a href="#about"    class="btn btn-ghost">About Me</a>
+                    <a href="#about" class="btn btn-ghost">About Me</a>
+                </div>
+                <div class="hero-socials">
+                    <a href="mailto:nirajan.paudel@colorado.edu" aria-label="Email"><i class="fas fa-envelope"></i></a>
+                    <a href="https://github.com/paudelnirajan" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                    <a href="https://www.linkedin.com/in/nirajanpaudel17/" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                    <a href="https://x.com/paudelnirajan17" target="_blank" rel="noopener" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
                 </div>
             </div>
             <a href="#about" class="hero-scroll" aria-label="Scroll to about section">
@@ -148,57 +90,56 @@
             </a>
         </section>
 
-        <!-- ─── ABOUT ─────────────────────────────────────────────── -->
         <section id="about" class="section reveal">
             <div class="section-inner">
                 <header class="sec-head">
                     <span class="sec-num" aria-hidden="true">01</span>
-                    <p class="sec-label">About</p>
-                    <h2 class="sec-title">Who I Am</h2>
+                    <h2 class="sec-title">About</h2>
                 </header>
 
-                <div class="about-grid">
+                <div class="about-top">
+                    <div class="about-photo-wrap">
+                        <div class="photo-frame">
+                            <img src="photo_for_website.jpeg" alt="Nirajan Paudel" loading="lazy">
+                        </div>
+                    </div>
                     <div class="about-text">
                         <p>I'm a <strong>Master's student in Computer Science</strong> at the University of Colorado Boulder, passionate about building intelligent systems that solve real-world problems.</p>
                         <p>My journey spans from developing <strong>AI-driven chatbots</strong> to teaching programming fundamentals as a teaching assistant. I thrive at the intersection of <strong>Machine Learning, Cloud Infrastructure, and NLP</strong>.</p>
                         <blockquote class="about-quote">
-                            "Will humans be able to preserve their culture and language in AI models that persist longer than humans themselves?"
+                            "Will humans be able to map `Emotions` as data? so neural net will be able to figure it out?"
                         </blockquote>
-                        <div class="about-cta">
-                            <a href="Nirajan_Paudel.pdf" class="btn btn-ghost" download>
-                                <i class="fas fa-download"></i> Download Resume
-                            </a>
-                        </div>
                     </div>
+                </div>
 
-                    <div class="about-aside">
-                        <div class="about-photo-wrap">
-                            <div class="photo-ring-outer"></div>
-                            <div class="photo-ring-gap"></div>
-                            <div class="photo-frame">
-                                <img src="photo_for_website.jpeg" alt="Nirajan Paudel" loading="lazy">
-                            </div>
+                <div class="focus-section">
+                    <h3 class="focus-heading">Research Focus</h3>
+                    <div class="focus-row">
+                        <div class="focus-item">
+                            <strong>Multilingual NLP</strong>
+                            <span>low-resource languages</span>
                         </div>
-                        <div class="focus-block">
-                            <h3 class="focus-heading">Research Focus</h3>
-                            <ul class="focus-list">
-                                <li><span class="focus-dot"></span><strong>Multilingual NLP</strong> — low-resource languages</li>
-                                <li><span class="focus-dot"></span><strong>Cross-lingual Transfer</strong> — transfer learning</li>
-                                <li><span class="focus-dot"></span><strong>LLM Adaptation</strong> — fine-tuning &amp; alignment</li>
-                                <li><span class="focus-dot"></span><strong>Computer Vision</strong> — autonomous systems</li>
-                            </ul>
+                        <div class="focus-item">
+                            <strong>Cross-lingual Transfer</strong>
+                            <span>transfer learning</span>
+                        </div>
+                        <div class="focus-item">
+                            <strong>LLM Adaptation</strong>
+                            <span>fine-tuning &amp; alignment</span>
+                        </div>
+                        <div class="focus-item">
+                            <strong>Computer Vision</strong>
+                            <span>autonomous systems</span>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- ─── PROJECTS ──────────────────────────────────────────── -->
         <section id="projects" class="section reveal">
             <div class="section-inner">
                 <header class="sec-head">
                     <span class="sec-num" aria-hidden="true">02</span>
-                    <p class="sec-label">Work</p>
                     <h2 class="sec-title">Projects</h2>
                 </header>
 
@@ -209,76 +150,56 @@
                     <button class="filter-btn" data-filter="cloud">Cloud</button>
                 </div>
 
-                <div class="bento-grid" id="projects-grid"></div>
+                <div class="project-list" id="projects-grid"></div>
             </div>
         </section>
 
-        <!-- ─── SKILLS ────────────────────────────────────────────── -->
         <section id="skills" class="section reveal">
             <div class="section-inner">
                 <header class="sec-head">
                     <span class="sec-num" aria-hidden="true">03</span>
-                    <p class="sec-label">Capabilities</p>
                     <h2 class="sec-title">Skills &amp; Tools</h2>
                 </header>
 
-                <div class="skills-layout">
-                    <div class="skill-col">
-                        <div class="skill-group">
-                            <h3 class="skill-group-head">Languages</h3>
-                            <div class="skill-tags">
-                                <span>Python</span><span>C++</span><span>C</span><span>SQL</span><span>Java</span>
-                            </div>
-                        </div>
-                        <div class="skill-group">
-                            <h3 class="skill-group-head">Frameworks &amp; Tools</h3>
-                            <div class="skill-tags">
-                                <span>FastAPI</span><span>Flask</span><span>Django</span>
-                                <span>Pandas</span><span>NumPy</span><span>Git</span><span>Redis</span>
-                            </div>
+                <div class="skills-table">
+                    <div class="skill-row">
+                        <span class="skill-label">Languages</span>
+                        <div class="skill-tags">
+                            <span>Python</span><span>C++</span><span>C</span><span>SQL</span><span>Java</span>
                         </div>
                     </div>
-                    <div class="skill-col">
-                        <div class="skill-group">
-                            <h3 class="skill-group-head">AI &amp; ML</h3>
-                            <div class="skill-tags">
-                                <span>TensorFlow</span><span>PyTorch</span><span>LangChain</span>
-                                <span>LangGraph</span><span>Scikit-learn</span><span>Transformers</span>
-                                <span>CNNs</span><span>RNNs</span>
-                            </div>
-                        </div>
-                        <div class="skill-group">
-                            <h3 class="skill-group-head">Cloud &amp; DevOps</h3>
-                            <div class="skill-tags">
-                                <span>AWS</span><span>GCP</span><span>Kubernetes</span>
-                                <span>Docker</span><span>Terraform</span><span>GitHub Actions</span>
-                            </div>
+                    <div class="skill-row">
+                        <span class="skill-label">Frameworks &amp; Tools</span>
+                        <div class="skill-tags">
+                            <span>FastAPI</span><span>Flask</span><span>Django</span><span>Pandas</span><span>NumPy</span><span>Git</span><span>Redis</span>
                         </div>
                     </div>
-                </div>
-
-                <div class="coursework-block">
-                    <h3 class="coursework-head">Graduate Coursework</h3>
-                    <div class="course-list">
-                        <div class="course-item">
-                            <code>CSCI 5253</code>
-                            <span>Data Center Scale Computing</span>
+                    <div class="skill-row">
+                        <span class="skill-label">AI &amp; ML</span>
+                        <div class="skill-tags">
+                            <span>TensorFlow</span><span>PyTorch</span><span>LangChain</span><span>LangGraph</span><span>Scikit-learn</span><span>Transformers</span><span>CNNs</span><span>RNNs</span>
                         </div>
-                        <div class="course-item">
-                            <code>CSCI 5448</code>
-                            <span>Object Oriented Analysis &amp; Design</span>
+                    </div>
+                    <div class="skill-row">
+                        <span class="skill-label">Cloud &amp; DevOps</span>
+                        <div class="skill-tags">
+                            <span>AWS</span><span>GCP</span><span>Kubernetes</span><span>Docker</span><span>Terraform</span><span>GitHub Actions</span>
+                        </div>
+                    </div>
+                    <div class="skill-row">
+                        <span class="skill-label">Coursework</span>
+                        <div class="skill-tags">
+                            <span>Data Center Scale Computing</span><span>Object Oriented Analysis &amp; Design</span><span>Machine Learning</span><span>NLP</span><span>Computer Vision</span><span>Distributed Systems</span>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- ─── PUBLICATIONS ──────────────────────────────────────── -->
         <section id="publications" class="section reveal">
             <div class="section-inner">
                 <header class="sec-head">
                     <span class="sec-num" aria-hidden="true">04</span>
-                    <p class="sec-label">Research</p>
                     <h2 class="sec-title">Publications</h2>
                 </header>
 
@@ -286,75 +207,67 @@
                     <article class="pub-item">
                         <div class="pub-year-col">
                             <span class="pub-year">2024</span>
+                            <span class="pub-venue">JISMAC</span>
                         </div>
-                        <div class="pub-content">
-                            <span class="pub-venue">Journal of IoT in Social, Mobile, Analytics &amp; Cloud</span>
-                            <h3 class="pub-title">
-                                <a href="https://doi.org/10.36548/jismac.2024.1.005" target="_blank" rel="noopener">
-                                    Drowsiness and Crash Detection Mobile Application for Vehicle's Safety
-                                    <i class="fas fa-arrow-up-right-from-square"></i>
-                                </a>
-                            </h3>
+                        <div>
+                            <h3 class="pub-title">Drowsiness and Crash Detection Mobile Application for Vehicle's Safety</h3>
                             <p class="pub-authors">N. Subedi · <strong>N. Paudel</strong> · M. Chhetri · S. Acharya · N. Lamichhane</p>
-                            <span class="pub-ref">Vol 6(1) · pp. 54–66</span>
+                            <div class="pub-meta">
+                                <a href="https://doi.org/10.36548/jismac.2024.1.005" target="_blank" rel="noopener">
+                                    <i class="fas fa-arrow-up-right-from-square"></i> DOI
+                                </a>
+                            </div>
                         </div>
                     </article>
 
                     <article class="pub-item">
                         <div class="pub-year-col">
                             <span class="pub-year">2024</span>
+                            <span class="pub-venue">JSCP</span>
                         </div>
-                        <div class="pub-content">
-                            <span class="pub-venue">Journal of Soft Computing Paradigm</span>
-                            <h3 class="pub-title">
-                                <a href="https://doi.org/10.36548/jscp.2024.1.006" target="_blank" rel="noopener">
-                                    Nepali Image Captioning: Generating Coherent Paragraph-Length Descriptions Using Transformer
-                                    <i class="fas fa-arrow-up-right-from-square"></i>
-                                </a>
-                            </h3>
+                        <div>
+                            <h3 class="pub-title">Nepali Image Captioning: Generating Coherent Paragraph-Length Descriptions Using Transformer</h3>
                             <p class="pub-authors">N. Subedi · <strong>N. Paudel</strong> · M. Chhetri · S. Acharya · N. Lamichhane</p>
-                            <span class="pub-ref">Vol 6(1) · pp. 70–84</span>
+                            <div class="pub-meta">
+                                <a href="https://doi.org/10.36548/jscp.2024.1.006" target="_blank" rel="noopener">
+                                    <i class="fas fa-arrow-up-right-from-square"></i> DOI
+                                </a>
+                            </div>
                         </div>
                     </article>
-                    <!-- space for future publications -->
                 </div>
             </div>
         </section>
 
-        <!-- ─── BLOG ──────────────────────────────────────────────── -->
         <section id="blog" class="section reveal">
             <div class="section-inner">
                 <header class="sec-head">
                     <span class="sec-num" aria-hidden="true">05</span>
-                    <p class="sec-label">Writing</p>
                     <h2 class="sec-title">Blog</h2>
                 </header>
-                <div class="blog-grid" id="blog-grid"></div>
+                <div class="blog-list" id="blog-grid"></div>
             </div>
         </section>
 
-        <!-- ─── FOOTER ────────────────────────────────────────────── -->
         <footer class="footer">
             <div class="footer-inner">
-                <p class="footer-name">Nirajan Paudel</p>
+                <div class="footer-left">
+                    <p class="footer-copy">Nirajan Paudel — ML Engineer &amp; Researcher</p>
+                    <p class="footer-built">Designed &amp; built with care</p>
+                </div>
                 <div class="footer-socials">
                     <a href="mailto:nirajan.paudel@colorado.edu" aria-label="Email"><i class="fas fa-envelope"></i></a>
-                    <a href="https://github.com/paudelnirajan"             target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                    <a href="https://github.com/paudelnirajan" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
                     <a href="https://www.linkedin.com/in/nirajanpaudel17/" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
-                    <a href="https://x.com/paudelnirajan17"                target="_blank" rel="noopener" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="https://x.com/paudelnirajan17" target="_blank" rel="noopener" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
                 </div>
-                <p class="footer-copy">&copy; 2025 · Designed &amp; built by Nirajan Paudel</p>
             </div>
         </footer>
 
-    </main><!-- /.main -->
+    </main>
 
-    <!-- ============================================================
-         PROJECT DETAIL MODAL
-    ============================================================ -->
-    <div id="modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
-        <div class="modal-backdrop" id="modal-backdrop"></div>
-        <div class="modal-panel">
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-box">
             <button class="modal-close" id="modal-close" aria-label="Close modal">
                 <i class="fas fa-xmark"></i>
             </button>

@@ -1,11 +1,3 @@
-/* =================================================================
-   NIRAJAN PAUDEL — PORTFOLIO SCRIPTS
-   Sidebar layout · Wood theme · Bento grid · Particles · Modal
-================================================================= */
-
-/* -----------------------------------------------------------------
-   PROJECT DATA
------------------------------------------------------------------ */
 const PROJECTS = [
     {
         id: 'tensor',
@@ -193,8 +185,7 @@ const PROJECTS = [
 ----------------------------------------------------------------- */
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
-    initParticles();
-    initSidebar();
+    initNav();
     initMobileNav();
     initScrollReveal();
     initTypewriter();
@@ -205,15 +196,13 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* -----------------------------------------------------------------
-   THEME — dark default, wood palette
+   THEME — dark / light toggle
 ----------------------------------------------------------------- */
 function initTheme() {
     const saved = localStorage.getItem('np-theme') || 'dark';
     applyTheme(saved);
 
-    // Desktop sidebar toggle
     document.getElementById('theme-toggle')?.addEventListener('click', toggleTheme);
-    // Mobile toggle
     document.getElementById('mob-theme')?.addEventListener('click', toggleTheme);
 }
 
@@ -239,124 +228,10 @@ function applyTheme(theme) {
 }
 
 /* -----------------------------------------------------------------
-   PARTICLES — organic warm-toned network
------------------------------------------------------------------ */
-function initParticles() {
-    const canvas = document.getElementById('particles-canvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    let W, H, particles = [], mouse = { x: null, y: null }, raf;
-
-    function resize() {
-        W = canvas.width  = window.innerWidth;
-        H = canvas.height = window.innerHeight;
-    }
-    resize();
-    window.addEventListener('resize', () => { resize(); buildParticles(); });
-    document.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-    document.addEventListener('mouseleave', () => { mouse.x = null; mouse.y = null; });
-
-    class Particle {
-        constructor() { this.init(); }
-        init() {
-            this.x     = Math.random() * W;
-            this.y     = Math.random() * H;
-            this.r     = Math.random() * 1.8 + 0.4;
-            this.base  = Math.random() * 0.45 + 0.1;
-            this.op    = this.base;
-            this.angle = Math.random() * Math.PI * 2;
-            this.turn  = (Math.random() - 0.5) * 0.016;
-            this.speed = Math.random() * 0.38 + 0.08;
-            this.pulse = Math.random() * Math.PI * 2;
-            this.pSpd  = Math.random() * 0.016 + 0.003;
-        }
-        update() {
-            this.angle += this.turn;
-            this.x += Math.cos(this.angle) * this.speed;
-            this.y += Math.sin(this.angle) * this.speed;
-            this.pulse += this.pSpd;
-            this.op = this.base + Math.sin(this.pulse) * 0.08;
-
-            if (mouse.x !== null) {
-                const dx = this.x - mouse.x, dy = this.y - mouse.y;
-                const d = Math.sqrt(dx*dx + dy*dy);
-                if (d < 90) {
-                    const f = (90 - d) / 90;
-                    this.x += (dx / d) * f * 1.6;
-                    this.y += (dy / d) * f * 1.6;
-                }
-            }
-
-            const m = 12;
-            if (this.x < -m) this.x = W + m;
-            if (this.x > W+m) this.x = -m;
-            if (this.y < -m) this.y = H + m;
-            if (this.y > H+m) this.y = -m;
-        }
-        draw(r, g, b) {
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(${r},${g},${b},${this.op})`;
-            ctx.fill();
-        }
-    }
-
-    function buildParticles() {
-        const count = Math.min(Math.max(Math.floor((W * H) / 15000), 38), 120);
-        particles = Array.from({ length: count }, () => new Particle());
-    }
-    buildParticles();
-
-    const DIST = 145;
-
-    function draw() {
-        ctx.clearRect(0, 0, W, H);
-        const dark = document.documentElement.getAttribute('data-theme') === 'dark';
-        // Light: warm stone  Dark: light stone
-        const [r, g, b] = dark ? [168, 162, 158] : [87, 83, 78];
-
-        if (dark) {
-            ctx.save();
-            ctx.shadowBlur = 7;
-            ctx.shadowColor = `rgba(${r},${g},${b},0.4)`;
-            particles.forEach(p => p.draw(r, g, b));
-            ctx.restore();
-        } else {
-            particles.forEach(p => p.draw(r, g, b));
-        }
-
-        for (let i = 0; i < particles.length; i++) {
-            for (let j = i + 1; j < particles.length; j++) {
-                const dx = particles[i].x - particles[j].x;
-                const dy = particles[i].y - particles[j].y;
-                const d  = Math.sqrt(dx*dx + dy*dy);
-                if (d < DIST) {
-                    const alpha = (1 - d / DIST) * (dark ? 0.16 : 0.07);
-                    ctx.beginPath();
-                    ctx.moveTo(particles[i].x, particles[i].y);
-                    ctx.lineTo(particles[j].x, particles[j].y);
-                    ctx.strokeStyle = `rgba(${r},${g},${b},${alpha})`;
-                    ctx.lineWidth = 0.6;
-                    ctx.stroke();
-                }
-            }
-        }
-        particles.forEach(p => p.update());
-        raf = requestAnimationFrame(draw);
-    }
-    draw();
-
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden) cancelAnimationFrame(raf);
-        else draw();
-    });
-}
-
-/* -----------------------------------------------------------------
    SIDEBAR — active link tracking
 ----------------------------------------------------------------- */
-function initSidebar() {
-    const links    = document.querySelectorAll('.sb-link');
+function initNav() {
+    const links    = document.querySelectorAll('.nav-links a');
     const sections = document.querySelectorAll('section[id]');
 
     function updateActive() {
@@ -373,7 +248,6 @@ function initSidebar() {
     window.addEventListener('scroll', updateActive, { passive: true });
     updateActive();
 
-    // Smooth scroll
     document.querySelectorAll('a[href^="#"]').forEach(a => {
         a.addEventListener('click', e => {
             const id = a.getAttribute('href');
@@ -381,9 +255,7 @@ function initSidebar() {
             const target = document.querySelector(id);
             if (!target) return;
             e.preventDefault();
-            const offset = window.innerWidth <= 1024
-                ? parseInt(getComputedStyle(document.documentElement).getPropertyValue('--mob-h')) + 12
-                : 24;
+            const offset = 80;
             window.scrollTo({ top: target.offsetTop - offset, behavior: 'smooth' });
         });
     });
@@ -400,21 +272,21 @@ function initMobileNav() {
     function openDrawer() {
         drawer.classList.add('open');
         drawer.setAttribute('aria-hidden', 'false');
-        backdrop.classList.add('visible');
+        backdrop.classList.add('show');
         toggle.classList.add('open');
         document.body.style.overflow = 'hidden';
     }
     function closeDrawer() {
         drawer.classList.remove('open');
         drawer.setAttribute('aria-hidden', 'true');
-        backdrop.classList.remove('visible');
+        backdrop.classList.remove('show');
         toggle.classList.remove('open');
         document.body.style.overflow = '';
     }
 
     toggle?.addEventListener('click', () => drawer.classList.contains('open') ? closeDrawer() : openDrawer());
     backdrop?.addEventListener('click', closeDrawer);
-    document.querySelectorAll('.mob-drawer-link').forEach(l => l.addEventListener('click', closeDrawer));
+    drawer.querySelectorAll('a').forEach(l => l.addEventListener('click', closeDrawer));
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
 }
 
@@ -458,32 +330,16 @@ function renderProjects() {
     const grid = document.getElementById('projects-grid');
     if (!grid) return;
 
-    grid.innerHTML = PROJECTS.map((p, i) => `
-        <article class="bento-card ${p.size === 'wide' ? 'wide' : ''} ${p.badge ? 'featured' : ''}"
-                 data-category="${p.category}"
-                 data-id="${p.id}"
-                 style="animation-delay:${i * 0.055}s">
-            <div class="card-top">
-                <span class="card-icon"><i class="${p.icon}"></i></span>
-                <div class="card-links">
-                    ${p.links.map(l => `
-                        <a href="${l.href}" target="_blank" rel="noopener" aria-label="${l.label}" title="${l.label}">
-                            <i class="${l.icon}"></i>
-                        </a>
-                    `).join('')}
+    grid.innerHTML = PROJECTS.map(p => `
+        <article class="project-item" data-category="${p.category}" data-id="${p.id}">
+            <div class="project-main">
+                <h3 class="project-title">${p.title}</h3>
+                <p class="project-desc">${p.desc}</p>
+                <div class="project-tech">
+                    ${p.tech.map(t => `<span>${t}</span>`).join('')}
                 </div>
             </div>
-            ${p.badge ? `<span class="card-badge">${p.badge}</span>` : ''}
-            <h3 class="card-title">${p.title}</h3>
-            <p class="card-desc">${p.desc}</p>
-            <div class="card-tech">
-                ${p.tech.map(t => `<span>${t}</span>`).join('')}
-            </div>
-            ${p.details ? `
-                <button class="card-detail-btn" data-id="${p.id}">
-                    View details <i class="fas fa-arrow-right"></i>
-                </button>
-            ` : ''}
+            <span class="project-arrow"><i class="fas fa-arrow-right"></i></span>
         </article>
     `).join('');
 }
@@ -497,16 +353,10 @@ function initFilters() {
     if (!btns.length || !grid) return;
 
     function applyFilter(f) {
-        const cards = grid.querySelectorAll('.bento-card');
-        cards.forEach((c, i) => {
+        const items = grid.querySelectorAll('.project-item');
+        items.forEach(c => {
             const cats = c.dataset.category || '';
-            const show = f === 'all' || cats.includes(f);
-            c.classList.toggle('hidden', !show);
-            if (show) {
-                c.style.animationDelay = `${i * 0.05}s`;
-                void c.offsetWidth; // reflow
-                c.style.animation = 'fadeUp 0.4s ease both';
-            }
+            c.style.display = f === 'all' || cats.includes(f) ? '' : 'none';
         });
     }
 
@@ -525,11 +375,10 @@ function initFilters() {
    MODAL
 ----------------------------------------------------------------- */
 function initModal() {
-    const modal    = document.getElementById('modal');
+    const overlay  = document.getElementById('modal-overlay');
     const body     = document.getElementById('modal-body');
-    const backdrop = document.getElementById('modal-backdrop');
     const closeBtn = document.getElementById('modal-close');
-    if (!modal) return;
+    if (!overlay) return;
 
     function open(id) {
         const p = PROJECTS.find(x => x.id === id);
@@ -551,28 +400,27 @@ function initModal() {
             <div class="modal-detail">${p.details}</div>
         `;
 
-        modal.classList.add('open');
-        modal.setAttribute('aria-hidden', 'false');
+        overlay.classList.add('show');
         document.body.style.overflow = 'hidden';
-        modal.querySelector('.modal-scroll').scrollTop = 0;
+        overlay.querySelector('.modal-scroll').scrollTop = 0;
     }
 
     function close() {
-        modal.classList.remove('open');
-        modal.setAttribute('aria-hidden', 'true');
+        overlay.classList.remove('show');
         document.body.style.overflow = '';
     }
 
-    // Event delegation — works even after filter re-renders
     document.getElementById('projects-grid')?.addEventListener('click', e => {
-        const btn = e.target.closest('.card-detail-btn');
-        if (btn) open(btn.dataset.id);
+        const item = e.target.closest('.project-item');
+        if (item) open(item.dataset.id);
     });
 
-    backdrop?.addEventListener('click', close);
+    overlay?.addEventListener('click', e => {
+        if (e.target === overlay) close();
+    });
     closeBtn?.addEventListener('click', close);
     document.addEventListener('keydown', e => {
-        if (e.key === 'Escape' && modal.classList.contains('open')) close();
+        if (e.key === 'Escape' && overlay.classList.contains('show')) close();
     });
 }
 
@@ -584,16 +432,26 @@ function renderBlog() {
     if (!grid || typeof blogPosts === 'undefined') return;
 
     grid.innerHTML = blogPosts.map(post => `
-        <article class="blog-card">
-            <span class="blog-date">${post.date}</span>
-            <h3 class="blog-title">${post.title}</h3>
-            <p class="blog-excerpt">${post.excerpt}</p>
-            <div class="blog-tags">
-                ${post.tags.map(t => `<span>${t}</span>`).join('')}
+        <article class="blog-item" data-href="blog-post.html?post=${post.slug}">
+            <div class="blog-main">
+                <h3 class="blog-title">${post.title}</h3>
+                <p class="blog-excerpt">${post.excerpt}</p>
+                <div class="blog-meta">
+                    <span class="blog-date">${post.date}</span>
+                    <div class="blog-tags">
+                        ${post.tags.map(t => `<span>${t}</span>`).join('')}
+                    </div>
+                </div>
             </div>
-            <a href="blog-post.html?post=${post.slug}" class="blog-link">
-                Read more <i class="fas fa-arrow-right"></i>
-            </a>
+            <span class="blog-arrow" aria-hidden="true">
+                <i class="fas fa-arrow-right"></i>
+            </span>
         </article>
     `).join('');
+
+    grid.querySelectorAll('.blog-item').forEach(item => {
+        item.addEventListener('click', () => {
+            window.location.href = item.dataset.href;
+        });
+    });
 }
