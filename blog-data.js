@@ -6,6 +6,13 @@
 ================================================================= */
 const blogPosts = [
     {
+        slug:    "nlp-tool-calling-transformer",
+        title:   "Tool-Calling Language Models from First Principles",
+        date:    "May 18, 2026",
+        excerpt: "We built a decoder-only Transformer entirely from scratch in NumPy and trained it to perform structured tool calling — achieving 97–99.5% exact-match accuracy while uncovering systematic failures invisible to standard metrics.",
+        tags:    ["NLP", "Transformers", "Tool-Calling", "NumPy", "Deep Learning"]
+    },
+    {
         slug:    "optimizing-llm-inference-costs",
         title:   "Optimizing LLM Inference Costs",
         date:    "December 8, 2025",

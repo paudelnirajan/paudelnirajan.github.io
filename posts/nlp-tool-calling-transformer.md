@@ -1,7 +1,7 @@
 ---
 title: Tool-Calling Language Models from First Principles
 date: May 18, 2026
-tags: | NLP | Transformers | Tool-Calling | NumPy | Deep Learning |
+tags: [NLP, Transformers, Tool-Calling, NumPy, Deep Learning]
 excerpt: We built a decoder-only Transformer entirely from scratch in NumPy and trained it to perform structured tool calling — achieving 97–99.5% exact-match accuracy while uncovering systematic failures invisible to standard metrics.
 ---
 
