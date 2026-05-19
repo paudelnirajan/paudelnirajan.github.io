@@ -17,7 +17,7 @@ The task: given a natural-language query and a list of available tool signatures
 
 The end-to-end system flows through nine stages — from template authoring to evaluation:
 
-![End-to-end pipeline for the tool-calling language model](pipeline.png)
+![End-to-end pipeline for the tool-calling language model](posts/pipeline.png)
 
 Each training example is formatted as a single autoregressive sequence:
 
@@ -72,7 +72,7 @@ Key architectural choices: pre-norm LayerNorm, weight-tied language modeling hea
 
 The metric comparison across model sizes for the 10k configuration is shown below:
 
-![Test evaluation metrics for all three model sizes on the 10k dataset](metrics.png)
+![Test evaluation metrics for all three model sizes on the 10k dataset](posts/metrics.png)
 
 **Tool selection is universally solved.** Every model hits 100% Tool Selection Accuracy (TSA) on both datasets. Every single error in every experiment is an *argument* error — not a wrong tool.
 
@@ -80,7 +80,7 @@ The metric comparison across model sizes for the 10k configuration is shown belo
 
 The training curves reveal a clear pattern:
 
-![Training curves for the 21k dataset: training loss, validation loss, and tool selection accuracy](training_curves.png)
+![Training curves for the 21k dataset: training loss, validation loss, and tool selection accuracy](posts/training_curves.png)
 
 - **Epochs 1–5:** Tool routing is solved. TSA jumps from ~36% to 100%.
 - **Epochs 5–50:** Argument extraction refines slowly, with loss continuing to fall.
@@ -108,7 +108,7 @@ The formal errors cluster into three modes, all drawn from actual model outputs:
 
 The error breakdown and per-tool performance for the medium model is visualized below:
 
-![Error type breakdown and per-tool exact match for the medium model](error_analysis.png)
+![Error type breakdown and per-tool exact match for the medium model](posts/error_analysis.png)
 
 **Proper noun substitution** is the most revealing failure. "Caracas" becomes "Maracaibo" in the small model (both Venezuelan cities — the model has learned geographic co-occurrence), "The Hague" in the medium, and "Aspen" in the large. The model has learned the *slot pattern* but not how to *copy the specific token* from the current input.
 

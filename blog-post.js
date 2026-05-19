@@ -76,8 +76,20 @@ function render(raw) {
 
     marked.setOptions({ breaks: false, gfm: true });
     bodyEl.innerHTML = marked.parse(body);
+    fixPostImagePaths(bodyEl);
 
     dividerEl.style.display = 'block';
+}
+
+/** Resolve sibling-relative image paths (e.g. pipeline.png) under posts/ */
+function fixPostImagePaths(container) {
+    container.querySelectorAll('img[src]').forEach(img => {
+        const src = img.getAttribute('src');
+        if (!src || /^https?:\/\//i.test(src) || src.startsWith('/') || src.startsWith('posts/')) {
+            return;
+        }
+        img.src = `posts/${src.replace(/^\.\//, '')}`;
+    });
 }
 
 function showLoading() {
