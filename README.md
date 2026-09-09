@@ -75,18 +75,9 @@ Images referenced by bare filename resolve against `posts/`.
 - **Greetings** rotate through `GREETINGS` in `script.js`.
 - **Reduced motion** is respected throughout: the greeting stops rotating, the
   token strip renders a single static frame, and reveals are disabled.
-- **The masthead photo.** The page loads `portrait.jpg` — a derived crop, not the
-  original. Editing `photo_for_website.jpg` changes nothing on its own; regenerate with:
-
-  ```bash
-  sips -c 2485 1864 --cropOffset 1799 2809 photo_for_website.jpg --out portrait.jpg
-  sips -m "/System/Library/ColorSync/Profiles/sRGB Profile.icc" portrait.jpg
-  sips -z 1600 1200 portrait.jpg && sips -s formatOptions 82 portrait.jpg
-  ```
-
-  The sRGB step matters: the original is Display P3, and browsers will render it
-  oversaturated if anything forces sRGB rasterisation. Hard-refresh after replacing
-  it — the filename doesn't change, so browsers cache the old one.
+- **The masthead photo.** `photo_for_website.jpg` is loaded directly. It's a
+  near-square original, and the masthead card is a 3:4 portrait, so CSS crops the
+  sides via `object-fit: cover` — nothing is cut off the top or bottom.
 - **Google Scholar.** The Scholar link in the masthead currently points at a name
   search. Swap it for your profile URL once you have one — it's marked with a
   `TODO` comment in `index.html`.
