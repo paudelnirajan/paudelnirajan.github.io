@@ -1,14 +1,14 @@
 /* =================================================================
-   BLOG POST RENDERER
-   Fetches posts/<slug>.md, parses frontmatter, renders via marked.js
+   ARTICLE RENDERER
+   Fetches posts/<slug>.md, parses the frontmatter, renders with marked.
 ================================================================= */
 
 document.addEventListener('DOMContentLoaded', () => {
-    const params = new URLSearchParams(window.location.search);
-    const slug   = params.get('post');
+    initProgress();
 
+    const slug = new URLSearchParams(window.location.search).get('post');
     if (!slug) {
-        showError('No post specified.', 'Go back to blog');
+        showError('No post was specified in the URL.');
         return;
     }
 
@@ -16,12 +16,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fetch(`posts/${slug}.md`)
         .then(res => {
-            if (!res.ok) throw new Error(`${res.status}`);
+            if (!res.ok) throw new Error(String(res.status));
             return res.text();
         })
-        .then(raw => render(raw))
-        .catch(() => showError(`Could not load post "${slug}".`, 'Go back to blog'));
+        .then(render)
+        .catch(() => showError(`Could not load the post &ldquo;${escapeHtml(slug)}&rdquo;.`));
 });
+
+/* ----------------------------------------------------------------- */
+function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+    ));
+}
 
 function parseFrontmatter(raw) {
     const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
@@ -32,7 +39,7 @@ function parseFrontmatter(raw) {
         const ci = line.indexOf(':');
         if (ci === -1) return;
         const key = line.slice(0, ci).trim();
-        let val    = line.slice(ci + 1).trim();
+        let val   = line.slice(ci + 1).trim();
         if (val.startsWith('[') && val.endsWith(']')) {
             val = val.slice(1, -1).split(',').map(s => s.trim()).filter(Boolean);
         }
@@ -44,70 +51,99 @@ function parseFrontmatter(raw) {
 
 function readingTime(text) {
     const words = text.trim().split(/\s+/).length;
-    const mins  = Math.max(1, Math.round(words / 200));
-    return `${mins} min read`;
+    return `${Math.max(1, Math.round(words / 200))} min read`;
 }
 
+/* ----------------------------------------------------------------- */
 function render(raw) {
     const { meta, body } = parseFrontmatter(raw);
 
     const title = meta.title || 'Untitled';
     const date  = meta.date  || '';
     const tags  = Array.isArray(meta.tags) ? meta.tags : (meta.tags ? [meta.tags] : []);
-    const time  = readingTime(body);
 
     document.title = `${title} — Nirajan Paudel`;
 
-    const headerEl  = document.getElementById('post-header');
-    const bodyEl    = document.getElementById('post-body');
-    const dividerEl = document.getElementById('post-divider');
+    const desc = document.querySelector('meta[name="description"]');
+    if (desc && meta.excerpt) desc.setAttribute('content', meta.excerpt);
 
-    headerEl.innerHTML = `
-        <div class="post-meta">
-            <span class="post-date">${date}</span>
-            <span class="post-reading-time">${time}</span>
+    document.getElementById('article-header').innerHTML = `
+        <div class="article-meta">
+            ${date ? `<span>${escapeHtml(date)}</span>` : ''}
+            <span>${readingTime(body)}</span>
         </div>
-        <h1 class="post-title">${title}</h1>
-        ${tags.length ? `
-        <div class="post-tags">
-            ${tags.map(t => `<span>${t}</span>`).join('')}
-        </div>` : ''}
+        <h1 class="article-title">${escapeHtml(title)}</h1>
+        ${tags.length ? `<div class="article-tags">${
+            tags.map(t => `<span>${escapeHtml(t)}</span>`).join('')
+        }</div>` : ''}
     `;
 
     marked.setOptions({ breaks: false, gfm: true });
-    bodyEl.innerHTML = marked.parse(body);
-    fixPostImagePaths(bodyEl);
 
-    dividerEl.style.display = 'block';
+    const bodyEl = document.getElementById('article-body');
+    bodyEl.innerHTML = marked.parse(body);
+    fixImagePaths(bodyEl);
+    externalLinksNewTab(bodyEl);
+
+    document.getElementById('article-rule').hidden = false;
+    document.getElementById('article-end').hidden  = false;
 }
 
 /** Resolve sibling-relative image paths (e.g. pipeline.png) under posts/ */
-function fixPostImagePaths(container) {
+function fixImagePaths(container) {
     container.querySelectorAll('img[src]').forEach(img => {
         const src = img.getAttribute('src');
-        if (!src || /^https?:\/\//i.test(src) || src.startsWith('/') || src.startsWith('posts/')) {
-            return;
-        }
+        if (!src || /^https?:\/\//i.test(src) || src.startsWith('/') || src.startsWith('posts/')) return;
         img.src = `posts/${src.replace(/^\.\//, '')}`;
+        img.loading = 'lazy';
     });
 }
 
+function externalLinksNewTab(container) {
+    container.querySelectorAll('a[href^="http"]').forEach(a => {
+        if (a.hostname === window.location.hostname) return;
+        a.target = '_blank';
+        a.rel = 'noopener';
+    });
+}
+
+/* ----------------------------------------------------------------- */
+function initProgress() {
+    const bar = document.getElementById('progress');
+    if (!bar) return;
+
+    let ticking = false;
+    const update = () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+            const max = document.documentElement.scrollHeight - window.innerHeight;
+            bar.style.width = max > 0 ? `${Math.min(100, (window.scrollY / max) * 100)}%` : '0%';
+            ticking = false;
+        });
+    };
+
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+}
+
 function showLoading() {
-    document.getElementById('post-body').innerHTML = `
-        <div class="post-loading">
+    document.getElementById('article-body').innerHTML = `
+        <div class="state loading">
             <i class="fas fa-circle-notch"></i>
-            <p>Loading post…</p>
+            <p>Loading…</p>
         </div>
     `;
 }
 
-function showError(msg, linkText) {
-    document.getElementById('post-body').innerHTML = `
-        <div class="post-error">
+function showError(msg) {
+    document.getElementById('article-body').innerHTML = `
+        <div class="state">
             <i class="fas fa-triangle-exclamation"></i>
             <h2>Post not found</h2>
             <p>${msg}</p>
-            <p><a href="index.html#blog">${linkText}</a></p>
+            <p style="margin-top:14px"><a href="index.html#writing">Back to all writing</a></p>
         </div>
     `;
 }

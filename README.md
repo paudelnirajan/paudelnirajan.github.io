@@ -1,79 +1,126 @@
-# Nirajan Paudel - Portfolio Website
+# paudelnirajan.github.io
 
-Personal portfolio website showcasing my projects, skills, and research in Machine Learning, Cloud Infrastructure, and NLP.
+Personal academic site — research, publications, projects, and writing.
 
-🔗 **Live Site:** [paudelnirajan.github.io](https://paudelnirajan.github.io)
-
----
-
-## ✨ Features
-
-- **Dark/Light Mode** - Toggle between themes with preference saved locally
-- **Interactive Background** - Animated particle system with connecting lines
-- **Project Filtering** - Filter by category (Featured, Cloud & DevOps, AI & ML)
-- **Modal Project Details** - Full project information in expandable modals
-- **Responsive Design** - Optimized for desktop, tablet, and mobile
-- **Smooth Animations** - Scroll-triggered fade-ins and hover effects
-- **Typewriter Effect** - Animated role titles in hero section
+**Live:** [paudelnirajan.github.io](https://paudelnirajan.github.io)
 
 ---
 
-## 🛠️ Built With
+## Editing the content
 
-- **HTML5** - Semantic markup
-- **CSS3** - Custom properties, Flexbox, Grid, animations
-- **JavaScript** - Vanilla JS (no frameworks)
-- **Fonts** - [JetBrains Mono](https://fonts.google.com/specimen/JetBrains+Mono) & [Outfit](https://fonts.google.com/specimen/Outfit)
-- **Icons** - [Font Awesome](https://fontawesome.com/)
+Almost everything you'll want to change lives in two data files. No build step, no
+framework — edit, commit, push.
 
----
+| File | What's in it |
+| --- | --- |
+| `site-data.js` | `NEWS`, `PUBLICATIONS`, `PROJECTS` |
+| `blog-data.js` | the list of writing entries |
+| `posts/<slug>.md` | the body of each written piece |
 
-## 📁 Project Structure
+### Add a news item
 
-```
-paudelnirajan.github.io/
-├── index.html          # Main HTML file
-├── styles.css          # All styles with CSS variables for theming
-├── script.js           # Interactive features and animations
-├── photo_for_website.jpg
-├── RNirajan_Paudel.pdf # Resume
-└── README.md
+Newest first. `sort` is `YYYY-MM` and is used only for ordering; `date` is what
+readers see. Set `highlight: true` for the pulsing accent dot.
+
+```js
+{
+    sort: '2026-09',
+    date: 'Sep 2026',
+    html: 'Something happened. <a href="...">Link</a> and <strong>emphasis</strong> both work.',
+    highlight: false
+}
 ```
 
+### Add a publication
+
+Mark yourself in the author list with `me: true` — that's what bolds your name.
+`featured: true` promotes a paper into the spotlight card at the top (keep exactly
+one featured, or none).
+
+```js
+{
+    id: 'short-slug',
+    featured: false,
+    year: '2026',
+    status: 'preprint',              // 'preprint' | 'peer-reviewed'
+    venue: 'arXiv preprint',
+    venueNote: 'Under review at ACL 2026',   // or null
+    title: '...',
+    authors: [{ name: 'Nirajan Paudel', me: true }, { name: 'Co Author' }],
+    abstract: '...',                 // shown behind the "Abstract" toggle
+    takeaway: '...',                 // the one-line plain-language summary
+    tags: ['Multilingual NLP'],
+    links: [{ href: '...', label: 'arXiv', icon: 'fas fa-file-lines' }],
+    bibtex: `@misc{...}`             // powers the copy-to-clipboard button
+}
+```
+
+### Add a written piece
+
+1. Write `posts/<slug>.md` with frontmatter (`title`, `date`, `tags`, `excerpt`).
+2. Add a matching entry to `blog-data.js`.
+
+Images referenced by bare filename resolve against `posts/`.
+
 ---
 
-## 🚀 Local Development
+## Things worth knowing
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/paudelnirajan/paudelnirajan.github.io.git
-   ```
+- **Theme.** Light ("paper") is the default; the toggle persists to `localStorage`
+  and the first visit follows the OS setting. An inline script in `<head>` applies
+  it before first paint so there's no flash.
+- **The token animation** in the publications spotlight is an illustration of the
+  speculative-decoding result, not measured data — it says so on the card. Edit
+  `SPEC_SAMPLES` in `script.js` to change it.
+- **Greetings** rotate through `GREETINGS` in `script.js`.
+- **Reduced motion** is respected throughout: the greeting stops rotating, the
+  token strip renders a single static frame, and reveals are disabled.
+- **The masthead photo.** The page loads `portrait.jpg` — a derived crop, not the
+  original. Editing `photo_for_website.jpg` changes nothing on its own; regenerate with:
 
-2. Open `index.html` in your browser, or use a local server:
-   ```bash
-   # Python
-   python3 -m http.server 8000
-   
-   # Then visit http://localhost:8000
-   ```
+  ```bash
+  sips -c 2485 1864 --cropOffset 1799 2809 photo_for_website.jpg --out portrait.jpg
+  sips -m "/System/Library/ColorSync/Profiles/sRGB Profile.icc" portrait.jpg
+  sips -z 1600 1200 portrait.jpg && sips -s formatOptions 82 portrait.jpg
+  ```
 
----
-
-## 📬 Contact
-
-- **Email:** nirajan.paudel@colorado.edu
-- **LinkedIn:** [nirajanpaudel17](https://www.linkedin.com/in/nirajanpaudel17/)
-- **GitHub:** [paudelnirajan](https://github.com/paudelnirajan)
-- **Twitter:** [paudelnirajan17](https://x.com/paudelnirajan17)
-
----
-
-## 📄 License
-
-This project is open source and available for personal use. Feel free to use it as inspiration for your own portfolio!
+  The sRGB step matters: the original is Display P3, and browsers will render it
+  oversaturated if anything forces sRGB rasterisation. Hard-refresh after replacing
+  it — the filename doesn't change, so browsers cache the old one.
+- **Google Scholar.** The Scholar link in the masthead currently points at a name
+  search. Swap it for your profile URL once you have one — it's marked with a
+  `TODO` comment in `index.html`.
 
 ---
 
-<p align="center">
-  <sub>Envisioned & prompted by Nirajan Paudel</sub>
-</p>
+## Structure
+
+```
+index.html        homepage
+blog-post.html    article template (reads ?post=<slug>)
+styles.css        the whole design system, light + dark
+script.js         rendering and interactions
+site-data.js      news / publications / projects
+blog-data.js      writing index
+posts/            markdown articles + their images
+```
+
+## Local preview
+
+```bash
+python3 -m http.server 8000
+# → http://localhost:8000
+```
+
+---
+
+## Built with
+
+Plain HTML, CSS, and JavaScript. [Fraunces](https://fonts.google.com/specimen/Fraunces)
+and [Inter](https://fonts.google.com/specimen/Inter) for type, [JetBrains Mono](https://fonts.google.com/specimen/JetBrains+Mono)
+for metadata, [Font Awesome](https://fontawesome.com/) for icons, and
+[marked](https://marked.js.org/) to render the articles.
+
+## Contact
+
+nirajan.paudel@colorado.edu · [GitHub](https://github.com/paudelnirajan) · [LinkedIn](https://www.linkedin.com/in/nirajanpaudel17/)

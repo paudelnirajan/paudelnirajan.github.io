@@ -32,7 +32,7 @@ cache.init(
 )
 ```
 
-In the [Tensor project](https://tensorchat.me/), a multi-layer Redis cache achieved a **60%+ cache hit rate**, cutting LLM API overhead by 70%. The trick was caching at two levels: exact-match for repeated queries and semantic-match for near-duplicates.
+In the [Tensor project](https://api-beta-tensor.sarvabhaum.ai/), a multi-layer Redis cache achieved a **60%+ cache hit rate**, cutting LLM API overhead by 70%. The trick was caching at two levels: exact-match for repeated queries and semantic-match for near-duplicates.
 
 ## Strategy 2: Model Cascading
 

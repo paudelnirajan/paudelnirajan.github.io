@@ -1,304 +1,331 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blog — Nirajan Paudel</title>
-    <meta name="description" content="Blog by Nirajan Paudel — ML Engineer & Researcher.">
+    <title>Writing — Nirajan Paudel</title>
+    <meta name="description" content="Notes and long-form writing by Nirajan Paudel on multilingual NLP, efficient inference, and machine learning systems.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' font-family='Georgia,serif'>न</text></svg>">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,0..100;1,9..144,300..600,0..100&family=Inter:wght@300..700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
+
+    <script>
+        (function () {
+            try {
+                var saved = localStorage.getItem('np-theme');
+                var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+
     <style>
-        .post-wrap {
+        /* ---- reading progress ---- */
+        .progress {
+            position: fixed;
+            top: 0; left: 0;
+            height: 2px;
+            width: 0;
+            z-index: 200;
+            background: linear-gradient(90deg, var(--accent), var(--gold));
+            transition: width 90ms linear;
+        }
+
+        /* ---- article shell ---- */
+        .article {
+            width: 100%;
             max-width: 720px;
             margin: 0 auto;
-            padding: clamp(64px, 10vw, 120px) clamp(20px, 5vw, 48px) 80px;
+            padding: clamp(36px, 6vw, 72px) clamp(20px, 5vw, 40px) 80px;
+            position: relative;
+            z-index: 1;
         }
 
-        .post-back {
+        .article-back {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: var(--text-muted);
-            margin-bottom: 40px;
-            transition: color var(--transition), gap var(--transition);
+            gap: 9px;
+            font-family: var(--mono);
+            font-size: 0.68rem;
+            letter-spacing: 0.11em;
+            text-transform: uppercase;
+            color: var(--subtle);
+            margin-bottom: 44px;
+            transition: color var(--t), gap var(--t);
         }
-        .post-back:hover { color: var(--accent); gap: 12px; }
-        .post-back i { font-size: 0.7rem; }
+        .article-back:hover { color: var(--accent); gap: 14px; }
+        .article-back i { font-size: 0.66rem; }
 
-        .post-header { margin-bottom: 40px; }
-
-        .post-meta {
+        .article-meta {
             display: flex;
             align-items: center;
-            gap: 16px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-        }
-
-        .post-date {
+            gap: 14px;
             font-family: var(--mono);
-            font-size: 0.72rem;
-            color: var(--text-subtle);
+            font-size: 0.68rem;
+            letter-spacing: 0.06em;
+            color: var(--subtle);
+            margin-bottom: 18px;
+        }
+        .article-meta span + span::before {
+            content: '·';
+            margin-right: 14px;
+            color: var(--rule-strong);
         }
 
-        .post-reading-time {
-            font-family: var(--mono);
-            font-size: 0.72rem;
-            color: var(--text-subtle);
-        }
-        .post-reading-time::before { content: '\00B7'; margin-right: 16px; }
-
-        .post-title {
-            font-family: var(--font-display);
-            font-size: clamp(1.8rem, 4vw, 2.6rem);
-            font-weight: 400;
-            letter-spacing: -0.02em;
-            color: var(--text);
-            line-height: 1.15;
+        .article-title {
+            font-family: var(--serif);
+            font-size: clamp(1.9rem, 5vw, 2.9rem);
+            font-weight: 600;
+            font-variation-settings: 'SOFT' 25, 'opsz' 144;
+            letter-spacing: -0.028em;
+            line-height: 1.09;
             margin-bottom: 20px;
         }
 
-        .post-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 7px;
-        }
-        .post-tags span {
+        .article-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+        .article-tags span {
             font-family: var(--mono);
-            font-size: 0.68rem;
-            font-weight: 500;
-            padding: 3px 10px;
-            border-radius: 100px;
-            background: var(--surface-2);
-            color: var(--text-muted);
-            border: 1px solid var(--border);
+            font-size: 0.63rem;
+            padding: 3px 9px;
+            border-radius: 3px;
+            background: var(--paper-2);
+            border: 1px solid var(--rule);
+            color: var(--subtle);
         }
 
-        .post-divider {
+        .article-rule {
             border: none;
             height: 1px;
-            background: var(--border);
-            margin: 36px 0;
+            background: var(--rule);
+            margin: 40px 0;
         }
 
-        .post-body {
-            color: var(--text);
-            line-height: 1.8;
-            font-size: 1rem;
-        }
+        /* ---- prose ---- */
+        .prose { color: var(--muted); font-size: 1.03rem; line-height: 1.78; }
+        .prose > * + * { margin-top: 1.35em; }
 
-        .post-body > * + * { margin-top: 1.4em; }
-
-        .post-body h1,
-        .post-body h2 {
-            font-family: var(--font-display);
-            font-size: 1.4rem;
-            font-weight: 400;
+        .prose h1, .prose h2 {
+            font-family: var(--serif);
+            font-size: clamp(1.3rem, 3vw, 1.6rem);
+            font-weight: 600;
+            font-variation-settings: 'SOFT' 25, 'opsz' 60;
             letter-spacing: -0.02em;
-            color: var(--text);
-            margin-top: 2.2em;
-            margin-bottom: 0.6em;
-            line-height: 1.25;
+            line-height: 1.22;
+            color: var(--ink);
+            margin-top: 2.4em;
+            margin-bottom: 0.55em;
+            padding-bottom: 0.3em;
+            border-bottom: 1px solid var(--rule);
         }
-        .post-body h1:first-child,
-        .post-body h2:first-child { margin-top: 0; }
+        .prose h1:first-child, .prose h2:first-child { margin-top: 0; }
 
-        .post-body h3 {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: var(--text);
-            margin-top: 1.8em;
+        .prose h3 {
+            font-family: var(--serif);
+            font-size: 1.16rem;
+            font-weight: 600;
+            font-variation-settings: 'SOFT' 25, 'opsz' 30;
+            letter-spacing: -0.014em;
+            color: var(--ink);
+            margin-top: 2em;
             margin-bottom: 0.4em;
         }
 
-        .post-body h4 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            margin-top: 1.5em;
-            margin-bottom: 0.3em;
+        .prose h4 {
+            font-family: var(--mono);
+            font-size: 0.68rem;
+            font-weight: 500;
+            letter-spacing: 0.14em;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
-            font-family: var(--mono);
-        }
-
-        .post-body p { color: var(--text-muted); }
-
-        .post-body strong { color: var(--text); font-weight: 600; }
-
-        .post-body a {
             color: var(--accent);
-            text-decoration: underline;
-            text-underline-offset: 3px;
-            transition: color var(--transition);
+            margin-top: 1.9em;
+            margin-bottom: 0.4em;
         }
-        .post-body a:hover { color: var(--accent-dark); }
 
-        .post-body ul,
-        .post-body ol {
-            padding-left: 1.4em;
-            color: var(--text-muted);
-        }
-        .post-body ul { list-style: disc; }
-        .post-body ol { list-style: decimal; }
-        .post-body li + li { margin-top: 0.35em; }
-        .post-body li strong { color: var(--text); }
+        .prose strong { color: var(--ink); font-weight: 600; }
+        .prose em { font-style: italic; }
 
-        .post-body blockquote {
+        .prose ul, .prose ol { padding-left: 1.35em; }
+        .prose ul { list-style: disc; }
+        .prose ol { list-style: decimal; }
+        .prose li::marker { color: var(--accent); }
+        .prose li + li { margin-top: 0.4em; }
+        .prose li strong { color: var(--ink); }
+
+        .prose blockquote {
             border-left: 2px solid var(--accent);
-            padding: 4px 0 4px 20px;
-            margin: 1.8em 0;
-            color: var(--text-muted);
+            padding: 2px 0 2px 22px;
+            margin: 1.9em 0;
+            font-family: var(--serif);
             font-style: italic;
+            font-size: 1.06rem;
+            font-variation-settings: 'SOFT' 60, 'opsz' 24;
+            color: var(--muted);
         }
-        .post-body blockquote p { color: var(--text-muted); }
+        .prose blockquote p { margin: 0; }
 
-        .post-body code {
+        .prose code {
             font-family: var(--mono);
-            font-size: 0.85em;
-            background: var(--surface-2);
-            border: 1px solid var(--border);
+            font-size: 0.84em;
+            background: var(--paper-2);
+            border: 1px solid var(--rule);
             padding: 2px 6px;
             border-radius: 4px;
-            color: var(--text);
+            color: var(--ink);
         }
 
-        .post-body pre {
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 16px 20px;
+        .prose pre {
+            background: var(--paper-2);
+            border: 1px solid var(--rule);
+            border-radius: var(--r-sm);
+            padding: 18px 20px;
             overflow-x: auto;
-            margin: 1.4em 0;
+            margin: 1.5em 0;
         }
-        .post-body pre code {
-            background: none;
-            border: none;
-            padding: 0;
-            font-size: 0.82em;
-        }
+        .prose pre code { background: none; border: none; padding: 0; font-size: 0.8rem; line-height: 1.7; }
 
-        .post-body table {
+        .prose table {
             width: 100%;
             border-collapse: collapse;
-            margin: 1.4em 0;
-            font-size: 0.9rem;
+            margin: 1.5em 0;
+            font-size: 0.88rem;
+            display: block;
+            overflow-x: auto;
         }
-        .post-body th {
-            font-weight: 600;
-            color: var(--text-muted);
-            border-bottom: 2px solid var(--border);
-            padding: 8px 12px;
+        .prose th {
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            font-weight: 500;
+            color: var(--subtle);
+            border-bottom: 1.5px solid var(--rule-strong);
+            padding: 9px 13px;
             text-align: left;
+            white-space: nowrap;
         }
-        .post-body td {
-            padding: 9px 12px;
-            border-bottom: 1px solid var(--border);
-            color: var(--text-muted);
+        .prose td {
+            padding: 10px 13px;
+            border-bottom: 1px solid var(--rule);
             vertical-align: top;
         }
-        .post-body tr:last-child td { border-bottom: none; }
+        .prose tr:last-child td { border-bottom: none; }
 
-        .post-body hr {
-            border: none;
-            height: 1px;
-            background: var(--border);
-            margin: 2em 0;
-        }
+        .prose hr { border: none; height: 1px; background: var(--rule); margin: 2.4em 0; }
 
-        .post-body img {
-            max-width: 100%;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            margin: 1.4em 0;
+        .prose img {
+            width: 100%;
+            border-radius: var(--r-sm);
+            border: 1px solid var(--rule);
+            background: var(--surface);
+            margin: 1.6em 0;
         }
 
-        .post-loading,
-        .post-error {
-            text-align: center;
-            padding: 80px 24px;
-            color: var(--text-muted);
+        /* ---- footer of the article ---- */
+        .article-end {
+            margin-top: 64px;
+            padding-top: 28px;
+            border-top: 1px solid var(--rule);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+            justify-content: space-between;
         }
-        .post-loading i,
-        .post-error i {
-            font-size: 2rem;
-            margin-bottom: 16px;
-            display: block;
-            color: var(--text-subtle);
+        .article-end p {
+            font-family: var(--mono);
+            font-size: 0.68rem;
+            letter-spacing: 0.05em;
+            color: var(--subtle);
         }
-        .post-error h2 { color: var(--text); margin-bottom: 8px; }
-        .post-error a { color: var(--accent); text-decoration: underline; }
+        .article-end a {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            border: 1px solid var(--rule);
+            border-radius: 100px;
+            color: var(--muted);
+            transition: all var(--t);
+        }
+        .article-end a:hover { color: var(--accent); border-color: var(--accent); }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .post-loading i { animation: spin 1s linear infinite; }
-
-        @media (max-width: 768px) {
-            .post-wrap { padding-top: 32px; }
-        }
+        /* ---- states ---- */
+        .state { text-align: center; padding: 72px 20px; color: var(--muted); }
+        .state i { font-size: 1.6rem; color: var(--subtle); display: block; margin-bottom: 16px; }
+        .state h2 { font-family: var(--serif); font-size: 1.3rem; color: var(--ink); margin-bottom: 8px; }
+        .state a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .state.loading i { animation: spin 1s linear infinite; }
     </style>
 </head>
 <body>
 
-    <nav class="navbar" id="navbar" aria-label="Site navigation">
-        <a href="index.html" class="nav-logo">Nirajan<span>.</span></a>
-        <div class="nav-links">
-            <a href="index.html#about">About</a>
-            <a href="index.html#projects">Projects</a>
-            <a href="index.html#skills">Skills</a>
-            <a href="index.html#publications">Research</a>
-            <a href="index.html#blog">Blog</a>
-        </div>
-        <div class="nav-actions">
-            <a href="Nirajan_Paudel.pdf" class="nav-resume" download>
-                <i class="fas fa-download"></i> Resume
-            </a>
-            <button id="theme-toggle" class="nav-theme" aria-label="Toggle theme">
-                <i class="fas fa-moon" id="theme-icon"></i>
-            </button>
-            <button id="mob-toggle" class="nav-hamburger" aria-label="Open menu">
-                <span></span><span></span><span></span>
-            </button>
-        </div>
-    </nav>
+<div class="progress" id="progress"></div>
+<a href="#main" class="skip-link">Skip to content</a>
 
-    <div class="mob-drawer" id="mob-drawer" aria-hidden="true">
+<nav class="navbar" id="navbar" aria-label="Primary">
+    <a href="index.html" class="nav-logo">Nirajan Paudel<em>.</em></a>
+    <div class="nav-links">
         <a href="index.html#about">About</a>
+        <a href="index.html#news">News</a>
+        <a href="index.html#research">Research</a>
         <a href="index.html#projects">Projects</a>
-        <a href="index.html#skills">Skills</a>
-        <a href="index.html#publications">Research</a>
-        <a href="index.html#blog">Blog</a>
-        <a href="Nirajan_Paudel.pdf" download>
-            <i class="fas fa-download"></i> Resume
-        </a>
-        <div class="mob-drawer-socials">
-            <a href="mailto:nirajan.paudel@colorado.edu" aria-label="Email"><i class="fas fa-envelope"></i></a>
-            <a href="https://github.com/paudelnirajan" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
-            <a href="https://www.linkedin.com/in/nirajanpaudel17/" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
-            <a href="https://x.com/paudelnirajan17" target="_blank" rel="noopener" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-        </div>
+        <a href="index.html#writing">Writing</a>
     </div>
-    <div class="mob-backdrop" id="mob-backdrop"></div>
+    <div class="nav-actions">
+        <a href="Nirajan_Paudel.pdf" class="nav-cv" target="_blank" rel="noopener">
+            <i class="fas fa-file-lines"></i> CV
+        </a>
+        <button id="theme-toggle" class="icon-btn" aria-label="Switch colour theme">
+            <i class="fas fa-moon" id="theme-icon" aria-hidden="true"></i>
+        </button>
+        <button id="burger" class="nav-burger" aria-label="Open menu" aria-expanded="false" aria-controls="drawer">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+</nav>
 
-    <main class="main" id="main">
-        <div class="post-wrap">
-            <a href="index.html#blog" class="post-back">
-                <i class="fas fa-arrow-left"></i> Back to Blog
-            </a>
-            <div id="post-header" class="post-header"></div>
-            <hr class="post-divider" id="post-divider" style="display:none">
-            <div id="post-body" class="post-body"></div>
+<div class="drawer" id="drawer" aria-hidden="true">
+    <a href="index.html#about">About</a>
+    <a href="index.html#news">News</a>
+    <a href="index.html#research">Research</a>
+    <a href="index.html#projects">Projects</a>
+    <a href="index.html#writing">Writing</a>
+    <a href="Nirajan_Paudel.pdf" target="_blank" rel="noopener">CV</a>
+    <div class="drawer-socials">
+        <a href="mailto:nirajan.paudel@colorado.edu" aria-label="Email"><i class="fas fa-envelope"></i></a>
+        <a href="https://github.com/paudelnirajan" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
+        <a href="https://www.linkedin.com/in/nirajanpaudel17/" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+        <a href="https://x.com/paudelnirajan17" target="_blank" rel="noopener" aria-label="X"><i class="fab fa-x-twitter"></i></a>
+    </div>
+</div>
+<div class="backdrop" id="backdrop"></div>
+
+<main id="main">
+    <article class="article">
+        <a href="index.html#writing" class="article-back">
+            <i class="fas fa-arrow-left"></i> All writing
+        </a>
+        <header id="article-header"></header>
+        <hr class="article-rule" id="article-rule" hidden>
+        <div id="article-body" class="prose"></div>
+        <div class="article-end" id="article-end" hidden>
+            <p>Written by Nirajan Paudel</p>
+            <a href="index.html#writing"><i class="fas fa-arrow-left"></i> Back to all writing</a>
         </div>
-    </main>
+    </article>
+</main>
 
-    <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
-    <script src="script.js"></script>
-    <script src="blog-post.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<script src="script.js"></script>
+<script src="blog-post.js"></script>
 </body>
 </html>

@@ -1,283 +1,313 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nirajan Paudel</title>
-    <meta name="description" content="Nirajan Paudel — ML Engineer & Researcher. MS Computer Science at CU Boulder, specializing in AI, NLP & Cloud Infrastructure.">
-    <meta name="keywords" content="Nirajan Paudel, ML Engineer, NLP, AI, Cloud, CU Boulder">
-    <meta property="og:title" content="Nirajan Paudel">
-    <meta property="og:description" content="Building intelligent systems at the intersection of AI, Cloud & NLP.">
-    <meta property="og:type" content="website">
+    <title>Nirajan Paudel — Multilingual NLP</title>
+    <meta name="description" content="Nirajan Paudel is an M.S. student in Computer Science at the University of Colorado Boulder, working on multilingual NLP, efficient inference, and language technology for low-resource languages.">
+    <meta name="author" content="Nirajan Paudel">
+    <meta name="keywords" content="Nirajan Paudel, multilingual NLP, speculative decoding, low-resource languages, Nepali NLP, CU Boulder, computational linguistics">
+
+    <meta property="og:type" content="profile">
+    <meta property="og:title" content="Nirajan Paudel — Multilingual NLP">
+    <meta property="og:description" content="M.S. student in Computer Science at CU Boulder. I work on why efficient-inference techniques built for English stop working in other languages.">
+    <meta property="og:url" content="https://paudelnirajan.sarvabhaum.ai/">
+    <meta property="og:image" content="https://paudelnirajan.sarvabhaum.ai/portrait.jpg">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:creator" content="@paudelnirajan17">
+
+    <link rel="canonical" href="https://paudelnirajan.sarvabhaum.ai/">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' font-family='Georgia,serif'>न</text></svg>">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,0..100;1,9..144,300..600,0..100&family=Inter:wght@300..700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Nirajan Paudel",
+      "url": "https://paudelnirajan.sarvabhaum.ai/",
+      "image": "https://paudelnirajan.sarvabhaum.ai/portrait.jpg",
+      "email": "mailto:nirajan.paudel@colorado.edu",
+      "jobTitle": "M.S. Student in Computer Science",
+      "affiliation": {
+        "@type": "CollegeOrUniversity",
+        "name": "University of Colorado Boulder"
+      },
+      "knowsAbout": ["Multilingual NLP", "Speculative Decoding", "Low-Resource Languages", "Machine Learning"],
+      "sameAs": [
+        "https://github.com/paudelnirajan",
+        "https://www.linkedin.com/in/nirajanpaudel17/",
+        "https://x.com/paudelnirajan17",
+        "https://arxiv.org/abs/2605.30580"
+      ]
+    }
+    </script>
+
+    <!-- set theme before paint so there is no flash -->
+    <script>
+        (function () {
+            try {
+                var saved = localStorage.getItem('np-theme');
+                var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
 </head>
 <body>
 
-    <nav class="navbar" id="navbar" aria-label="Site navigation">
-        <a href="#hero" class="nav-logo">Nirajan<span>.</span></a>
-        <div class="nav-links">
-            <a href="#about" data-target="about">About</a>
-            <a href="#projects" data-target="projects">Projects</a>
-            <a href="#skills" data-target="skills">Skills</a>
-            <a href="#publications" data-target="publications">Research</a>
-            <a href="#blog" data-target="blog">Blog</a>
-        </div>
-        <div class="nav-actions">
-            <a href="Nirajan_Paudel.pdf" class="nav-resume" download>
-                <i class="fas fa-download"></i> Resume
-            </a>
-            <button id="theme-toggle" class="nav-theme" aria-label="Toggle theme">
-                <i class="fas fa-moon" id="theme-icon"></i>
-            </button>
-            <button id="mob-toggle" class="nav-hamburger" aria-label="Open menu">
-                <span></span><span></span><span></span>
-            </button>
-        </div>
-    </nav>
+<a href="#main" class="skip-link">Skip to content</a>
 
-    <div class="mob-drawer" id="mob-drawer" aria-hidden="true">
-        <a href="#about">About</a>
-        <a href="#projects">Projects</a>
-        <a href="#skills">Skills</a>
-        <a href="#publications">Research</a>
-        <a href="#blog">Blog</a>
-        <a href="Nirajan_Paudel.pdf" download>
-            <i class="fas fa-download"></i> Resume
+<nav class="navbar" id="navbar" aria-label="Primary">
+    <a href="#top" class="nav-logo">Nirajan Paudel<em>.</em></a>
+
+    <div class="nav-links">
+        <a href="#about"    data-target="about">About</a>
+        <a href="#news"     data-target="news">News</a>
+        <a href="#research" data-target="research">Research</a>
+        <a href="#projects" data-target="projects">Projects</a>
+        <a href="#writing"  data-target="writing">Writing</a>
+    </div>
+
+    <div class="nav-actions">
+        <a href="Nirajan_Paudel.pdf" class="nav-cv" target="_blank" rel="noopener">
+            <i class="fas fa-file-lines"></i> CV
         </a>
-        <div class="mob-drawer-socials">
-            <a href="mailto:nirajan.paudel@colorado.edu" aria-label="Email"><i class="fas fa-envelope"></i></a>
-            <a href="https://github.com/paudelnirajan" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
-            <a href="https://www.linkedin.com/in/nirajanpaudel17/" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
-            <a href="https://x.com/paudelnirajan17" target="_blank" rel="noopener" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-        </div>
+        <button id="theme-toggle" class="icon-btn" aria-label="Switch colour theme">
+            <i class="fas fa-moon" id="theme-icon" aria-hidden="true"></i>
+        </button>
+        <button id="burger" class="nav-burger" aria-label="Open menu" aria-expanded="false" aria-controls="drawer">
+            <span></span><span></span><span></span>
+        </button>
     </div>
-    <div class="mob-backdrop" id="mob-backdrop"></div>
+</nav>
 
-    <main class="main" id="main">
+<div class="drawer" id="drawer" aria-hidden="true">
+    <a href="#about">About</a>
+    <a href="#news">News</a>
+    <a href="#research">Research</a>
+    <a href="#projects">Projects</a>
+    <a href="#writing">Writing</a>
+    <a href="Nirajan_Paudel.pdf" target="_blank" rel="noopener">CV</a>
+    <div class="drawer-socials">
+        <a href="mailto:nirajan.paudel@colorado.edu" aria-label="Email"><i class="fas fa-envelope"></i></a>
+        <a href="https://github.com/paudelnirajan" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
+        <a href="https://www.linkedin.com/in/nirajanpaudel17/" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+        <a href="https://x.com/paudelnirajan17" target="_blank" rel="noopener" aria-label="X"><i class="fab fa-x-twitter"></i></a>
+    </div>
+</div>
+<div class="backdrop" id="backdrop"></div>
 
-        <section id="hero" class="hero">
-            <div class="hero-inner">
-                <p class="hero-eyebrow">Hello, I'm</p>
-                <h1 class="hero-name">
-                    Nirajan <span class="hero-name-accent">Paudel.</span>
-                </h1>
-                <div class="hero-role">
-                    <span id="typewriter"></span><span class="cursor" aria-hidden="true">|</span>
-                </div>
-                <p class="hero-bio">
-                    M.S. Computer Science · University of Colorado Boulder<br>
-                    Building intelligent systems at the intersection of<br>
-                    AI, Cloud &amp; NLP.
+<main id="main">
+
+    <!-- ============================ MASTHEAD ============================ -->
+    <header class="wrap masthead" id="top">
+        <div class="masthead-grid">
+            <div id="about">
+                <p class="greeting" id="greeting" aria-live="off">
+                    <span class="greeting-word" id="greeting-word">नमस्ते</span>
+                    <span class="greeting-lang" id="greeting-lang">Nepali</span>
                 </p>
-                <div class="hero-cta">
-                    <a href="#projects" class="btn btn-primary">View Work</a>
-                    <a href="#about" class="btn btn-ghost">About Me</a>
-                </div>
-                <div class="hero-socials">
-                    <a href="mailto:nirajan.paudel@colorado.edu" aria-label="Email"><i class="fas fa-envelope"></i></a>
-                    <a href="https://github.com/paudelnirajan" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
-                    <a href="https://www.linkedin.com/in/nirajanpaudel17/" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
-                    <a href="https://x.com/paudelnirajan17" target="_blank" rel="noopener" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                </div>
-            </div>
-            <a href="#about" class="hero-scroll" aria-label="Scroll to about section">
-                <span>scroll</span>
-                <i class="fas fa-arrow-down"></i>
-            </a>
-        </section>
 
-        <section id="about" class="section reveal">
-            <div class="section-inner">
-                <header class="sec-head">
-                    <span class="sec-num" aria-hidden="true">01</span>
-                    <h2 class="sec-title">About</h2>
-                </header>
+                <h1>Nirajan Paudel</h1>
 
-                <div class="about-top">
-                    <div class="about-photo-wrap">
-                        <div class="photo-frame">
-                            <img src="photo_for_website.jpeg" alt="Nirajan Paudel" loading="lazy">
-                        </div>
-                    </div>
-                    <div class="about-text">
-                        <p>I'm a <strong>Master's student in Computer Science</strong> at the University of Colorado Boulder, passionate about building intelligent systems that solve real-world problems.</p>
-                        <p>My journey spans from developing <strong>AI-driven chatbots</strong> to teaching programming fundamentals as a teaching assistant. I thrive at the intersection of <strong>Machine Learning, Cloud Infrastructure, and NLP</strong>.</p>
-                        <blockquote class="about-quote">
-                            "Will humans be able to map `Emotions` as data? so neural net will be able to figure it out?"
-                        </blockquote>
-                    </div>
+                <p class="affiliation">
+                    <strong>M.S. Computer Science</strong>, University of Colorado Boulder<span class="sep">/</span><span class="advisor">advised by <a href="https://www.colorado.edu/linguistics/alexis-palmer" target="_blank" rel="noopener">Alexis Palmer</a></span>
+                </p>
+
+                <div class="bio lede">
+                    <p>
+                        I work on <strong>natural language processing for languages that the field has mostly skipped</strong>.
+                        Nearly every technique that makes large language models fast, cheap, or steerable was
+                        developed and measured in English — and a surprising number of them quietly stop working
+                        somewhere else.
+                    </p>
+                    <p>
+                        Our recent work shows this concretely for <strong>speculative decoding</strong>. The speed-ups
+                        everyone quotes hold up in English and then thin out, language by language, as training
+                        resources disappear. The interesting part isn't that it degrades; it's <em>why</em> the obvious
+                        fixes don't repair it.
+                    </p>
+                    <p>
+                        I grew up in Nepal. Nepali has around 32 million speakers and almost no NLP
+                        infrastructure, which makes it a recurring test case in my work rather than a footnote.
+                        I also build things — production ML systems, developer tools, infrastructure — because
+                        the engineering keeps the research honest.
+                    </p>
                 </div>
 
-                <div class="focus-section">
-                    <h3 class="focus-heading">Research Focus</h3>
-                    <div class="focus-row">
-                        <div class="focus-item">
-                            <strong>Multilingual NLP</strong>
-                            <span>low-resource languages</span>
-                        </div>
-                        <div class="focus-item">
-                            <strong>Cross-lingual Transfer</strong>
-                            <span>transfer learning</span>
-                        </div>
-                        <div class="focus-item">
-                            <strong>LLM Adaptation</strong>
-                            <span>fine-tuning &amp; alignment</span>
-                        </div>
-                        <div class="focus-item">
-                            <strong>Computer Vision</strong>
-                            <span>autonomous systems</span>
-                        </div>
-                    </div>
+                <blockquote class="pullquote">
+                    A question I keep coming back to: will we ever be able to map <em>emotion</em> as data
+                    cleanly enough that a network can learn it?
+                </blockquote>
+
+                <div class="rail">
+                    <a href="mailto:nirajan.paudel@colorado.edu" class="primary"><i class="fas fa-envelope"></i> Email</a>
+                    <a href="Nirajan_Paudel.pdf" target="_blank" rel="noopener"><i class="fas fa-file-lines"></i> CV</a>
+                    <!-- TODO: replace with your own Google Scholar profile URL once you have one -->
+                    <a href="https://scholar.google.com/citations?hl=en&user=YA1G4aYAAAAJ" target="_blank" rel="noopener"><i class="fas fa-graduation-cap"></i> Scholar</a>
+                    <a href="https://arxiv.org/abs/2605.30580" target="_blank" rel="noopener"><i class="fas fa-file-lines"></i> arXiv</a>
+                    <a href="https://github.com/paudelnirajan" class="icon-only" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><i class="fab fa-github"></i></a>
+                    <a href="https://www.linkedin.com/in/nirajanpaudel17/" class="icon-only" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                    <a href="https://x.com/paudelnirajan17" class="icon-only" target="_blank" rel="noopener" aria-label="X" title="X"><i class="fab fa-x-twitter"></i></a>
                 </div>
             </div>
-        </section>
 
-        <section id="projects" class="section reveal">
-            <div class="section-inner">
-                <header class="sec-head">
-                    <span class="sec-num" aria-hidden="true">02</span>
-                    <h2 class="sec-title">Projects</h2>
-                </header>
-
-                <div class="filter-bar" role="group" aria-label="Filter projects">
-                    <button class="filter-btn active" data-filter="featured">Featured</button>
-                    <button class="filter-btn" data-filter="all">All</button>
-                    <button class="filter-btn" data-filter="ai">AI &amp; ML</button>
-                    <button class="filter-btn" data-filter="cloud">Cloud</button>
+            <figure class="portrait">
+                <div class="portrait-frame">
+                    <img src="photo_for_website.jpg" alt="Portrait of Nirajan Paudel" width="1200" height="1600">
                 </div>
+                <figcaption class="portrait-caption">
+                    Nirajan Paudel<br>
+                    Boulder, Colorado
+                </figcaption>
+            </figure>
+        </div>
+    </header>
 
-                <div class="project-list" id="projects-grid"></div>
-            </div>
-        </section>
-
-        <section id="skills" class="section reveal">
-            <div class="section-inner">
-                <header class="sec-head">
-                    <span class="sec-num" aria-hidden="true">03</span>
-                    <h2 class="sec-title">Skills &amp; Tools</h2>
-                </header>
-
-                <div class="skills-table">
-                    <div class="skill-row">
-                        <span class="skill-label">Languages</span>
-                        <div class="skill-tags">
-                            <span>Python</span><span>C++</span><span>C</span><span>SQL</span><span>Java</span>
-                        </div>
-                    </div>
-                    <div class="skill-row">
-                        <span class="skill-label">Frameworks &amp; Tools</span>
-                        <div class="skill-tags">
-                            <span>FastAPI</span><span>Flask</span><span>Django</span><span>Pandas</span><span>NumPy</span><span>Git</span><span>Redis</span>
-                        </div>
-                    </div>
-                    <div class="skill-row">
-                        <span class="skill-label">AI &amp; ML</span>
-                        <div class="skill-tags">
-                            <span>TensorFlow</span><span>PyTorch</span><span>LangChain</span><span>LangGraph</span><span>Scikit-learn</span><span>Transformers</span><span>CNNs</span><span>RNNs</span>
-                        </div>
-                    </div>
-                    <div class="skill-row">
-                        <span class="skill-label">Cloud &amp; DevOps</span>
-                        <div class="skill-tags">
-                            <span>AWS</span><span>GCP</span><span>Kubernetes</span><span>Docker</span><span>Terraform</span><span>GitHub Actions</span>
-                        </div>
-                    </div>
-                    <div class="skill-row">
-                        <span class="skill-label">Coursework</span>
-                        <div class="skill-tags">
-                            <span>Data Center Scale Computing</span><span>Object Oriented Analysis &amp; Design</span><span>Machine Learning</span><span>NLP</span><span>Computer Vision</span><span>Distributed Systems</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="publications" class="section reveal">
-            <div class="section-inner">
-                <header class="sec-head">
-                    <span class="sec-num" aria-hidden="true">04</span>
-                    <h2 class="sec-title">Publications</h2>
-                </header>
-
-                <div class="pub-list">
-                    <article class="pub-item">
-                        <div class="pub-year-col">
-                            <span class="pub-year">2024</span>
-                            <span class="pub-venue">JISMAC</span>
-                        </div>
-                        <div>
-                            <h3 class="pub-title">Drowsiness and Crash Detection Mobile Application for Vehicle's Safety</h3>
-                            <p class="pub-authors">N. Subedi · <strong>N. Paudel</strong> · M. Chhetri · S. Acharya · N. Lamichhane</p>
-                            <div class="pub-meta">
-                                <a href="https://doi.org/10.36548/jismac.2024.1.005" target="_blank" rel="noopener">
-                                    <i class="fas fa-arrow-up-right-from-square"></i> DOI
-                                </a>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="pub-item">
-                        <div class="pub-year-col">
-                            <span class="pub-year">2024</span>
-                            <span class="pub-venue">JSCP</span>
-                        </div>
-                        <div>
-                            <h3 class="pub-title">Nepali Image Captioning: Generating Coherent Paragraph-Length Descriptions Using Transformer</h3>
-                            <p class="pub-authors">N. Subedi · <strong>N. Paudel</strong> · M. Chhetri · S. Acharya · N. Lamichhane</p>
-                            <div class="pub-meta">
-                                <a href="https://doi.org/10.36548/jscp.2024.1.006" target="_blank" rel="noopener">
-                                    <i class="fas fa-arrow-up-right-from-square"></i> DOI
-                                </a>
-                            </div>
-                        </div>
-                    </article>
-                </div>
-            </div>
-        </section>
-
-        <section id="blog" class="section reveal">
-            <div class="section-inner">
-                <header class="sec-head">
-                    <span class="sec-num" aria-hidden="true">05</span>
-                    <h2 class="sec-title">Blog</h2>
-                </header>
-                <div class="blog-list" id="blog-grid"></div>
-            </div>
-        </section>
-
-        <footer class="footer">
-            <div class="footer-inner">
-                <div class="footer-left">
-                    <p class="footer-copy">Nirajan Paudel — ML Engineer &amp; Researcher</p>
-                    <p class="footer-built">Designed &amp; built with care</p>
-                </div>
-                <div class="footer-socials">
-                    <a href="mailto:nirajan.paudel@colorado.edu" aria-label="Email"><i class="fas fa-envelope"></i></a>
-                    <a href="https://github.com/paudelnirajan" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
-                    <a href="https://www.linkedin.com/in/nirajanpaudel17/" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
-                    <a href="https://x.com/paudelnirajan17" target="_blank" rel="noopener" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                </div>
-            </div>
-        </footer>
-
-    </main>
-
-    <div class="modal-overlay" id="modal-overlay">
-        <div class="modal-box">
-            <button class="modal-close" id="modal-close" aria-label="Close modal">
-                <i class="fas fa-xmark"></i>
+    <!-- ============================== NEWS ============================== -->
+    <section class="section reveal" id="news">
+        <div class="wrap">
+            <header class="sec-head">
+                <h2 class="sec-title">News</h2>
+                <span class="sec-kicker">most recent first</span>
+            </header>
+            <div class="news-list" id="news-list"></div>
+            <button class="news-more" id="news-more" hidden>
+                <i class="fas fa-plus"></i> <span>Show earlier news</span>
             </button>
-            <div class="modal-scroll">
-                <div id="modal-body" class="modal-body"></div>
+        </div>
+    </section>
+
+    <!-- ============================ RESEARCH ============================ -->
+    <section class="section reveal" id="research">
+        <div class="wrap">
+            <header class="sec-head">
+                <h2 class="sec-title">Research</h2>
+                <span class="sec-kicker">what I think about</span>
+            </header>
+
+            <div class="interests">
+                <article class="interest">
+                    <span class="interest-num">01</span>
+                    <h3>Multilingual NLP</h3>
+                    <p>Where capabilities that hold in English degrade elsewhere — and what that degradation curve actually looks like across typologically distant languages.</p>
+                </article>
+                <article class="interest">
+                    <span class="interest-num">02</span>
+                    <h3>Efficient Inference</h3>
+                    <p>Speculative decoding, drafting, distillation. Making generation cheap without quietly making it worse for a subset of users.</p>
+                </article>
+                <article class="interest">
+                    <span class="interest-num">03</span>
+                    <h3>Low-Resource Languages</h3>
+                    <p>Nepali and other languages with tens of millions of speakers and almost no NLP infrastructure. Data scarcity as a design constraint, not a caveat.</p>
+                </article>
+                <article class="interest">
+                    <span class="interest-num">04</span>
+                    <h3>Evaluation That Travels</h3>
+                    <p>Metrics and benchmarks that don't silently assume English, and that surface the failures an aggregate number hides.</p>
+                </article>
             </div>
         </div>
-    </div>
+    </section>
 
-    <script src="blog-data.js"></script>
-    <script src="script.js"></script>
+    <!-- =========================== PUBLICATIONS ========================= -->
+    <section class="section reveal" id="publications">
+        <div class="wrap">
+            <header class="sec-head">
+                <h2 class="sec-title">Publications</h2>
+                <span class="sec-kicker" id="pub-count"></span>
+            </header>
+            <div id="spotlight-slot"></div>
+            <div class="pub-list" id="pub-list"></div>
+        </div>
+    </section>
+
+    <!-- ============================ PROJECTS ============================ -->
+    <section class="section reveal" id="projects">
+        <div class="wrap">
+            <header class="sec-head">
+                <h2 class="sec-title">Projects</h2>
+                <span class="sec-kicker">things I built</span>
+            </header>
+
+            <div class="filters" role="group" aria-label="Filter projects">
+                <button class="filter-btn active" data-filter="featured">Featured</button>
+                <button class="filter-btn" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="ai">AI &amp; NLP</button>
+                <button class="filter-btn" data-filter="cloud">Systems &amp; Cloud</button>
+            </div>
+
+            <div class="project-grid" id="project-grid"></div>
+        </div>
+    </section>
+
+    <!-- ============================= WRITING ============================ -->
+    <section class="section reveal" id="writing">
+        <div class="wrap">
+            <header class="sec-head">
+                <h2 class="sec-title">Writing</h2>
+                <span class="sec-kicker">notes &amp; long-form</span>
+            </header>
+            <div class="writing-list" id="writing-list"></div>
+        </div>
+    </section>
+
+    <!-- ============================= CONTACT ============================ -->
+    <section class="section reveal" id="contact">
+        <div class="wrap">
+            <div class="contact">
+                <div>
+                    <h2>Get in touch</h2>
+                    <p>
+                        I'm always glad to talk about multilingual NLP, efficient inference, or language
+                        technology for communities the field overlooks. If you're working on something in
+                        that space — or you just want the details behind a paper — write to me.
+                    </p>
+                </div>
+                <a href="mailto:nirajan.paudel@colorado.edu" class="contact-mail">
+                    <i class="fas fa-envelope"></i> nirajan.paudel@colorado.edu
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="wrap footer-inner">
+            <div class="footer-meta">
+                <b>Nirajan Paudel</b> — University of Colorado Boulder<br>
+                Set in Fraunces &amp; Inter · built by hand, no framework
+            </div>
+            <div class="footer-socials">
+                <a href="mailto:nirajan.paudel@colorado.edu" aria-label="Email"><i class="fas fa-envelope"></i></a>
+                <a href="https://github.com/paudelnirajan" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                <a href="https://www.linkedin.com/in/nirajanpaudel17/" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                <a href="https://x.com/paudelnirajan17" target="_blank" rel="noopener" aria-label="X"><i class="fab fa-x-twitter"></i></a>
+            </div>
+        </div>
+    </footer>
+
+</main>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-body">
+    <div class="modal-box">
+        <button class="modal-close" id="modal-close" aria-label="Close"><i class="fas fa-xmark"></i></button>
+        <div class="modal-scroll">
+            <div class="modal-body" id="modal-body"></div>
+        </div>
+    </div>
+</div>
+
+<script src="site-data.js"></script>
+<script src="blog-data.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
