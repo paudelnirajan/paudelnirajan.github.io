@@ -13,7 +13,13 @@
 ----------------------------------------------------------------- */
 const NEWS = [
     {
-        sort: '2026-05',
+        sort: '2026-09',
+        date: 'Sep 2026',
+        html: 'Getting into <strong>mechanistic interpretability</strong>. First write-up: <a href="posts/logit-lens/">the logit lens in PyTorch</a>, a runnable GPT-2 walkthrough that watches the model build its prediction layer by layer.',
+        highlight: false
+    },
+    {
+        sort: '2026-08',
         date: 'August 2026',
         html: '<strong>Speculative Decoding and the Curse of Multilinguality</strong> is on arXiv and under review at <strong>ACL 2026</strong>.',
         highlight: true

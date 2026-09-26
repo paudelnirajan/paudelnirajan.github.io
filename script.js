@@ -604,7 +604,7 @@ function renderWriting() {
     if (!list || typeof blogPosts === 'undefined') return;
 
     list.innerHTML = blogPosts.map(post => `
-        <article class="post-row" data-href="blog-post.html?post=${encodeURIComponent(post.slug)}"
+        <article class="post-row" data-href="${post.href || `blog-post.html?post=${encodeURIComponent(post.slug)}`}"
                  tabindex="0" role="link" aria-label="${esc(post.title)}">
             <span class="post-row-date">${esc(post.date)}</span>
             <div>

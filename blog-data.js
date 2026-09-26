@@ -3,8 +3,17 @@
    To add a new post:
      1. Create posts/<slug>.md with frontmatter (title, date, tags, excerpt)
      2. Add an entry below with the matching slug
+   A standalone page (e.g. an exported notebook) can set `href` instead.
 ================================================================= */
 const blogPosts = [
+    {
+        slug:    "logit-lens-pytorch",
+        href:    "posts/logit-lens/",
+        title:   "The Logit Lens in PyTorch",
+        date:    "September 25, 2026",
+        excerpt: "A hands-on logit lens walkthrough on GPT-2 with PyTorch and TransformerLens: decode the residual stream after every layer, see why ln_final matters, and plot top-k and rank heatmaps.",
+        tags:    ["Interpretability", "Logit Lens", "PyTorch", "TransformerLens"]
+    },
     {
         slug:    "nlp-tool-calling-transformer",
         title:   "Tool-Calling Language Models from First Principles",
