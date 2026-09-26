@@ -7,6 +7,14 @@
 ================================================================= */
 const blogPosts = [
     {
+        slug:    "transformer-residual-stream",
+        href:    "posts/transformer-residual-stream/",
+        title:   "A Transformer Block, One Matrix at a Time",
+        date:    "September 26, 2026",
+        excerpt: "An interactive walkthrough of a single transformer block from the residual stream's point of view: follow four tokens through LayerNorm, attention, the MLP and the unembedding, with every number computed live in your browser.",
+        tags:    ["Interpretability", "Transformers", "Interactive"]
+    },
+    {
         slug:    "logit-lens-pytorch",
         href:    "posts/logit-lens/",
         title:   "The Logit Lens in PyTorch",

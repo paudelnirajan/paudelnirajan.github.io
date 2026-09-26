@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Transformer Block, Residual Stream View — Nirajan Paudel</title>
+<meta name="description" content="An interactive, step-by-step walkthrough of one transformer block: embeddings, LayerNorm, multi-head attention, MLP, residual adds and unembedding, with real numbers computed live in your browser.">
+<meta name="author" content="Nirajan Paudel">
+<link rel="canonical" href="https://paudelnirajan.github.io/posts/transformer-residual-stream/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Nirajan Paudel">
+<meta property="og:title" content="Transformer Block, Residual Stream View">
+<meta property="og:description" content="Follow four tokens through one transformer block, matrix by matrix, with every number computed live.">
+<meta property="og:url" content="https://paudelnirajan.github.io/posts/transformer-residual-stream/">
+<meta property="article:published_time" content="2026-09-26">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:creator" content="@paudelnirajan17">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' font-family='Georgia,serif'>न</text></svg>">
+<script>
+(function(){try{document.documentElement.setAttribute('data-theme',localStorage.getItem('np-theme')||'light');}
+catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+</script>
+<style>
+:root{--bg:#FAFAF8;--surf:#fff;--ink:#1A1A1A;--soft:#6b6a63;--border:#E4E1D8;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141412;--surf:#1E1E1B;--ink:#EDEBE3;--soft:#a8a59b;--border:#38362F;}}
+:root[data-theme="dark"]{--bg:#141412;--surf:#1E1E1B;--ink:#EDEBE3;--soft:#a8a59b;--border:#38362F;}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55;}
+.wrap{max-width:960px;margin:0 auto;padding:28px 20px 60px;}
+h1{font-size:21px;font-weight:600;margin:0 0 4px;}
+.sub{color:var(--soft);font-size:14px;margin:0 0 18px;}
+.cfg{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;}
+.cfg span{font-family:var(--mono);font-size:12px;background:var(--surf);border:1px solid var(--border);padding:3px 9px;border-radius:6px;color:var(--soft);}
+.legend{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-bottom:22px;font-size:12px;color:var(--soft);}
+.legend .tok{margin-right:5px;}
+.scalebar{display:inline-flex;align-items:center;gap:6px;}
+.swatch{width:64px;height:10px;border-radius:5px;background:linear-gradient(90deg,#3A5CB7,#fff,#C6672B);}
+.steps{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px;}
+.step{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--surf);color:var(--ink);font-family:var(--mono);font-size:13px;cursor:pointer;}
+.step:hover{border-color:var(--soft);}
+.step.on{background:var(--ink);color:var(--bg);border-color:var(--ink);}
+.ptag{font-family:var(--mono);font-size:12px;color:var(--soft);letter-spacing:.03em;margin-bottom:6px;}
+h2{font-size:18px;font-weight:600;margin:0 0 8px;}
+.blurb{font-size:15px;color:var(--soft);max-width:700px;margin:0 0 14px;}
+.eq{font-family:var(--mono);font-size:13px;background:var(--surf);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:20px;display:inline-block;}
+.mrow{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;}
+.mcard{background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:12px;}
+.mhead{display:flex;justify-content:space-between;gap:14px;font-family:var(--mono);font-size:12px;margin-bottom:2px;}
+.mlabel{font-weight:600;}
+.mshape{color:var(--soft);}
+.mnote{font-size:11px;color:var(--soft);margin-bottom:8px;font-style:italic;max-width:260px;}
+.mscroll{overflow-x:auto;}
+.mgrid{display:inline-grid;gap:2px;}
+.c{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;min-width:32px;height:26px;padding:0 2px;}
+.rh{justify-content:flex-start;padding-right:6px;color:var(--soft);white-space:nowrap;}
+.ch{color:var(--soft);}
+.v{border-radius:3px;}
+.tok{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;flex:0 0 auto;}
+.nav{display:flex;gap:10px;margin-top:26px;}
+.navbtn{font-family:var(--sans);font-size:14px;padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surf);color:var(--ink);cursor:pointer;}
+.navbtn:disabled{opacity:.4;cursor:default;}
+.navbtn:not(:disabled):hover{border-color:var(--soft);}
+.back{display:inline-block;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);text-decoration:none;margin-bottom:18px;}
+.back:hover{color:var(--ink);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../../index.html#writing">← All writing</a>
+  <h1>Transformer block — residual stream view</h1>
+  <p class="sub">Input embeddings → one transformer block → next-token probabilities, real numbers computed live in your browser. Every row is one token — follow a row across every matrix to see what happens to that token.</p>
+  <div class="cfg" id="cfg"></div>
+  <div class="legend" id="legend"></div>
+  <div class="steps" id="steps"></div>
+  <div id="panel"></div>
+  <div class="nav">
+    <button class="navbtn" id="prevBtn">← Back</button>
+    <button class="navbtn" id="nextBtn">Next →</button>
+  </div>
+</div>
+<script>
+const DATA = {"tokens":["The","cat","sat","down"],"n":4,"d_model":8,"n_heads":2,"d_head":4,"d_ff":16,"X":[[1.18,-0.33,0.02,0.29,-0.55,0.0,-0.0,-1.23],[0.71,0.42,-0.44,-0.12,0.35,-0.18,-0.17,-1.02],[0.39,0.09,0.19,-1.07,1.16,0.11,-0.27,1.42],[-0.03,-1.02,-0.28,-1.6,0.73,-0.29,-0.52,0.75]],"Wq":[[-0.58,0.19,-0.72,-0.23,-0.42,0.51,0.62,-0.12],[0.29,-0.06,0.2,-0.26,-0.6,-0.63,0.13,0.79],[0.09,-0.18,0.67,0.08,0.04,0.09,-0.05,-0.11],[-0.5,0.18,-0.03,0.42,-0.13,-0.67,-0.03,0.59],[-0.13,-0.31,-0.42,-0.37,-0.11,-0.41,0.52,-0.1],[0.04,0.5,0.53,-0.07,0.12,0.26,-0.07,-0.62],[0.23,0.31,0.15,-0.32,-0.07,-0.21,-0.1,0.45],[0.54,0.23,0.19,0.24,-0.0,-0.03,-0.24,-0.02]],"Wk":[[0.79,0.3,-0.12,-0.17,-0.3,0.13,0.14,-0.51],[0.17,-0.2,0.5,0.05,0.6,-0.16,-0.1,0.1],[0.37,0.2,-0.43,0.06,0.01,-0.15,-0.23,0.61],[-0.14,-0.3,0.22,0.05,-0.03,0.27,0.17,0.13],[0.34,0.1,-0.22,-0.13,-0.18,0.07,-0.38,-0.64],[0.03,-0.47,-0.68,0.13,-0.25,0.17,-0.19,-0.39],[-0.44,-0.18,-0.1,-0.29,-0.1,-0.54,0.01,-0.63],[-0.07,0.24,0.38,0.6,-0.54,0.27,0.42,0.34]],"Wv":[[-0.33,0.14,0.65,-0.52,0.17,0.39,-0.24,0.2],[-0.37,-0.28,-0.29,0.07,-0.03,0.33,-0.33,-0.05],[0.34,0.2,-0.46,0.23,-0.17,0.13,0.11,0.43],[0.04,-0.65,-0.48,0.26,-0.09,0.4,0.1,-0.26],[0.38,-0.28,-0.72,0.72,-0.67,0.22,0.33,0.05],[-0.59,0.36,-0.5,-0.47,-0.13,0.28,0.11,0.28],[-0.16,-0.06,-0.4,-0.11,0.21,-0.1,0.17,-0.2],[-0.21,0.01,-0.07,0.21,0.06,0.61,-0.08,-0.08]],"Wo":[[-0.36,0.01,0.24,-0.26,-0.02,0.25,-0.04,-0.18],[0.34,0.03,0.14,0.41,0.4,-0.12,-0.18,0.1],[-0.05,-0.66,0.45,0.01,0.26,-0.41,0.45,-0.21],[-0.04,-0.49,-0.06,-0.08,-0.06,0.15,0.02,0.34],[-0.16,-0.35,-0.01,0.22,0.44,0.28,-0.62,0.13],[0.51,0.02,-0.18,0.11,-0.18,0.22,-0.0,0.49],[0.17,-0.25,0.21,0.33,-0.2,-0.15,-0.81,0.32],[-0.21,-0.74,-0.62,-0.08,0.27,-0.03,0.17,-0.39]],"Win":[[-0.4,0.27,0.15,-0.01,0.38,-0.29,-0.13,0.31,0.55,0.0,0.5,-0.18,0.1,-0.05,-0.48,0.08],[0.28,-0.04,-0.02,0.42,-0.37,-0.45,-0.2,-0.36,0.4,0.09,-0.26,-0.18,0.86,-0.18,-0.23,0.09],[0.19,0.07,-0.27,-0.35,0.18,-0.02,-0.49,0.35,0.23,-0.07,-0.08,0.07,-0.21,-0.4,0.1,-0.43],[0.12,-0.43,-0.03,-0.04,0.53,-0.32,-0.42,-0.19,-0.34,-0.18,0.13,0.23,0.5,-0.22,0.79,0.59],[-0.06,-0.69,-0.02,0.02,-0.69,0.02,-0.06,-0.24,0.19,0.3,-0.15,0.07,-0.2,-0.24,0.02,0.16],[-0.17,-0.66,0.18,-0.48,0.04,0.53,-0.01,-0.36,-0.44,0.35,-0.01,0.16,0.28,-0.01,-0.09,-0.28],[-0.92,-0.46,-0.02,-0.05,0.12,-0.04,0.05,0.24,-0.27,-0.09,-0.48,0.29,0.01,0.15,0.46,0.32],[-0.02,0.24,-0.43,0.13,0.04,-0.49,0.4,-0.21,0.2,-0.13,0.3,0.39,-0.25,-0.46,-0.04,0.25]],"Wout":[[-0.11,-0.18,0.15,-0.83,-0.2,-0.42,0.09,-0.22],[-0.33,-0.11,-0.44,-0.0,-0.2,-0.11,-0.22,0.27],[-0.03,0.16,0.14,-0.24,0.17,0.1,0.09,-0.12],[-0.13,0.24,0.65,-0.25,0.16,-0.11,0.24,0.13],[0.32,-0.84,-0.18,-0.3,-0.03,-0.22,-0.19,0.2],[0.57,-0.85,-0.09,0.09,0.0,-0.1,-0.41,-0.28],[0.22,0.32,0.03,-0.25,0.03,-0.07,0.16,0.04],[-0.19,0.06,-0.35,0.25,0.35,-0.35,0.13,-0.3],[0.32,0.27,-0.07,0.3,-0.13,-0.19,-0.17,-0.04],[-0.1,0.05,-0.18,0.23,0.31,-0.15,-0.43,0.22],[0.34,-0.05,-0.39,0.08,0.46,-0.56,0.14,-0.09],[-0.26,0.15,-0.39,0.09,0.39,0.05,-0.26,-0.53],[-0.38,-0.55,0.48,-0.07,-0.31,-0.39,-0.32,-0.1],[-0.38,0.5,-0.22,-0.23,0.09,0.44,0.4,-0.15],[0.08,0.04,0.16,0.08,-0.28,-0.38,0.05,-0.36],[0.41,0.01,-0.31,-0.1,-0.15,-0.04,0.28,-0.43]],
+"vocab":["the","cat","sat","down","dog","ran","home","food","fast","slow","big","small"],
+"Wu":[[-0.35,-0.13,0.45,0.07,0.32,0.2,-0.22,0.19,-0.11,-0.11,0.03,-0.53],[0.42,-0.23,0.35,0.05,0.54,-0.23,-0.11,0.12,-0.77,0.29,0.54,0.39],[0.26,-0.05,0.45,0.38,0.14,0.0,-0.13,-0.43,0.43,-0.76,-0.13,0.06],[0.3,0.62,0.35,-0.1,0.25,-0.44,0.5,-0.05,-0.24,-0.22,-0.02,-0.14],[0.8,-0.25,0.01,0.01,0.01,0.02,-0.17,-0.2,-0.3,-0.52,0.08,0.34],[-0.19,-0.2,-0.11,-0.16,-0.5,0.48,0.15,-0.25,0.1,-0.15,-0.07,0.13],[0.33,0.53,0.6,-0.09,-0.17,0.03,0.04,-0.26,-0.22,0.28,0.57,-0.08],[-0.23,-0.1,-0.35,-0.1,0.15,-0.03,0.43,0.05,0.17,-0.05,0.46,-0.43]]};
+
+const tokens = DATA.tokens;
+const TOKC = ['#534AB7','#0F6E56','#D85A30','#993556'];
+const DARKMODE = document.documentElement.getAttribute('data-theme') === 'dark';
+
+function matmul(A,B){const r=A.length,k=B.length,c=B[0].length;const out=Array.from({length:r},()=>Array(c).fill(0));
+  for(let i=0;i<r;i++)for(let j=0;j<c;j++){let s=0;for(let x=0;x<k;x++)s+=A[i][x]*B[x][j];out[i][j]=s;}return out;}
+function transpose(A){return A[0].map((_,j)=>A.map(row=>row[j]));}
+function addMat(A,B){return A.map((row,i)=>row.map((v,j)=>v+B[i][j]));}
+function layernorm(X){return X.map(row=>{const m=row.reduce((a,b)=>a+b,0)/row.length;
+  const v=row.reduce((a,b)=>a+(b-m)*(b-m),0)/row.length;return row.map(x=>(x-m)/Math.sqrt(v+1e-5));});}
+function softmaxRow(row){const mx=Math.max(...row);const ex=row.map(v=>Math.exp(v-mx));const s=ex.reduce((a,b)=>a+b,0);return ex.map(v=>v/s);}
+function gelu(x){return 0.5*x*(1+Math.tanh(Math.sqrt(2/Math.PI)*(x+0.044715*x*x*x)));}
+function sliceCols(A,s,e){return A.map(row=>row.slice(s,e));}
+function hconcat(arrs){return arrs[0].map((_,i)=>arrs.reduce((acc,a)=>acc.concat(a[i]),[]));}
+function argmaxRow(row){let bi=0;for(let i=1;i<row.length;i++)if(row[i]>row[bi])bi=i;return bi;}
+
+const ln1 = layernorm(DATA.X);
+const Q = matmul(ln1,DATA.Wq), K = matmul(ln1,DATA.Wk), V = matmul(ln1,DATA.Wv);
+const dh = DATA.d_head, nh = DATA.n_heads;
+const heads = [];
+for(let h=0;h<nh;h++){
+  const s=h*dh,e=s+dh;
+  const Qh=sliceCols(Q,s,e),Kh=sliceCols(K,s,e),Vh=sliceCols(V,s,e);
+  const scores=matmul(Qh,transpose(Kh)).map(row=>row.map(v=>v/Math.sqrt(dh)));
+  const attn=scores.map(softmaxRow);
+  const outh=matmul(attn,Vh);
+  heads.push({Qh,Kh,Vh,scores,attn,outh});
+}
+const concat = hconcat(heads.map(h=>h.outh));
+const attn_out = matmul(concat,DATA.Wo);
+const X2 = addMat(DATA.X,attn_out);
+const ln2 = layernorm(X2);
+const hidden = matmul(ln2,DATA.Win);
+const hidden_act = hidden.map(row=>row.map(gelu));
+const mlp_out = matmul(hidden_act,DATA.Wout);
+const X3 = addMat(X2,mlp_out);
+const ln_f = layernorm(X3);
+const logits = matmul(ln_f,DATA.Wu);
+const probs = logits.map(softmaxRow);
+const VOCAB = DATA.vocab;
+
+function mix(a,b,t){return a+(b-a)*t;}
+function cellColor(v,maxAbs){
+  const t=Math.max(-1,Math.min(1,v/maxAbs));
+  const base=DARKMODE?[34,33,29]:[255,255,255];
+  const target=t>=0?[198,103,43]:[58,92,183];
+  const at=Math.abs(t);
+  const r=mix(base[0],target[0],at),g=mix(base[1],target[1],at),b=mix(base[2],target[2],at);
+  const lum=0.299*r+0.587*g+0.114*b;
+  return {bg:`rgb(${r|0},${g|0},${b|0})`, fg: lum>150?'#1a1a1a':'#f5f3ec'};
+}
+function chip(i){return `<span class="tok" style="background:${TOKC[i]}"></span>`;}
+function grid(label,mat,rMode,cMode,note){
+  const rows=mat.length, cols=mat[0].length;
+  let maxAbs=0; for(const row of mat) for(const v of row) maxAbs=Math.max(maxAbs,Math.abs(v));
+  maxAbs=maxAbs||1;
+  const rLabs = rMode==='tok'? tokens.map((t,i)=>chip(i)+t) : Array.from({length:rows},(_,i)=>i);
+  const cLabs = cMode==='tok'? tokens.map((t,i)=>chip(i)) : cMode==='vocab'? VOCAB : Array.from({length:cols},(_,i)=>i);
+  let h=`<div class="mcard"><div class="mhead"><span class="mlabel">${label}</span><span class="mshape">${rows}×${cols}</span></div>`;
+  if(note) h+=`<div class="mnote">${note}</div>`;
+  const colw = cMode==='vocab'?'44px':'32px';
+  h+=`<div class="mscroll"><div class="mgrid" style="grid-template-columns:auto repeat(${cols},minmax(${colw},1fr))">`;
+  h+=`<div class="c ch"></div>`;
+  cLabs.forEach(c=>h+=`<div class="c ch">${c}</div>`);
+  mat.forEach((row,i)=>{
+    h+=`<div class="c rh">${rLabs[i]}</div>`;
+    row.forEach(v=>{const {bg,fg}=cellColor(v,maxAbs); h+=`<div class="c v" style="background:${bg};color:${fg}">${v.toFixed(2)}</div>`;});
+  });
+  h+='</div></div></div>';
+  return h;
+}
+
+const WNOTE = 'Learned weights — the same matrix multiplies every token\'s row.';
+
+const STEPS = [
+{title:'Input: the residual stream begins', blurb:'Each row is one token\'s embedding. This shape — tokens × d_model — is the residual stream. Every part of the block reads from it and writes back into it; it starts and ends this exact shape.',
+ eq:'X&nbsp; [4 tokens × 8 dims]',
+ build:()=>grid('X (input)', DATA.X,'tok','idx')},
+
+{title:'LayerNorm — normalize before attention', blurb:'Each row is normalized using only that row\'s own mean and variance — tokens never mix here. LayerNorm reads the stream but doesn\'t write to it; it just hands a cleaned-up copy forward.',
+ eq:'ln1 = LayerNorm(X)&nbsp; [4×8] → [4×8]',
+ build:()=>grid('ln1', ln1,'tok','idx')},
+
+{title:'Project into queries, keys, values', blurb:'Wq, Wk, Wv are learned parameter matrices — identical for every token, applied row by row. [4×8]·[8×8] keeps 4 rows (tokens) but can reshape the 8 feature columns; here it stays 8.',
+ eq:'Q = ln1·Wq,&nbsp; K = ln1·Wk,&nbsp; V = ln1·Wv&nbsp; [4×8]·[8×8] → [4×8]',
+ build:()=>grid('Wq',DATA.Wq,'idx','idx',WNOTE)+grid('Wk',DATA.Wk,'idx','idx',WNOTE)+grid('Wv',DATA.Wv,'idx','idx',WNOTE)+grid('Q',Q,'tok','idx')+grid('K',K,'tok','idx')+grid('V',V,'tok','idx')},
+
+{title:'Split d_model into heads', blurb:'8 columns split into n_heads=2 groups of d_head=4 — pure slicing, no math. Each head now sees a narrower [4×4] window of Q, K and V, and can learn to attend differently.',
+ eq:'Q → [ Qhead0 | Qhead1 ],&nbsp; each [4×4]',
+ build:()=>heads.map((h,i)=>grid(`Q head ${i}`,h.Qh,'tok','idx')+grid(`K head ${i}`,h.Kh,'tok','idx')+grid(`V head ${i}`,h.Vh,'tok','idx')).join('')},
+
+{title:'Attention: who looks at whom', blurb:'scores = Qh·Khᵀ / √d_head is the one matrix that\'s token × token, not token × feature — row i, col j is how much token i\'s query matches token j\'s key. Softmax turns each row into a distribution that sums to 1.',
+ eq:'scores = Qh·Khᵀ/√d_head&nbsp; [4×4]·[4×4] → [4×4]&nbsp;&nbsp;·&nbsp;&nbsp; attn = softmax(scores, row-wise)',
+ build:()=>heads.map((h,i)=>{
+    const am=h.attn.map(argmaxRow);
+    const note=`Strongest attention this head: ${tokens.map((t,r)=>t+'→'+tokens[am[r]]).join(', ')}`;
+    return grid(`scores — head ${i}`,h.scores,'tok','tok')+grid(`attn — head ${i}`,h.attn,'tok','tok',note);
+ }).join('')},
+
+{title:'Mix values, merge heads, project back', blurb:'Each head averages value rows, weighted by its attention: attn·Vh → [4×4]. Concatenating both heads restores [4×8], then Wo (another learned matrix) lets information mix across heads.',
+ eq:'outh = attn·Vh&nbsp; →&nbsp; concat → [4×8]&nbsp; →&nbsp; attn_out = concat·Wo&nbsp; [4×8]·[8×8] → [4×8]',
+ build:()=>heads.map((h,i)=>grid(`out — head ${i}`,h.outh,'tok','idx')).join('')+grid('concat (heads merged)',concat,'tok','idx')+grid('Wo',DATA.Wo,'idx','idx',WNOTE)+grid('attn_out',attn_out,'tok','idx')},
+
+{title:'Add back into the stream', blurb:'attn_out is added elementwise to the original X — same shape in, same shape out. This residual connection is why gradients (and information) can skip attention entirely if that\'s ever the better path.',
+ eq:'X2 = X + attn_out&nbsp; [4×8] + [4×8] → [4×8]',
+ build:()=>grid('X',DATA.X,'tok','idx')+grid('attn_out',attn_out,'tok','idx')+grid('X2 = X + attn_out',X2,'tok','idx')},
+
+{title:'Normalize, then widen and squeeze (the MLP)', blurb:'LN2 normalizes X2 the same way as before. W_in expands 8→16 dims per token, GELU adds a nonlinearity, then W_out compresses 16→8. Every token is processed independently here — no mixing between rows, unlike attention.',
+ eq:'ln2 = LayerNorm(X2)&nbsp;&nbsp; hidden = ln2·W_in&nbsp; [4×8]·[8×16] → [4×16]&nbsp;&nbsp; mlp_out = GELU(hidden)·W_out&nbsp; [4×16]·[16×8] → [4×8]',
+ build:()=>grid('ln2',ln2,'tok','idx')+grid('W_in',DATA.Win,'idx','idx',WNOTE)+grid('hidden = ln2·W_in',hidden,'tok','idx')+grid('GELU(hidden)',hidden_act,'tok','idx')+grid('W_out',DATA.Wout,'idx','idx',WNOTE)+grid('mlp_out',mlp_out,'tok','idx')},
+
+{title:'Add again — output leaves the block', blurb:'X3 = X2 + mlp_out, back to the exact [4×8] shape the block started with. Stack more blocks and this is all that repeats: read the stream, compute a delta, add it back — the shape never changes.',
+ eq:'X3 = X2 + mlp_out&nbsp; → [4×8]&nbsp; (this block\'s output)',
+ build:()=>grid('X2',X2,'tok','idx')+grid('mlp_out',mlp_out,'tok','idx')+grid('X3 = X2 + mlp_out (output)',X3,'tok','idx')},
+
+{title:'Unembed: from hidden state to next-token probabilities', blurb:'Stack more blocks and X3 would feed the next one unchanged in shape. Once blocks are done, one last LayerNorm (ln_f) normalizes the stream, then the unembedding matrix Wu projects d_model back out into vocabulary space — often Wu is literally the input embedding matrix, transposed and reused. Softmax turns each row\'s scores into a probability distribution over every word in the vocabulary.',
+ eq:'ln_f = LayerNorm(X3)&nbsp;&nbsp; logits = ln_f·Wu&nbsp; [4×8]·[8×12] → [4×12]&nbsp;&nbsp; probs = softmax(logits, row-wise)',
+ build:()=>{
+   const picks = probs.map(argmaxRow);
+   const note = `Predicted next word per position: ${tokens.map((t,i)=>t+'→'+VOCAB[picks[i]]).join(', ')}`;
+   return grid('ln_f',ln_f,'tok','idx')+grid('Wu (unembedding)',DATA.Wu,'idx','vocab',WNOTE+' Columns are vocabulary words, not token positions.')+grid('logits',logits,'tok','vocab')+grid('probs = softmax(logits)',probs,'tok','vocab',note);
+ }}
+];
+
+document.getElementById('cfg').innerHTML = [
+  `n_tokens = ${DATA.n}`,`d_model = ${DATA.d_model}`,`n_heads = ${DATA.n_heads}`,`d_head = ${DATA.d_head}`,`d_ff = ${DATA.d_ff}`,`vocab_size = ${DATA.vocab.length}`
+].map(s=>`<span>${s}</span>`).join('');
+
+document.getElementById('legend').innerHTML =
+  tokens.map((t,i)=>`<span>${chip(i)}${t}</span>`).join('') +
+  `<span class="scalebar">negative <span class="swatch"></span> positive</span>`;
+
+let cur = 0;
+const stepsEl = document.getElementById('steps');
+const panel = document.getElementById('panel');
+function renderNav(){
+  stepsEl.innerHTML = STEPS.map((s,i)=>`<button class="step ${i===cur?'on':''}" data-i="${i}" aria-label="Step ${i+1}">${i+1}</button>`).join('');
+}
+function renderPanel(){
+  const s = STEPS[cur];
+  panel.innerHTML = `<div class="ptag">STEP ${cur+1} OF ${STEPS.length}</div><h2>${s.title}</h2><p class="blurb">${s.blurb}</p><div class="eq">${s.eq}</div><div class="mrow">${s.build()}</div>`;
+  document.getElementById('prevBtn').disabled = cur===0;
+  document.getElementById('nextBtn').disabled = cur===STEPS.length-1;
+}
+function go(i){cur=Math.max(0,Math.min(STEPS.length-1,i)); renderNav(); renderPanel(); window.scrollTo({top:0,behavior:'smooth'});}
+stepsEl.addEventListener('click', e=>{const b=e.target.closest('.step'); if(b) go(+b.dataset.i);});
+document.getElementById('prevBtn').onclick = ()=>go(cur-1);
+document.getElementById('nextBtn').onclick = ()=>go(cur+1);
+go(0);
+</script>
+</body>
+</html>
