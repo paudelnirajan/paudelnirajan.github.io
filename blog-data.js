@@ -7,6 +7,14 @@
 ================================================================= */
 const blogPosts = [
     {
+        slug:    "training-transformer-8-gpus",
+        href:    "posts/training-transformer-8-gpus/",
+        title:   "Training a Transformer on Eight GPUs, Then Serving It",
+        date:    "September 26, 2026",
+        excerpt: "A worked example you can click through: a 1.27B-parameter, Llama-shaped model trained on one 8-GPU node with tensor, pipeline and data parallelism, then taken through post-training and deployment.",
+        tags:    ["Distributed Training", "Transformers", "Interactive"]
+    },
+    {
         slug:    "transformer-residual-stream",
         href:    "posts/transformer-residual-stream/",
         title:   "A Transformer Block, One Matrix at a Time",

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://paudelnirajan.github.io/</loc><lastmod>2026-09-25</lastmod></url>
+  <url><loc>https://paudelnirajan.github.io/posts/training-transformer-8-gpus/</loc><lastmod>2026-09-26</lastmod></url>
   <url><loc>https://paudelnirajan.github.io/posts/transformer-residual-stream/</loc><lastmod>2026-09-26</lastmod></url>
   <url><loc>https://paudelnirajan.github.io/posts/logit-lens/</loc><lastmod>2026-09-25</lastmod></url>
   <url><loc>https://paudelnirajan.github.io/blog-post.html?post=nlp-tool-calling-transformer</loc><lastmod>2026-05-18</lastmod></url>
