@@ -7,6 +7,14 @@
 ================================================================= */
 const blogPosts = [
     {
+        slug:    "transformer-block-neurons",
+        href:    "posts/transformer-block-neurons/",
+        title:   "One Transformer Block, Neuron by Neuron",
+        date:    "October 4, 2026",
+        excerpt: "A tiny real model (d = 8, 2 heads, 4 blocks) running on your sentence, drawn neuron by neuron. Every circle holds the number it actually computed; hover one to see the lines feeding it.",
+        tags:    ["Interpretability", "Transformers", "Interactive"]
+    },
+    {
         slug:    "training-transformer-8-gpus",
         href:    "posts/training-transformer-8-gpus/",
         title:   "Training a Transformer on Eight GPUs, Then Serving It",

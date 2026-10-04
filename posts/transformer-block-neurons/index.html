@@ -1,0 +1,1014 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>One transformer block, neuron by neuron — Nirajan Paudel</title>
+<meta name="description" content="A tiny real transformer (d = 8, 2 heads, 4 blocks) running on your sentence, drawn neuron by neuron: every circle holds the number it actually computed, and hovering shows the lines feeding it.">
+<meta name="author" content="Nirajan Paudel">
+<link rel="canonical" href="https://paudelnirajan.github.io/posts/transformer-block-neurons/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Nirajan Paudel">
+<meta property="og:title" content="One transformer block, neuron by neuron">
+<meta property="og:description" content="Type a sentence and watch a tiny real transformer compute every neuron of attention and the MLP.">
+<meta property="og:url" content="https://paudelnirajan.github.io/posts/transformer-block-neurons/">
+<meta property="article:published_time" content="2026-10-04">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:creator" content="@paudelnirajan17">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' font-family='Georgia,serif'>न</text></svg>">
+<script>
+(function(){try{document.documentElement.setAttribute('data-theme',localStorage.getItem('np-theme')||'light');}
+catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#EEF0F3; --paper:#FFFFFF; --ink:#1A1F2C; --ink2:#4E566A; --ink3:#8990A2; --line:#D6DAE2;
+  --road:#DCDFE5; --road-edge:#B9BEC9; --lane:#D9A21B; --mask:#E3E5EA;
+  --attn:#2D57CF; --attn-rgb:45,87,207; --mlp:#1E8457; --mlp-rgb:30,132,87;
+  --h0:#2D57CF; --h0-rgb:45,87,207; --h1:#C42F78; --h1-rgb:196,47,120;
+  --pos-rgb:226,96,36; --neg-rgb:104,72,198;
+  --c-in:#B8202A; --c-hid:#2235B8; --c-out:#1D7A2E;
+  --nstroke:#7A8295; --focus:#1A1F2C;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --cond:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#11141A; --paper:#181C24; --ink:#E6E9F0; --ink2:#A6ADBD; --ink3:#6B7387; --line:#2A303C;
+    --road:#272C36; --road-edge:#3B4252; --lane:#C9951C; --mask:#252A33;
+    --attn:#7D9CFF; --attn-rgb:125,156,255; --mlp:#4CC68C; --mlp-rgb:76,198,140;
+    --h0:#7D9CFF; --h0-rgb:125,156,255; --h1:#F06AB0; --h1-rgb:240,106,176;
+    --pos-rgb:255,132,66; --neg-rgb:156,128,255;
+    --c-in:#FF6B6B; --c-hid:#7D9CFF; --c-out:#5BD27A;
+    --nstroke:#5E667A; --focus:#E6E9F0;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11141A; --paper:#181C24; --ink:#E6E9F0; --ink2:#A6ADBD; --ink3:#6B7387; --line:#2A303C;
+  --road:#272C36; --road-edge:#3B4252; --lane:#C9951C; --mask:#252A33;
+  --attn:#7D9CFF; --attn-rgb:125,156,255; --mlp:#4CC68C; --mlp-rgb:76,198,140;
+  --h0:#7D9CFF; --h0-rgb:125,156,255; --h1:#F06AB0; --h1-rgb:240,106,176;
+  --pos-rgb:255,132,66; --neg-rgb:156,128,255;
+  --c-in:#FF6B6B; --c-hid:#7D9CFF; --c-out:#5BD27A;
+  --nstroke:#5E667A; --focus:#E6E9F0;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--lane);outline-offset:2px}
+
+/* header */
+.top{padding:22px max(28px,calc((100% - 1400px)/2 + 28px)) 14px;display:grid;grid-template-columns:minmax(0,1fr);gap:14px;border-bottom:1px solid var(--line);background:var(--paper)}
+.back{display:inline-block;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);text-decoration:none;margin:0 0 8px}
+.back:hover{color:var(--ink)}
+.brand h1{font-family:var(--cond);font-weight:700;font-size:30px;line-height:1.1;margin:0;letter-spacing:-.01em}
+.brand p{margin:4px 0 0;color:var(--ink2);max-width:72ch}
+.controls{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.controls label{display:flex;align-items:center;gap:8px;color:var(--ink2);font-size:14px}
+#sent{width:min(320px,70vw);padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);font-family:var(--mono);font-size:14px}
+select{padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.toks{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.toks .lab{color:var(--ink2);font-size:14px;margin-right:2px}
+.tok{border:1px solid var(--line);background:var(--bg);border-radius:4px;padding:3px 9px;font-family:var(--mono);font-size:13px;cursor:pointer}
+.tok sub{color:var(--ink3);font-size:10px;margin-left:3px}
+.tok[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tok[aria-pressed="true"] sub{color:inherit;opacity:.7}
+.seg{display:flex;align-items:center;gap:0;color:var(--ink2);font-size:14px}
+.seg span{margin-right:8px}
+.seg button{border:1px solid var(--line);background:var(--bg);padding:4px 11px;cursor:pointer;font-size:13px}
+.seg button:first-of-type{border-radius:6px 0 0 6px}
+.seg button:last-of-type{border-radius:0 6px 6px 0;border-left:none}
+.seg button[aria-pressed="true"][data-h="0"]{background:var(--h0);color:#fff;border-color:var(--h0)}
+.seg button[aria-pressed="true"][data-h="1"]{background:var(--h1);color:#fff;border-color:var(--h1)}
+.btn{border:1px solid var(--line);background:var(--bg);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:14px}
+.btn:hover{border-color:var(--ink3)}
+
+/* layout */
+.grid{display:grid;grid-template-columns:230px minmax(0,1fr);gap:0;align-items:start;max-width:1400px;margin:0 auto}
+.map{position:sticky;top:0;padding:18px 10px 18px 18px;max-height:100vh;overflow:auto}
+.map svg{width:100%;height:auto;display:block}
+.map .mapnote{font-size:12.5px;color:var(--ink2);margin:8px 4px 0;line-height:1.45}
+.work{padding:18px 28px 40px 18px;min-width:0}
+.stagehead{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:10px}
+.stepno{font-family:var(--mono);font-size:13px;color:var(--ink3)}
+.stagehead h2{font-family:var(--cond);font-weight:600;font-size:24px;line-height:1.2;margin:0}
+.stage{background:var(--paper);border:1px solid var(--line);border-radius:10px;overflow-x:auto;position:relative}
+#stage{display:block;width:100%;height:auto;max-height:78vh;min-width:620px}
+#htmlStage{display:none}
+.scalebar{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--ink2);margin:8px 2px 0;flex-wrap:wrap}
+.scalebar .grad{width:150px;height:10px;border-radius:5px;background:linear-gradient(90deg,rgb(var(--neg-rgb)),var(--paper),rgb(var(--pos-rgb)));border:1px solid var(--line)}
+.scalebar .hint{margin-left:auto;color:var(--ink3)}
+.lower{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:18px;margin-top:16px}
+.explain,.mm{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:18px 20px}
+.explain p{margin:0 0 12px;max-width:68ch}
+.explain h3{font-family:var(--cond);font-size:16px;font-weight:600;margin:14px 0 4px;color:var(--ink)}
+.explain h3:first-child{margin-top:0}
+.explain .scale{border-left:3px solid var(--lane);padding:2px 0 2px 12px;margin-top:6px}
+.explain .scale p{color:var(--ink2);font-size:14.5px}
+.explain code,.mm code{font-family:var(--mono);font-size:.9em}
+.mm h3{font-family:var(--cond);font-size:16px;font-weight:600;margin:0 0 10px}
+.op{margin-bottom:18px}
+.op:last-child{margin-bottom:0}
+.eq{font-family:var(--mono);font-size:13.5px;margin-bottom:8px;line-height:1.5}
+.eq b{font-weight:600}
+.eq .sh{color:var(--ink3)}
+.oprow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.opsym{font-family:var(--mono);font-size:18px;color:var(--ink2);padding:0 2px}
+.hm{display:flex;flex-direction:column;align-items:flex-start;gap:3px}
+.hm svg{display:block;overflow:visible}
+.hmcap{font-family:var(--mono);font-size:12px;color:var(--ink2)}
+.hmcap b{color:var(--ink);font-weight:600}
+.opnote{font-size:13.5px;color:var(--ink2);margin-top:8px;max-width:64ch}
+.qkvtabs{display:flex;gap:6px;margin-bottom:10px}
+.qkvtabs button{border:1px solid var(--line);background:var(--bg);border-radius:4px;padding:2px 10px;font-family:var(--mono);cursor:pointer}
+.qkvtabs button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.pager{display:flex;align-items:center;gap:12px;margin-top:18px}
+.dots{display:flex;gap:5px;flex-wrap:wrap;flex:1;justify-content:center}
+.dots button{width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:var(--paper);font-family:var(--mono);font-size:11px;cursor:pointer;padding:0;color:var(--ink2)}
+.dots button[aria-current="step"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.pager .btn{min-width:96px}
+
+/* svg styles */
+svg text{font-family:var(--sans);fill:var(--ink)}
+.ptitle{font-family:var(--cond);font-weight:600;font-size:17px}
+.psub{font-size:12.5px;fill:var(--ink2)}
+.lbl{font-family:var(--cond);font-weight:600;font-size:14px}
+.shp{font-family:var(--mono);font-size:11.5px;fill:var(--ink3)}
+.small{font-size:12px;fill:var(--ink2)}
+.nv{font-family:var(--mono);font-weight:500;pointer-events:none}
+.sidev{font-family:var(--mono);font-size:10px;fill:var(--ink2);pointer-events:none}
+.nr{cursor:pointer}
+.nr circle{stroke-width:1.2;transition:stroke-width .1s}
+.nr:hover circle{stroke-width:2.6;stroke:var(--ink)!important}
+line.w{stroke-width:1}
+#stage.hlmode line.w{opacity:.06}
+#stage.hlmode line.w.hl{opacity:1;stroke-opacity:1;stroke-width:1.8}
+.road{fill:var(--road);stroke:var(--road-edge);stroke-width:1}
+.road.focus{stroke:var(--lane);stroke-width:2}
+.dash{stroke:var(--lane);stroke-width:1.6;stroke-dasharray:9 7;fill:none}
+.lanes{stroke:var(--ink3);stroke-width:1;fill:none;opacity:.7}
+.arc{fill:none;stroke:var(--attn)}
+.box-attn{fill:rgba(var(--attn-rgb),.07);stroke:var(--attn);stroke-width:1.2}
+.box-mlp{fill:rgba(var(--mlp-rgb),.08);stroke:var(--mlp);stroke-width:1.2}
+.clickable{cursor:pointer}
+.clickable:hover text{text-decoration:underline}
+.flow{fill:none;stroke:var(--ink3);stroke-width:1.4}
+
+/* map */
+.m-road{fill:var(--road);stroke:var(--road-edge)}
+.m-dash{stroke:var(--lane);stroke-width:1.5;stroke-dasharray:6 6}
+.m-box-attn{fill:rgba(var(--attn-rgb),.06);stroke:var(--attn)}
+.m-box-mlp{fill:rgba(var(--mlp-rgb),.07);stroke:var(--mlp)}
+.mi{cursor:pointer}
+.mi .bg{fill:transparent;stroke:none}
+.mi:hover .bg{fill:rgba(127,127,127,.12)}
+.mi.on .bg{fill:var(--ink)}
+.mi.on text{fill:var(--paper)!important;font-weight:600}
+.mi text{font-size:11.5px}
+.mi.road.on .m-road{stroke:var(--lane);stroke-width:2.5}
+.mi.plus circle{fill:var(--paper);stroke:var(--ink2);stroke-width:1.4}
+.mi.plus.on circle{fill:var(--ink);stroke:var(--ink)}
+.mi.plus.on text{fill:var(--paper)!important}
+.mi.plus:hover circle{stroke:var(--ink);stroke-width:2}
+.mpath{fill:none;stroke:var(--ink3);stroke-width:1.3}
+.mi.brk path{stroke:var(--ink2);fill:none;stroke-width:1.4}
+.mi.brk.on path{stroke:var(--lane);stroke-width:3}
+.mi.brk.on text{fill:var(--ink)!important}
+.mi.txt.on text{fill:var(--ink)!important;text-decoration:underline}
+
+/* tooltip */
+#tip{position:fixed;z-index:20;display:none;pointer-events:none;max-width:340px;background:var(--ink);color:var(--paper);padding:8px 10px;border-radius:6px;font-size:12.5px;line-height:1.45;box-shadow:0 4px 18px rgba(0,0,0,.18)}
+#tip .m{font-family:var(--mono);font-size:11.5px;opacity:.85;word-break:break-word}
+#tip b{font-family:var(--mono)}
+
+/* industry page */
+.ind{padding:22px 24px;display:grid;gap:26px}
+.ind h3{font-family:var(--cond);font-size:19px;font-weight:600;margin:0 0 10px}
+.ind p{margin:0 0 10px;max-width:72ch}
+.tablewrap{overflow-x:auto}
+table.shapes{border-collapse:collapse;font-size:13.5px;min-width:640px;width:100%}
+table.shapes th{text-align:left;font-weight:600;color:var(--ink2);font-size:12.5px;padding:6px 10px;border-bottom:1px solid var(--line)}
+table.shapes td{padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.shapes td.m{font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+table.shapes tr.cross td{background:rgba(var(--attn-rgb),.07)}
+.calc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.calc .inputs{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:center;font-size:14px}
+.calc input{width:120px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);font-family:var(--mono);font-size:13px}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.out{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px;align-content:start}
+.out dt{color:var(--ink2)}
+.out dd{margin:0;font-family:var(--mono);font-size:13.5px}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px 28px}
+.notes article h4{font-family:var(--cond);font-size:16px;font-weight:600;margin:0 0 4px}
+.notes article p{font-size:14.5px;color:var(--ink2);margin:0}
+.notes article{border-top:2px solid var(--lane);padding-top:10px}
+
+@media (max-width:980px){
+  .lower{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:1180px){
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .map{position:static;max-height:none;padding:12px 28px 0}
+  .map svg{max-width:240px;margin:0 auto}
+  .work{padding:14px 28px 32px}
+  details.mapd > summary{cursor:pointer;color:var(--ink2);font-size:14px}
+}
+@media (max-width:820px){
+  .map{padding:12px 14px 0}
+  .work{padding:14px 14px 32px}
+  .top{padding:16px 16px 12px}
+  .brand h1{font-size:24px}
+  .calc{grid-template-columns:minmax(0,1fr)}
+  details.mapd > summary{cursor:pointer;color:var(--ink2);font-size:14px}
+}
+@media (min-width:1181px){ details.mapd > summary{display:none} .grid:has(details.mapd:not([open])){grid-template-columns:minmax(0,1fr)} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <a class="back" href="../../index.html#writing">← All writing</a>
+    <h1>One transformer block, neuron by neuron</h1>
+    <p>A tiny real model (d = 8, 2 heads, MLP 8 → 32 → 8, 4 blocks) running on your sentence. Every circle holds the number it actually computed. Hover a circle to see the lines feeding it.</p>
+  </div>
+  <div class="controls">
+    <label>Sentence <input id="sent" value="the cat sat on the mat" maxlength="60" spellcheck="false" aria-describedby="sentnote"></label>
+    <div class="toks" id="toks" role="group" aria-label="Focus token"></div>
+    <label>Block <select id="layer" aria-label="Block to inspect"></select></label>
+    <div class="seg" id="heads" role="group" aria-label="Attention head"><span>Head</span><button data-h="0" aria-pressed="true">1</button><button data-h="1" aria-pressed="false">2</button></div>
+    <label><input type="checkbox" id="nums" checked> Values in circles</label>
+    <button class="btn" id="reroll">Re-roll weights</button>
+  </div>
+</header>
+
+<main class="grid">
+  <aside class="map">
+    <details class="mapd" open>
+      <summary>Block map</summary>
+      <svg id="map" viewBox="0 0 240 640" role="img" aria-label="Map of the transformer block; click a part to jump to it"></svg>
+      <p class="mapnote" id="mapnote"></p>
+    </details>
+  </aside>
+  <section class="work">
+    <div class="stagehead"><span class="stepno" id="stepno"></span><h2 id="stitle"></h2></div>
+    <div class="stage" id="stageWrap">
+      <svg id="stage" viewBox="0 0 960 600" role="img" aria-label="Neuron-level diagram for this step"></svg>
+      <div id="htmlStage"></div>
+    </div>
+    <div class="scalebar" id="scalebar"><span>negative</span><span class="grad"></span><span>positive</span><span>Lines: weights, orange positive, violet negative, darker means larger.</span><span class="hint">Arrow keys move between steps</span></div>
+    <div class="lower" id="lower">
+      <article class="explain" id="explain"></article>
+      <article class="mm" id="mm"></article>
+    </div>
+    <nav class="pager" aria-label="Steps">
+      <button class="btn" id="prev">Previous</button>
+      <div class="dots" id="dots"></div>
+      <button class="btn" id="next">Next</button>
+    </nav>
+  </section>
+</main>
+<div id="tip" role="tooltip"></div>
+
+<script>
+/* ---------------- model ---------------- */
+const D=8,H=2,DH=4,FF=32,L=4,MAXT=7;
+const BASE_VOCAB=["the","a","cat","dog","sat","ran","on","mat","rug","down","and","."];
+let seedBase=7;
+const st={step:0,focus:5,head:0,layer:0,nums:true,qkv:'Q'};
+let M;
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hashStr(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function gauss(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function randMat(r,rows,cols,sd){return Array.from({length:rows},()=>Array.from({length:cols},()=>gauss(r)*sd))}
+const matmul=(A,B)=>A.map(row=>B[0].map((_,j)=>row.reduce((s,a,k)=>s+a*B[k][j],0)));
+const tr=A=>A[0].map((_,j)=>A.map(r=>r[j]));
+const addM=(A,B)=>A.map((r,i)=>r.map((v,j)=>v+B[i][j]));
+function layerNorm(x){const mu=x.reduce((a,b)=>a+b,0)/x.length;const va=x.reduce((a,b)=>a+(b-mu)**2,0)/x.length;const sd=Math.sqrt(va+1e-5);return{mu,sd,cen:x.map(a=>a-mu),out:x.map(a=>(a-mu)/sd)}}
+const gelu=x=>0.5*x*(1+Math.tanh(Math.sqrt(2/Math.PI)*(x+0.044715*x*x*x)));
+function softmax(v){const f=v.filter(Number.isFinite);const m=Math.max(...f);const e=v.map(a=>Number.isFinite(a)?Math.exp(a-m):0);const s=e.reduce((a,b)=>a+b,0);return e.map(a=>a/s)}
+const norm=v=>Math.sqrt(v.reduce((a,b)=>a+b*b,0));
+function tokenize(s){return(s.toLowerCase().match(/[a-z0-9']+|[.,!?]/g)||[]).slice(0,MAXT)}
+
+function build(sentence){
+  let toks=tokenize(sentence); if(!toks.length) toks=["the","cat"];
+  const vocab=[...BASE_VOCAB]; toks.forEach(t=>{if(!vocab.includes(t))vocab.push(t)});
+  const V=vocab.length,T=toks.length;
+  const sb=Math.imul(seedBase,2654435761);
+  const E=vocab.map(w=>{const r=mulberry32((hashStr(w)^sb)>>>0);return Array.from({length:D},()=>gauss(r)*0.9)});
+  const ids=toks.map(t=>vocab.indexOf(t));
+  const onehot=ids.map(id=>vocab.map((_,k)=>k===id?1:0));
+  const Etok=ids.map(id=>E[id].slice());
+  const P=toks.map((_,pos)=>Array.from({length:D},(_,i)=>{const k=Math.floor(i/2);const ang=pos/Math.pow(10000,2*k/D);return i%2===0?Math.sin(ang):Math.cos(ang)}));
+  const X0=addM(Etok,P);
+  const layers=[];let X=X0;
+  for(let l=0;l<L;l++){
+    const r=mulberry32((Math.imul(seedBase+1,7919)+l*104729)>>>0);
+    const W={Q:randMat(r,D,D,1.6/Math.sqrt(D)),K:randMat(r,D,D,1.6/Math.sqrt(D)),V:randMat(r,D,D,1/Math.sqrt(D)),O:randMat(r,D,D,1.1/Math.sqrt(D)),In:randMat(r,D,FF,1.1/Math.sqrt(D)),Out:randMat(r,FF,D,1.2/Math.sqrt(FF))};
+    const ln1=X.map(layerNorm),Xh=ln1.map(o=>o.out);
+    const Q=matmul(Xh,W.Q),K=matmul(Xh,W.K),Vv=matmul(Xh,W.V);
+    const heads=[];
+    for(let h=0;h<H;h++){
+      const sl=m=>m.map(row=>row.slice(h*DH,(h+1)*DH));
+      const Qh=sl(Q),Kh=sl(K),Vh=sl(Vv);
+      const S=matmul(Qh,tr(Kh));
+      const Ss=S.map(r=>r.map(v=>v/Math.sqrt(DH)));
+      const Sm=Ss.map((r,i)=>r.map((v,j)=>j>i?-Infinity:v));
+      const A=Sm.map(softmax);
+      const Z=matmul(A,Vh);
+      heads.push({Qh,Kh,Vh,S,Ss,Sm,A,Z});
+    }
+    const Z=X.map((_,i)=>[...heads[0].Z[i],...heads[1].Z[i]]);
+    const O=matmul(Z,W.O);
+    const writes=heads.map((hd,h)=>matmul(hd.Z,W.O.slice(h*DH,(h+1)*DH)));
+    const X1=addM(X,O);
+    const ln2=X1.map(layerNorm),Xh2=ln2.map(o=>o.out);
+    const Hpre=matmul(Xh2,W.In),Hpost=Hpre.map(r=>r.map(gelu));
+    const Mo=matmul(Hpost,W.Out);
+    const X2=addM(X1,Mo);
+    layers.push({W,Xin:X,ln1,Xh,Q,K,V:Vv,heads,Z,O,writes,X1,ln2,Xh2,Hpre,Hpost,M:Mo,X2});
+    X=X2;
+  }
+  const lnf=X.map(layerNorm),Xf=lnf.map(o=>o.out);
+  const WU=tr(E);const logits=matmul(Xf,WU);const probs=logits.map(softmax);
+  return{toks,vocab,V,T,E,ids,onehot,Etok,P,X0,layers,XL:X,lnf,Xf,WU,logits,probs};
+}
+
+/* ---------------- helpers ---------------- */
+const NS='http://www.w3.org/2000/svg';
+function S(tag,attrs={},parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e}
+function Tx(parent,x,y,str,attrs={}){const t=S('text',{x,y,...attrs},parent);t.textContent=str;return t}
+const fmt=v=>!Number.isFinite(v)?'−∞':(Math.abs(v)<0.005?'0.00':(v<0?'−':'')+Math.abs(v).toFixed(2));
+function fmtIn(v){if(!Number.isFinite(v))return'−∞';const a=Math.abs(v);let s=a>=9.95?a.toFixed(0):a>=0.995?a.toFixed(1):a.toFixed(2).replace(/^0/,'');if(s==='.00')return'0';return(v<0?'−':'')+s}
+function vfill(v,scale=2){if(!Number.isFinite(v))return'var(--mask)';const a=Math.min(1,Math.abs(v)/scale);return`rgba(var(${v>=0?'--pos-rgb':'--neg-rgb'}),${(0.05+0.95*a).toFixed(3)})`}
+function textOn(v,scale=2){return Number.isFinite(v)&&Math.min(1,Math.abs(v)/scale)>0.55?'#fff':'var(--ink)'}
+const W_=w=>`“${w}”`;
+const sub=n=>String(n).split('').map(c=>'₀₁₂₃₄₅₆₇₈₉'[+c]).join('');
+const fw=()=>M.toks[st.focus];
+function dotTerms(a,b,max=8){const n=a.length;const show=Math.min(n,max);let s=[];for(let k=0;k<show;k++)s.push(`${fmt(a[k])}·${fmt(b[k])}`);let str=s.join(' + ');if(n>show)str+=` + … (${n} terms)`;return str}
+
+/* tooltip */
+const tip=document.getElementById('tip');
+function showTip(e,html){tip.innerHTML=html;tip.style.display='block';moveTip(e)}
+function moveTip(e){const pad=14;let x=e.clientX+pad,y=e.clientY+pad;const w=tip.offsetWidth,h=tip.offsetHeight;if(x+w>innerWidth-8)x=e.clientX-w-pad;if(y+h>innerHeight-8)y=e.clientY-h-pad;tip.style.left=Math.max(4,x)+'px';tip.style.top=Math.max(4,y)+'px'}
+function hideTip(){tip.style.display='none'}
+function hoverable(el,html,id){
+  el.addEventListener('mouseenter',e=>{if(id)hl(id,true);showTip(e,typeof html==='function'?html():html)});
+  el.addEventListener('mousemove',moveTip);
+  el.addEventListener('mouseleave',()=>{if(id)hl(id,false);hideTip()});
+}
+function hl(id,on){const svg=document.getElementById('stage');svg.classList.toggle('hlmode',on);svg.querySelectorAll(`[data-t="${id}"],[data-s="${id}"]`).forEach(e=>e.classList.toggle('hl',on))}
+
+/* neurons */
+function neuron(g,x,y,r,v,o={}){
+  const grp=S('g',{class:'nr'},g);
+  const scale=o.scale||2;
+  const c=S('circle',{cx:x,cy:y,r},grp);c.style.fill=vfill(v,scale);c.style.stroke=o.stroke||'var(--nstroke)';
+  if(o.sw)c.style.strokeWidth=o.sw;
+  if(o.dim)grp.style.opacity=.25;
+  if(st.nums&&r>=11&&o.text!==false){const t=Tx(grp,x,y+(r>=15?3.4:3),fmtIn(v),{class:'nv','text-anchor':'middle'});t.style.fill=textOn(v,scale);t.style.fontSize=r>=15?'9.5px':'8px'}
+  if(o.side)Tx(grp,x+r+5,y+3.5,fmt(v),{class:'sidev'});
+  if(o.sideL){const t=Tx(grp,x-r-5,y+3.5,fmt(v),{class:'sidev','text-anchor':'end'})}
+  hoverable(grp,o.tip||(()=>`<b>${fmt(v)}</b>`),o.id);
+  if(o.onClick){grp.addEventListener('click',o.onClick)}
+  return{x,y,r,v};
+}
+function column(g,x,cy,vals,o={}){
+  const r=o.r||14,gap=o.gap??6,n=vals.length,mid=o.gapFix?6:(o.mid||0),h=n*2*r+(n-1)*gap+mid,y0=cy-h/2+r;
+  return vals.map((v,i)=>neuron(g,x,y0+i*(2*r+gap)+(i>=4&&n===8?mid:0),r,v,{...o,id:o.id?`${o.id}:${i}`:null,tip:o.tip?()=>o.tip(i,v):null,dim:o.dimIdx?o.dimIdx(i):o.dim}));
+}
+const colTop=c=>c[0].y-c[0].r, colBot=c=>c[c.length-1].y+c[c.length-1].r;
+function colTitle(g,c,title,shape,dy=14){const x=c[0].x,y=colTop(c)-dy-(shape?14:0);Tx(g,x,y,title,{class:'lbl','text-anchor':'middle'});if(shape)Tx(g,x,y+15,shape,{class:'shp','text-anchor':'middle'})}
+function connect(g,A,B,W,o={}){
+  const k=o.k??0.7,mx=o.max??0.6;
+  for(let j=0;j<B.length;j++)for(let i=0;i<A.length;i++){
+    const w=W[i][j];if(w===0&&o.skipZero)continue;
+    const ln=S('line',{x1:A[i].x+A[i].r,y1:A[i].y,x2:B[j].x-B[j].r,y2:B[j].y,class:'w'},g);
+    ln.style.stroke=o.color?o.color(i,j,w):(w>=0?'rgb(var(--pos-rgb))':'rgb(var(--neg-rgb))');
+    const op=o.op?o.op(i,j,w):Math.min(mx,Math.abs(w)*k+0.03);
+    ln.setAttribute('stroke-opacity',op.toFixed(3));
+    if(o.sid)ln.dataset.s=`${o.sid}:${i}`;if(o.tid)ln.dataset.t=`${o.tid}:${j}`;
+  }
+}
+function oneToOne(g,A,B,o={}){A.forEach((a,i)=>{const ln=S('line',{x1:a.x+a.r,y1:a.y,x2:B[i].x-B[i].r,y2:B[i].y,class:'w lanes'},g);if(o.sid)ln.dataset.s=`${o.sid}:${i}`;if(o.tid)ln.dataset.t=`${o.tid}:${i}`;if(o.dash)ln.setAttribute('stroke-dasharray',o.dash)})}
+function defs(svg){const d=S('defs',{},svg);
+  [['arr','var(--ink3)'],['arrA','var(--attn)'],['arrM','var(--mlp)'],['arrL','var(--lane)'],['arrH0','var(--h0)'],['arrH1','var(--h1)']].forEach(([id,c])=>{const m=S('marker',{id,viewBox:'0 0 10 10',refX:8,refY:5,markerWidth:9,markerHeight:9,markerUnits:'userSpaceOnUse',orient:'auto-start-reverse'},d);const p=S('path',{d:'M0,0 L10,5 L0,10 z'},m);p.style.fill=c});
+}
+function bracket(g,c,i0,i1,color,label,pad=3){const top=c[i0].y-c[i0].r-pad,bot=c[i1].y+c[i1].r+pad,x=c[0].x-c[0].r-7;const p=S('rect',{x,y:top,width:2*c[0].r+14,height:bot-top,rx:7,fill:'none'},g);p.style.stroke=color;p.style.strokeWidth=1.8;if(label){const t=Tx(g,x-6,(top+bot)/2+4,label,{class:'small','text-anchor':'end'});t.style.fill=color;t.style.fontWeight=600}}
+function road(g,x,y,w,h,lanesY){S('rect',{x,y,width:w,height:h,rx:14,class:'road'},g);(lanesY||[]).forEach(yy=>S('line',{x1:x+10,y1:yy,x2:x+w-10,y2:yy,class:'dash'},g))}
+function kxs(T,a,b){if(T===1)return[(a+b)/2];const sp=Math.min(90,(b-a)/(T-1));const tot=sp*(T-1);const s=a+((b-a)-tot)/2;return[...Array(T)].map((_,i)=>s+i*sp)}
+function setFocus(i){st.focus=i;render()}
+
+/* ---------------- stages ---------------- */
+const STAGES=[];
+
+STAGES[0]=(gL,gN,svg)=>{
+  // left: classic network
+  Tx(gN,36,44,'Neuron view',{class:'ptitle'});
+  Tx(gN,36,64,'A plain feed-forward network on one input vector',{class:'psub'});
+  const r=mulberry32(99);const a0=[0.9,-0.5,0.6],W1=randMat(r,3,4,0.9),a1=matmul([a0],W1)[0].map(gelu),W2=randMat(r,4,2,0.9),a2=matmul([a1],W2)[0];
+  const c0=column(gN,90,320,a0,{r:24,gap:40,stroke:'var(--c-in)',sw:2,id:'b0',scale:1.2,tip:(i,v)=>`input neuron ${i+1}: <b>${fmt(v)}</b>`});
+  const c1=column(gN,245,320,a1,{r:24,gap:30,stroke:'var(--c-hid)',sw:2,id:'b1',scale:1.2,tip:(i,v)=>`hidden neuron ${i+1} = gelu(Σ inputs × weights) = <b>${fmt(v)}</b>`});
+  const c2=column(gN,395,320,a2,{r:24,gap:44,stroke:'var(--c-out)',sw:2,id:'b2',scale:1.2,tip:(i,v)=>`output neuron ${i+1}: <b>${fmt(v)}</b>`});
+  connect(gL,c0,c1,W1,{sid:'b0',tid:'b1',k:0.5});connect(gL,c1,c2,W2,{sid:'b1',tid:'b2',k:0.5});
+  [[c0,'Input','var(--c-in)'],[c1,'Hidden','var(--c-hid)'],[c2,'Output','var(--c-out)']].forEach(([c,t,col])=>{const e=Tx(gN,c[0].x,colTop(c)-14,t,{class:'lbl','text-anchor':'middle'});e.style.fill=col});
+  Tx(gN,36,540,'Each bundle of lines is one weight matrix W.',{class:'small'});
+  Tx(gN,36,558,'A layer computes a = gelu(W·x). That is the whole idea.',{class:'small'});
+  S('line',{x1:470,y1:30,x2:470,y2:570,stroke:'var(--line)','stroke-dasharray':'4 6'},gL);
+  // right: matrix X0
+  const X=M.X0,T=M.T,f=st.focus,cell=28,mx=560,my=300-T*cell/2;
+  Tx(gN,500,44,'Matrix view',{class:'ptitle'});
+  Tx(gN,500,64,`A sentence is ${T} input vectors, stacked as rows of X`,{class:'psub'});
+  Tx(gN,mx+4*cell,my-24,`X₀  [${T} × 8]`,{class:'shp','text-anchor':'middle'});
+  for(let j=0;j<8;j++)Tx(gN,mx+j*cell+cell/2,my-6,`${j+1}`,{class:'shp','text-anchor':'middle'});
+  X.forEach((row,i)=>{
+    const rg=S('g',{class:'clickable'},gN);
+    Tx(rg,mx-8,my+i*cell+cell/2+4,M.toks[i],{class:'small','text-anchor':'end'});
+    row.forEach((v,j)=>{const c=S('rect',{x:mx+j*cell,y:my+i*cell,width:cell-1,height:cell-1,rx:2},rg);c.style.fill=vfill(v,2);
+      if(st.nums){const t=Tx(rg,mx+j*cell+cell/2-.5,my+i*cell+cell/2+3,fmtIn(v),{class:'nv','text-anchor':'middle'});t.style.fill=textOn(v,2);t.style.fontSize='7.5px'}});
+    rg.addEventListener('click',()=>setFocus(i));
+    hoverable(rg,`row ${i+1} = token ${W_(M.toks[i])}. Click to follow it.`);
+  });
+  const fr=S('rect',{x:mx-2,y:my+f*cell-2,width:8*cell+3,height:cell+3,rx:4,fill:'none'},gN);fr.style.stroke='var(--focus)';fr.style.strokeWidth=2;
+  const col=column(gN,895,330,X[f],{r:15,gap:5,id:'bx',tip:(k,v)=>`x₀[${W_(fw())}][${k+1}] = <b>${fmt(v)}</b><br>same number as row ${f+1}, column ${k+1} of X₀`});
+  Tx(gN,895,colTop(col)-26,`token ${W_(fw())}`,{class:'lbl','text-anchor':'middle'});
+  Tx(gN,895,colTop(col)-10,'stood upright',{class:'small','text-anchor':'middle'});
+  const sy=my+f*cell+cell/2;
+  S('path',{d:`M${mx+8*cell+6},${sy} C${mx+8*cell+40},${sy} ${850},${330} ${872},${330}`,class:'flow','marker-end':'url(#arr)'},gL);
+  Tx(gN,500,540,'Every Linear layer runs that small network on each row separately,',{class:'small'});
+  Tx(gN,500,558,'with the same weights. Only attention lets rows talk to each other.',{class:'small'});
+};
+
+STAGES[1]=(gL,gN)=>{
+  const f=st.focus,id=M.ids[f],V=M.V;
+  const rv=Math.min(11,(520/V-4)/2),vc=column(gN,150,320,M.onehot[f],{r:rv,gap:4,scale:1,id:'oh',text:false,tip:(k,v)=>`one-hot[${W_(M.vocab[k])}] = <b>${v}</b>${v?'<br>the only lit input, so only its row of W_E matters':''}`});
+  vc.forEach((n,k)=>{const t=Tx(gN,n.x-n.r-6,n.y+4,M.vocab[k],{class:'small','text-anchor':'end'});if(k===id){t.style.fill='var(--ink)';t.style.fontWeight=600}});
+  Tx(gN,150,colTop(vc)-26,'one-hot',{class:'lbl','text-anchor':'middle'});Tx(gN,150,colTop(vc)-11,`[1 × V=${V}]`,{class:'shp','text-anchor':'middle'});
+  const ec=column(gN,420,320,M.Etok[f],{r:15,gap:6,id:'e',tip:(k,v)=>`E[${W_(fw())}][${k+1}] = <b>${fmt(v)}</b><br>= Σ one-hot · W_E[:,${k+1}], which picks row ${W_(fw())} of W_E`});
+  connect(gL,vc,ec,M.E,{sid:'oh',tid:'e',op:(i,j,w)=>i===id?Math.min(.9,Math.abs(w)*0.7+.15):0.035});
+  colTitle(gN,ec,'token embedding','[1 × 8]');
+  Tx(gN,290,colTop(ec)-8,'W_E  [V × 8]',{class:'shp','text-anchor':'middle'});
+  Tx(gN,505,326,'+',{class:'ptitle','text-anchor':'middle'});
+  const pc=column(gN,590,320,M.P[f],{r:15,gap:6,id:'p',scale:1.5,tip:(k,v)=>`position ${f}: ${k%2?'cos':'sin'}(${f} / 10000^(${2*Math.floor(k/2)}/8)) = <b>${fmt(v)}</b>`});
+  colTitle(gN,pc,`position ${f}`,'[1 × 8]');
+  Tx(gN,675,326,'=',{class:'ptitle','text-anchor':'middle'});
+  road(gL,735,colTop(ec)-10,240,(colBot(ec)-colTop(ec))+34);
+  const xc=column(gN,790,320,M.X0[f],{r:15,gap:6,id:'x0',tip:(k,v)=>`x₀[${k+1}] = ${fmt(M.Etok[f][k])} + ${fmt(M.P[f][k])} = <b>${fmt(v)}</b>`});
+  xc.forEach((n,k)=>S('line',{x1:n.x+n.r+3,y1:n.y,x2:948,y2:n.y,class:'dash'},gL));
+  S('path',{d:`M900,${colBot(xc)+12} H948`,class:'flow','marker-end':'url(#arr)'},gL);
+  colTitle(gN,xc,'x₀ enters the stream','[1 × 8]',22);
+  const dup=M.toks.map((t,i)=>t===fw()&&i!==f?i:-1).filter(i=>i>=0);
+  Tx(gN,40,585,dup.length?`${W_(fw())} also appears at position ${dup[0]}: same embedding row, different position vector, so a different x₀.`:'The one-hot times W_E is just a row lookup: frameworks implement it as indexing, not a matmul.',{class:'small'});
+};
+
+STAGES[2]=(gL,gN)=>{
+  const X=M.X0,T=M.T,f=st.focus,A=M.layers[0].heads.map(h=>h.A);
+  const xs=kxs(T,90,690).map(x=>x);const r=12,gap=5,colH=8*2*r+7*gap,cy=438,top=cy-colH/2,bot=cy+colH/2;
+  xs.forEach((x,i)=>{const rr=S('rect',{x:x-r-10,y:30,width:2*r+20,height:bot+12-30,rx:12,class:'road'+(i===f?' focus':'')},gL);rr.style.cursor='pointer';rr.addEventListener('click',()=>setFocus(i));
+    S('line',{x1:x,y1:44,x2:x,y2:top-12,class:'dash'},gL);
+    S('path',{d:`M${x},${top-14} V36`,class:'flow','marker-end':'url(#arrL)'},gL).style.stroke='none';
+    const tri=S('path',{d:`M${x-7},44 L${x},32 L${x+7},44 z`},gL);tri.style.fill='var(--lane)';
+    S('rect',{x:x-r-5,y:118,width:2*r+10,height:28,rx:5,fill:'var(--paper)'},gL);S('rect',{x:x-r-5,y:118,width:2*r+10,height:28,rx:5,class:'box-mlp'},gL);
+    Tx(gN,x,136,'MLP',{class:'small','text-anchor':'middle'}).style.fill='var(--mlp)';
+  });
+  for(let i=1;i<T;i++)for(let j=0;j<i;j++){
+    const w=(A[0][i][j]+A[1][i][j])/2;const y=278;
+    const p=S('path',{d:`M${xs[j]},${y} Q${(xs[j]+xs[i])/2},${y-34-(i-j)*14} ${xs[i]-4},${y-4}`,class:'arc','marker-end':'url(#arrA)'},gL);
+    p.style.strokeWidth=(0.6+6*w).toFixed(2);p.style.strokeOpacity=(0.18+0.8*w).toFixed(2);
+    hoverable(p,`${W_(M.toks[i])} reads from ${W_(M.toks[j])}: average attention weight <b>${fmt(w)}</b> (block 1)`);
+  }
+  xs.forEach((x,i)=>{
+    column(gN,x,cy,X[i],{r,gap,id:'x'+i,dim:false,tip:(k,v)=>`x₀[${W_(M.toks[i])}][${k+1}] = <b>${fmt(v)}</b>`});
+    const t=Tx(gN,x,bot+32,M.toks[i],{class:'lbl','text-anchor':'middle'});if(i===f)t.style.textDecoration='underline';
+  });
+  const lx=760;
+  Tx(gN,lx,52,'↑ on to block 2, 3, 4',{class:'lbl'});
+  Tx(gN,lx,128,'MLP',{class:'lbl'}).style.fill='var(--mlp)';Tx(gN,lx,146,'each lane on its own',{class:'small'});
+  Tx(gN,lx,232,'Attention',{class:'lbl'}).style.fill='var(--attn)';Tx(gN,lx,250,'each lane reads from',{class:'small'});Tx(gN,lx,266,'itself and earlier lanes',{class:'small'});
+  Tx(gN,lx,400,'Residual stream X₀',{class:'lbl'});Tx(gN,lx,418,`[${T} × 8]: one lane per token`,{class:'small'});Tx(gN,lx,434,'8 channels (numbers) per lane',{class:'small'});
+  Tx(gN,lx,470,'Lanes are only ever',{class:'small'});Tx(gN,lx,486,'added to, never replaced.',{class:'small'});
+};
+
+STAGES[3]=(gL,gN)=>{
+  const ly=M.layers[st.layer],f=st.focus,ln=ly.ln1[f],x=ly.Xin[f];
+  const xc=column(gN,140,330,x,{r:17,gap:7,id:'x',tip:(k,v)=>`x[${k+1}] = <b>${fmt(v)}</b>`});
+  colTitle(gN,xc,`x (${W_(fw())})`,'[1 × 8]');
+  const cc=column(gN,450,330,ln.cen,{r:17,gap:7,id:'c',tip:(k,v)=>`x[${k+1}] − μ = ${fmt(x[k])} − ${fmt(ln.mu)} = <b>${fmt(v)}</b>`});
+  colTitle(gN,cc,'x − μ','centre');
+  const hc=column(gN,760,330,ln.out,{r:17,gap:7,id:'h',tip:(k,v)=>`(x[${k+1}] − μ) / σ = ${fmt(ln.cen[k])} / ${fmt(ln.sd)} = <b>${fmt(v)}</b><br>then × γ + β (γ = 1, β = 0 at init)`});
+  colTitle(gN,hc,'x̂ = LN(x)','[1 × 8]');
+  oneToOne(gL,xc,cc,{sid:'x',tid:'c'});oneToOne(gL,cc,hc,{sid:'c',tid:'h'});
+  const mu={x:295,y:74},sg={x:605,y:74};
+  xc.forEach(n=>{const l=S('line',{x1:n.x+n.r,y1:n.y,x2:mu.x,y2:mu.y+22,class:'w lanes'},gL);l.style.opacity=.35});
+  cc.forEach(n=>{const l=S('line',{x1:n.x+n.r,y1:n.y,x2:sg.x,y2:sg.y+22,class:'w lanes'},gL);l.style.opacity=.35});
+  neuron(gN,mu.x,mu.y,22,ln.mu,{tip:()=>`μ = mean of the 8 numbers = <b>${fmt(ln.mu)}</b>`});
+  neuron(gN,sg.x,sg.y,22,ln.sd,{tip:()=>`σ = √(mean of (x−μ)² + ε) = <b>${fmt(ln.sd)}</b>`});
+  Tx(gN,mu.x+30,mu.y+5,'μ, the mean',{class:'small'});Tx(gN,sg.x+30,sg.y+5,'σ, the spread',{class:'small'});
+  Tx(gN,40,585,`Statistics are over the 8 numbers of ${W_(fw())} only. Every token is normalised on its own.`,{class:'small'});
+  Tx(gN,860,330,'mean 0',{class:'small'});Tx(gN,860,348,'variance 1',{class:'small'});
+};
+
+STAGES[4]=(gL,gN)=>{
+  const ly=M.layers[st.layer],f=st.focus,xh=ly.Xh[f];
+  const xc=column(gN,130,300,xh,{r:16,gap:6,id:'xh',tip:(k,v)=>`x̂[${k+1}] = <b>${fmt(v)}</b>`});
+  colTitle(gN,xc,`x̂ (${W_(fw())})`,'[1 × 8]');
+  const grp=[['Q','q','query',ly.Q[f],ly.W.Q,100,'what am I looking for?'],['K','k','key',ly.K[f],ly.W.K,288,'what do I contain?'],['V','v','value',ly.V[f],ly.W.V,476,'what do I hand over?']];
+  grp.forEach(([N,n,name,vals,W,cy,q])=>{
+    const c=column(gN,600,cy,vals,{r:9.5,gap:2.5,id:n,side:true,tip:(j,v)=>`${n}[${j+1}] = x̂ · W_${N}[:,${j+1}]<div class="m">${dotTerms(xh,W.map(r=>r[j]))}</div>= <b>${fmt(v)}</b>`});
+    connect(gL,xc,c,W,{sid:'xh',tid:n,k:0.55,max:.5});
+    Tx(gN,690,cy-14,`${N}  ${name}`,{class:'lbl'});
+    Tx(gN,690,cy+4,`[1 × 8], from W_${N} [8 × 8]`,{class:'shp'});
+    Tx(gN,690,cy+22,q,{class:'small'});
+  });
+  Tx(gN,40,585,'Three ordinary fully connected 8 → 8 layers with no activation. Hover a q, k or v neuron to see its 8 weights.',{class:'small'});
+};
+
+STAGES[5]=(gL,gN)=>{
+  const ly=M.layers[st.layer],f=st.focus;
+  const cols=[['q',ly.Q[f],110],['k',ly.K[f],220],['v',ly.V[f],330]].map(([n,v,x])=>{const c=column(gN,x,300,v,{r:11,gap:4,gapFix:true,id:n,tip:(j,val)=>`${n}[${j+1}] = <b>${fmt(val)}</b><br>goes to head ${j<4?1:2}, slot ${j%4+1}`});Tx(gN,x,colTop(c)-12,n,{class:'lbl','text-anchor':'middle'});return c});
+  cols.forEach(c=>{bracket(gL,c,0,3,'var(--h0)');bracket(gL,c,4,7,'var(--h1)')});
+  Tx(gN,220,colTop(cols[0])-40,`token ${W_(fw())}: [1 × 8] each`,{class:'small','text-anchor':'middle'});
+  const boxes=[[0,58,280,'var(--h0)','box-attn'],[1,322,544,'var(--h1)','']];
+  boxes.forEach(([h,y0,y1,col])=>{
+    const b=S('rect',{x:500,y:y0,width:410,height:y1-y0,rx:12,fill:'none'},gL);b.style.stroke=col;b.style.strokeWidth=h===st.head?2.6:1.2;b.style.fill=`rgba(var(--h${h}-rgb),${h===st.head?.08:.03})`;
+    const t=Tx(gN,520,y0+24,`head ${h+1}`,{class:'lbl'});t.style.fill=col;Tx(gN,590,y0+24,'d_head = 4, its own attention problem',{class:'small'});
+    const cyb=(y0+y1)/2+14;
+    [['q',ly.Q[f]],['k',ly.K[f]],['v',ly.V[f]]].forEach(([n,v],gi)=>{const c=column(gN,620+gi*110,cyb,v.slice(h*4,h*4+4),{r:13,gap:5,stroke:col,tip:(j,val)=>`${n}${sub(h+1)}[${j+1}] = <b>${fmt(val)}</b>`});Tx(gN,620+gi*110+22,cyb+4,`${n}${sub(h+1)}`,{class:'lbl'})});
+    const src=h===0?[cols[0][0].y-16,cols[0][3].y+16]:[cols[0][4].y-16,cols[0][7].y+16];
+    const sy=(src[0]+src[1])/2;
+    const p=S('path',{d:`M352,${sy} C430,${sy} 430,${(y0+y1)/2} 496,${(y0+y1)/2}`,fill:'none','marker-end':`url(#arrH${h})`},gL);p.style.stroke=col;p.style.strokeWidth=2;
+  });
+  Tx(gN,40,585,'[T, 8] → reshape [T, 2, 4] → transpose [2, T, 4]. Nothing is computed; the same numbers are just regrouped.',{class:'small'});
+};
+
+STAGES[6]=(gL,gN)=>{
+  const ly=M.layers[st.layer],h=st.head,hd=ly.heads[h],f=st.focus,T=M.T,col=`var(--h${h})`;
+  const xs=kxs(T,250,600);
+  const qc=column(gN,80,130,hd.Qh[f],{r:14,gap:5,stroke:col,id:'q',tip:(j,v)=>`q${sub(h+1)}[${W_(fw())}][${j+1}] = <b>${fmt(v)}</b>`});
+  Tx(gN,80,colTop(qc)-24,`q (${fw()})`,{class:'lbl','text-anchor':'middle'});Tx(gN,80,colTop(qc)-9,'query',{class:'small','text-anchor':'middle'});
+  S('path',{d:`M80,${colBot(qc)+2} V236`,class:'flow'},gL);
+  xs.forEach((x,j)=>{
+    const masked=j>f;
+    const kc=column(gN,x,130,hd.Kh[j],{r:11,gap:4,stroke:col,dim:masked,tip:(d,v)=>`k${sub(h+1)}[${W_(M.toks[j])}][${d+1}] = <b>${fmt(v)}</b>`});
+    Tx(gN,x,colTop(kc)-24,M.toks[j],{class:'lbl','text-anchor':'middle'}).style.opacity=masked?.35:1;
+    Tx(gN,x,colTop(kc)-9,'key',{class:'small','text-anchor':'middle'}).style.opacity=masked?.35:1;
+    const l1=S('line',{x1:x,y1:colBot(kc)+2,x2:x,y2:262,class:'flow'},gL);if(masked)l1.style.opacity=.25;
+    const l2=S('line',{x1:80,y1:236,x2:x-14,y2:272,class:'flow','stroke-dasharray':'3 4'},gL);if(masked)l2.style.opacity=.2;
+    neuron(gN,x,280,17,hd.S[f][j],{scale:4,dim:masked,tip:()=>`q · k(${W_(M.toks[j])})<div class="m">${dotTerms(hd.Qh[f],hd.Kh[j])}</div>= <b>${fmt(hd.S[f][j])}</b>`});
+    Tx(gN,x,345,masked?'−∞':fmt(hd.Ss[f][j]),{class:'shp','text-anchor':'middle'});
+    const a=hd.A[f][j],bh=a*150;
+    const bar=S('rect',{x:x-14,y:560-bh,width:28,height:Math.max(bh,1),rx:2},gN);bar.style.fill=col;bar.style.opacity=masked?.2:1;
+    hoverable(bar,`${W_(fw())} attends to ${W_(M.toks[j])}: <b>${fmt(a)}</b>`);
+    Tx(gN,x,560-bh-6,masked?'0':fmt(a),{class:'shp','text-anchor':'middle'});
+    if(masked)Tx(gN,x,380,'masked',{class:'small','text-anchor':'middle'});
+  });
+  Tx(gN,150,284,'q · kⱼ',{class:'small','text-anchor':'end'});
+  Tx(gN,150,349,'÷ √4, mask',{class:'small','text-anchor':'end'});
+  Tx(gN,150,480,'softmax',{class:'small','text-anchor':'end'});Tx(gN,150,496,'sums to 1',{class:'small','text-anchor':'end'});
+  S('line',{x1:230,y1:560,x2:620,y2:560,stroke:'var(--line)'},gL);
+  // heatmap
+  const hx=720,hy=150,c=Math.min(32,220/T);
+  Tx(gN,hx-60,60,`Attention pattern, head ${h+1}`,{class:'ptitle'});
+  Tx(gN,hx-60,80,'rows: queries, cols: keys  [T × T]',{class:'shp'});
+  M.toks.forEach((t,j)=>{const e=Tx(gN,hx+j*c+c/2,hy-8,t.slice(0,5),{class:'shp','text-anchor':'start',transform:`rotate(-50 ${hx+j*c+c/2} ${hy-8})`})});
+  for(let i=0;i<T;i++){
+    const rg=S('g',{class:'clickable'},gN);
+    Tx(rg,hx-6,hy+i*c+c/2+4,M.toks[i].slice(0,6),{class:'small','text-anchor':'end'});
+    for(let j=0;j<T;j++){const a=hd.A[i][j];const cell=S('rect',{x:hx+j*c,y:hy+i*c,width:c-1.5,height:c-1.5,rx:2},rg);
+      cell.style.fill=j>i?'var(--mask)':`rgba(var(--h${h}-rgb),${(0.06+0.94*a).toFixed(3)})`;
+      hoverable(cell,j>i?`${W_(M.toks[i])} cannot see the future token ${W_(M.toks[j])}`:`${W_(M.toks[i])} → ${W_(M.toks[j])}: <b>${fmt(a)}</b>`)}
+    rg.addEventListener('click',()=>setFocus(i));
+  }
+  const fr=S('rect',{x:hx-2,y:hy+f*c-2,width:T*c+2,height:c+2,rx:3,fill:'none'},gN);fr.style.stroke='var(--focus)';fr.style.strokeWidth=2;
+  Tx(gN,hx-60,hy+T*c+28,'Click a row to change the query token.',{class:'small'});
+  Tx(gN,hx-60,hy+T*c+46,'Grey cells are masked future tokens.',{class:'small'});
+};
+
+STAGES[7]=(gL,gN)=>{
+  const ly=M.layers[st.layer],h=st.head,hd=ly.heads[h],f=st.focus,T=M.T,col=`var(--h${h})`;
+  const xs=kxs(T,190,610),zx=400;
+  xs.forEach((x,j)=>{
+    const masked=j>f,a=hd.A[f][j];
+    const vc=column(gN,x,120,hd.Vh[j],{r:11,gap:4,stroke:col,dim:masked,tip:(d,v)=>`v${sub(h+1)}[${W_(M.toks[j])}][${d+1}] = <b>${fmt(v)}</b>`});
+    Tx(gN,x,colTop(vc)-24,M.toks[j],{class:'lbl','text-anchor':'middle'}).style.opacity=masked?.35:1;
+    Tx(gN,x,colTop(vc)-9,'value',{class:'small','text-anchor':'middle'}).style.opacity=masked?.35:1;
+    if(!masked){
+      const p=S('path',{d:`M${x},${colBot(vc)+4} C${x},${290} ${zx},${270} ${zx},${368}`,fill:'none'},gL);
+      p.style.stroke=col;p.style.strokeWidth=(1+18*a).toFixed(2);p.style.strokeOpacity=(0.18+0.7*a).toFixed(2);p.style.strokeLinecap='round';
+      hoverable(p,`${fmt(a)} × v(${W_(M.toks[j])})`);
+      Tx(gN,x*0.62+zx*0.38+(x<zx?-6:6),252,fmt(a),{class:'shp','text-anchor':x<zx?'end':'start'});
+    }else Tx(gN,x,colBot(vc)+20,'masked',{class:'small','text-anchor':'middle'});
+  });
+  const zc=column(gN,zx,450,hd.Z[f],{r:16,gap:6,stroke:col,sw:2,id:'z',tip:(d,v)=>`z[${d+1}] = Σⱼ aⱼ · vⱼ[${d+1}]<div class="m">${M.toks.map((t,j)=>j<=f?`${fmt(hd.A[f][j])}·${fmt(hd.Vh[j][d])}`:null).filter(Boolean).join(' + ')}</div>= <b>${fmt(v)}</b>`});
+  Tx(gN,zx+30,colBot(zc)+2,`z${sub(h+1)} (${fw()})  [1 × 4]`,{class:'shp'});
+  Tx(gN,680,140,'z = Σⱼ aⱼ vⱼ',{class:'ptitle'}).style.fontSize='24px';
+  Tx(gN,680,168,`head ${h+1}, query ${W_(fw())}`,{class:'small'});
+  Tx(gN,680,214,'This is the only step in the block',{class:'small'});
+  Tx(gN,680,231,'where one token’s lane receives',{class:'small'});
+  Tx(gN,680,248,'numbers from other lanes.',{class:'small'});
+  [0,1].forEach(hh=>{const c=column(gN,760+hh*100,470,ly.heads[hh].Z[f],{r:12,gap:5,stroke:`var(--h${hh})`,sw:hh===h?2.4:1,dim:hh!==h&&false,tip:(d,v)=>`z${sub(hh+1)}[${d+1}] = <b>${fmt(v)}</b>`});
+    const t=Tx(gN,760+hh*100,colTop(c)-12,`z${sub(hh+1)}`,{class:'lbl','text-anchor':'middle'});t.style.fill=`var(--h${hh})`});
+  Tx(gN,700,360,'Both heads, for this token:',{class:'small'});
+};
+
+STAGES[8]=(gL,gN)=>{
+  const ly=M.layers[st.layer],f=st.focus,z=ly.Z[f];
+  const zc=column(gN,170,300,z,{r:15,gap:6,mid:6,id:'z',tip:(k,v)=>`concat[${k+1}] = z${sub(k<4?1:2)}[${k%4+1}] = <b>${fmt(v)}</b>`});
+  bracket(gL,zc,0,3,'var(--h0)','head 1');bracket(gL,zc,4,7,'var(--h1)','head 2');
+  colTitle(gN,zc,'concat(z₁, z₂)','[1 × 8]');
+  const oc=column(gN,560,300,ly.O[f],{r:15,gap:6,id:'o',tip:(j,v)=>`attn_out[${j+1}] = concat · W_O[:,${j+1}]<div class="m">${dotTerms(z,ly.W.O.map(r=>r[j]))}</div>= <b>${fmt(v)}</b>`});
+  connect(gL,zc,oc,ly.W.O,{sid:'z',tid:'o',color:i=>i<4?'var(--h0)':'var(--h1)',k:0.7,max:.65});
+  colTitle(gN,oc,'attn_out','[1 × 8]');
+  Tx(gN,365,colTop(zc)-8,'W_O  [8 × 8]',{class:'shp','text-anchor':'middle'});
+  [0,1].forEach(h=>{const c=column(gN,730+h*110,300,ly.writes[h][f],{r:11,gap:4,stroke:`var(--h${h})`,tip:(j,v)=>`head ${h+1} writes ${fmt(v)} to dimension ${j+1}<br>= z${sub(h+1)} · W_O[rows ${h*4+1}–${h*4+4}, ${j+1}]`});
+    const t=Tx(gN,730+h*110,colTop(c)-26,`head ${h+1}`,{class:'lbl','text-anchor':'middle'});t.style.fill=`var(--h${h})`;Tx(gN,730+h*110,colTop(c)-11,'writes',{class:'small','text-anchor':'middle'})});
+  Tx(gN,785,305,'+',{class:'ptitle','text-anchor':'middle'});
+  Tx(gN,785,470,'head 1 + head 2 = attn_out',{class:'small','text-anchor':'middle'});
+  Tx(gN,785,488,'(add them and check)',{class:'small','text-anchor':'middle'});
+  Tx(gN,40,585,'Lines are coloured by which head they come from. Each head writes its own vector into the stream; the writes are summed.',{class:'small'});
+};
+
+function addStage(gL,gN,xin,delta,xout,o){
+  const r=13,gap=4,cy=172,ys=[...Array(8)].map((_,i)=>cy-(8*2*r+7*gap)/2+r+i*(2*r+gap));
+  const bandTop=ys[0]-r-16,bandBot=ys[7]+r+16;
+  road(gL,40,bandTop,880,bandBot-bandTop,ys.slice(0,7).map((y,i)=>(y+ys[i+1])/2));
+  S('path',{d:`M905,${bandTop+10} L935,${cy} L905,${bandBot-10}`,fill:'none',stroke:'var(--road-edge)','stroke-width':2},gL);
+  const mx=650;
+  const xc=column(gN,130,cy,xin,{r,gap,id:'xa',tip:(k,v)=>`${o.inName}[${k+1}] = <b>${fmt(v)}</b>`});
+  Tx(gN,130,bandBot+20,o.inName,{class:'lbl','text-anchor':'middle'});
+  const oc=column(gN,840,cy,xout,{r,gap,id:'xo',tip:(k,v)=>`${o.outName}[${k+1}] = ${fmt(xin[k])} + ${fmt(delta[k])} = <b>${fmt(v)}</b>`});
+  Tx(gN,840,bandBot+20,o.outName,{class:'lbl','text-anchor':'middle'});
+  xc.forEach((n,i)=>{const l=S('path',{d:`M${n.x+r},${n.y} H${oc[i].x-r}`,class:'w lanes'},gL);l.dataset.s=`xa:${i}`;l.dataset.t=`xo:${i}`;l.style.opacity=1;l.style.strokeWidth=1.4});
+  const bx=200,by=bandBot+26,bw=380,bh=600-by-12;
+  const box=S('rect',{x:bx,y:by,width:bw,height:bh,rx:12,class:o.cls},gL);
+  const dc=column(gN,520,by+bh/2,delta,{r,gap,id:'d',tip:(k,v)=>`${o.dName}[${k+1}] = <b>${fmt(v)}</b>`});
+  dc.forEach((n,i)=>{const p=S('path',{d:`M${n.x+r},${n.y} C${mx-40},${n.y} ${mx},${ys[i]+60} ${mx},${ys[i]+r-2}`,class:'w',fill:'none'},gL);p.style.stroke=o.color;p.style.strokeOpacity=.55;p.dataset.s=`d:${i}`;p.dataset.t=`xo:${i}`;
+    const dot=S('circle',{cx:mx,cy:ys[i],r:5.5},gN);dot.style.fill='var(--paper)';dot.style.stroke=o.color;dot.style.strokeWidth=1.6;Tx(gN,mx,ys[i]+3.3,'+',{'text-anchor':'middle'}).style.fontSize='9px'});
+  const lg=S('g',{class:'clickable'},gN);
+  Tx(lg,bx+18,by+28,o.boxTitle,{class:'lbl'}).style.fill=o.color;
+  o.boxLines.forEach((t,i)=>Tx(lg,bx+18,by+50+i*18,t,{class:'small'}));
+  Tx(lg,bx+18,by+bh-18,`Revisit: step ${o.backStep+1}`,{class:'small'}).style.textDecoration='underline';
+  lg.addEventListener('click',()=>go(o.backStep));
+  Tx(gN,520-r-10,colTop(dc)+12,o.dName,{class:'lbl','text-anchor':'end'});
+  S('path',{d:`M240,${bandBot-4} V${by-4}`,class:'flow','marker-end':'url(#arr)'},gL);
+  Tx(gN,250,bandBot+18,'read (copy)',{class:'small'});
+  Tx(gN,60,bandTop-10,`One token’s lane (${W_(fw())}) seen from the side: 8 channels wide, one per dimension`,{class:'small'});
+  Tx(gN,mx+14,bandTop-10,'add, channel by channel',{class:'small'});
+}
+STAGES[9]=(gL,gN)=>{const ly=M.layers[st.layer],f=st.focus,b=st.layer+1;
+  addStage(gL,gN,ly.Xin[f],ly.O[f],ly.X1[f],{inName:b===1?'x₀':`x (block ${b} in)`,outName:'x₁ = x + attn_out',dName:'attn_out',color:'var(--attn)',cls:'box-attn',boxTitle:'Attention branch',boxLines:['LN₁, then Q, K, V,','heads, softmax, mix V,','concat and W_O'],backStep:3});};
+STAGES[12]=(gL,gN)=>{const ly=M.layers[st.layer],f=st.focus,b=st.layer+1;
+  addStage(gL,gN,ly.X1[f],ly.M[f],ly.X2[f],{inName:'x₁',outName:`x₂ = block ${b} output`,dName:'mlp_out',color:'var(--mlp)',cls:'box-mlp',boxTitle:'MLP branch',boxLines:['LN₂, then 8 → 32,','GELU, then 32 → 8'],backStep:10});};
+
+STAGES[10]=(gL,gN,svg)=>{
+  const ly=M.layers[st.layer],f=st.focus,ln=ly.ln2[f];
+  const x1=column(gN,70,305,ly.X1[f],{r:13,gap:5,id:'x1',tip:(k,v)=>`x₁[${k+1}] = <b>${fmt(v)}</b>`});colTitle(gN,x1,'x₁','',10);
+  const xh=column(gN,190,305,ln.out,{r:13,gap:5,id:'xh',tip:(k,v)=>`LN₂: (${fmt(ly.X1[f][k])} − ${fmt(ln.mu)}) / ${fmt(ln.sd)} = <b>${fmt(v)}</b>`});colTitle(gN,xh,'x̂ = LN₂(x₁)','',10);
+  oneToOne(gL,x1,xh,{sid:'x1',tid:'xh'});
+  const hp=column(gN,470,305,ly.Hpre[f],{r:6.5,gap:2.5,id:'hp',tip:(j,v)=>`hidden neuron ${j+1}, before GELU<div class="m">x̂ · W_in[:,${j+1}] = ${dotTerms(ln.out,ly.W.In.map(r=>r[j]),4)}</div>= <b>${fmt(v)}</b>`});
+  const hq=column(gN,590,305,ly.Hpost[f],{r:6.5,gap:2.5,id:'hq',tip:(j,v)=>`hidden neuron ${j+1}: gelu(${fmt(ly.Hpre[f][j])}) = <b>${fmt(v)}</b>`});
+  connect(gL,xh,hp,ly.W.In,{sid:'xh',tid:'hp',k:0.35,max:.4});
+  oneToOne(gL,hp,hq,{sid:'hp',tid:'hq'});
+  Tx(gN,470,36,'W_in: 8 → 32',{class:'lbl','text-anchor':'middle'});Tx(gN,590,36,'GELU',{class:'lbl','text-anchor':'middle'});
+  Tx(gN,330,36,'W_in [8 × 32]',{class:'shp','text-anchor':'middle'});
+  // GELU inset
+  const gx0=680,gx1=930,gy0=80,gy1=300,X=v=>gx0+(v+3.5)/7*(gx1-gx0),Y=v=>gy1-(v+0.6)/4.1*(gy1-gy0);
+  S('line',{x1:gx0,y1:Y(0),x2:gx1,y2:Y(0),stroke:'var(--line)'},gL);S('line',{x1:X(0),y1:gy0,x2:X(0),y2:gy1,stroke:'var(--line)'},gL);
+  let d='';for(let v=-3.5;v<=3.5;v+=0.1)d+=(d?'L':'M')+X(v).toFixed(1)+','+Y(gelu(v)).toFixed(1);
+  S('path',{d,fill:'none',stroke:'var(--ink2)','stroke-width':2},gL);
+  ly.Hpre[f].forEach((v,j)=>{const vv=Math.max(-3.5,Math.min(3.5,v));const c=S('circle',{cx:X(vv),cy:Y(gelu(vv)),r:4},gN);c.style.fill=vfill(gelu(v),2);c.style.stroke='var(--ink2)';hoverable(c,`neuron ${j+1}: gelu(${fmt(v)}) = <b>${fmt(gelu(v))}</b>`,`hq:${j}`)});
+  Tx(gN,gx0,gy0-16,'GELU(x) ≈ x · Φ(x)',{class:'lbl'});Tx(gN,gx1,Y(0)+16,'x',{class:'small','text-anchor':'end'});
+  Tx(gN,gx0,gy1+24,'Dots: this token’s 32 hidden neurons.',{class:'small'});Tx(gN,gx0,gy1+40,'Negative inputs are squashed to ≈ 0.',{class:'small'});
+  // width bars
+  const bx=700,by=420;Tx(gN,bx,by-12,'Width of the MLP',{class:'lbl'});
+  [[8,'in'],[32,'hidden'],[8,'out']].forEach(([n,t],i)=>{const r=S('rect',{x:bx+i*80,y:by+(128-n*4),width:40,height:n*4,rx:3},gL);r.style.fill=i===1?'rgba(var(--mlp-rgb),.5)':'var(--road)';r.style.stroke='var(--mlp)';Tx(gN,bx+i*80+20,by+146,`${n}`,{class:'shp','text-anchor':'middle'});Tx(gN,bx+i*80+20,by+162,t,{class:'small','text-anchor':'middle'})});
+};
+
+STAGES[11]=(gL,gN)=>{
+  const ly=M.layers[st.layer],f=st.focus,h=ly.Hpost[f];
+  const hq=column(gN,230,305,h,{r:6.5,gap:2.5,id:'hq',tip:(j,v)=>`hidden neuron ${j+1} = <b>${fmt(v)}</b><br>writes ${fmt(v)} × row ${j+1} of W_out`});
+  Tx(gN,230,36,'GELU(h)  [1 × 32]',{class:'lbl','text-anchor':'middle'});
+  const oc=column(gN,620,305,ly.M[f],{r:16,gap:6,id:'mo',tip:(j,v)=>`mlp_out[${j+1}] = h · W_out[:,${j+1}]<div class="m">${dotTerms(h,ly.W.Out.map(r=>r[j]),4)}</div>= <b>${fmt(v)}</b>`});
+  colTitle(gN,oc,'mlp_out','[1 × 8]');
+  connect(gL,hq,oc,ly.W.Out,{sid:'hq',tid:'mo',op:(i,j,w)=>Math.min(.75,Math.abs(w*h[i])*1.6+.02)});
+  Tx(gN,425,36,'W_out [32 × 8]',{class:'shp','text-anchor':'middle'});
+  const top=h.map((v,j)=>[v,j]).sort((a,b)=>b[0]-a[0]).slice(0,5);
+  Tx(gN,700,120,'Most active hidden neurons',{class:'lbl'});Tx(gN,700,138,`for ${W_(fw())}, block ${st.layer+1}`,{class:'small'});
+  top.forEach(([v,j],k)=>{const g=S('g',{class:'clickable'},gN);const bw=Math.max(2,v*60);const r=S('rect',{x:700,y:156+k*28,width:bw,height:16,rx:2},g);r.style.fill='rgba(var(--mlp-rgb),.55)';Tx(g,706+bw,169+k*28,`neuron ${j+1}: ${fmt(v)}`,{class:'small'});hoverable(g,`Highlighting what neuron ${j+1} writes`,`hq:${j}`)});
+  Tx(gN,700,330,'Line darkness here is',{class:'small'});Tx(gN,700,346,'weight × activation: how much',{class:'small'});Tx(gN,700,362,'each hidden neuron really adds.',{class:'small'});
+  Tx(gN,40,585,'Hover a hidden neuron (left) to see what it writes; hover an output (right) to see the 32 lines feeding it.',{class:'small'});
+};
+
+STAGES[13]=(gL,gN)=>{
+  // left: highway form
+  Tx(gN,24,30,'Highway form',{class:'ptitle'});
+  const hx=250;S('rect',{x:hx-14,y:46,width:28,height:520,rx:6,class:'road'},gL);S('line',{x1:hx,y1:56,x2:hx,y2:560,class:'dash'},gL);
+  const tri=S('path',{d:`M${hx-9},58 L${hx},44 L${hx+9},58 z`},gL);tri.style.fill='var(--lane)';
+  Tx(gN,hx,584,'embed',{class:'small','text-anchor':'middle'});
+  for(let l=0;l<L;l++){
+    const yb=555-l*126,on=l===st.layer;
+    const g=S('g',{class:'clickable'},gN);
+    const sel=S('rect',{x:30,y:yb-122,width:250,height:118,rx:8,fill:on?'rgba(127,127,127,.10)':'transparent'},gL);if(on){sel.style.stroke='var(--lane)';sel.style.strokeWidth=1.6}
+    [[yb-14,yb-36,yb-58,'Attention','box-attn','var(--attn)'],[yb-72,yb-94,yb-116,'MLP','box-mlp','var(--mlp)']].forEach(([out,cyb,back,name,cls,col])=>{
+      S('path',{d:`M${hx-14},${out} H130 V${cyb+11}`,class:'flow','marker-end':'url(#arr)'},gL);
+      S('rect',{x:80,y:cyb-11,width:100,height:22,rx:5,class:cls},g);Tx(g,130,cyb+4,name,{class:'small','text-anchor':'middle'}).style.fill=col;
+      S('path',{d:`M130,${cyb-11} V${back} H${hx-10}`,class:'flow','marker-end':'url(#arr)'},gL);
+      const pc=S('circle',{cx:hx,cy:back,r:8},gN);pc.style.fill='var(--paper)';pc.style.stroke='var(--ink2)';Tx(gN,hx,back+3.5,'+',{'text-anchor':'middle'}).style.fontSize='11px';
+    });
+    Tx(g,40,yb-56,`block ${l+1}`,{class:'small'}).style.fontWeight=on?'600':'400';
+    g.addEventListener('click',()=>{st.layer=l;render()});
+  }
+  // right: neuron form
+  const f=st.focus;Tx(gN,370,30,`Neuron form: ${W_(fw())} through all 4 blocks`,{class:'ptitle'});
+  const states=[{v:M.X0[f],lab:'x₀',d:null}];
+  M.layers.forEach((ly,l)=>{states.push({v:ly.X1[f],lab:`+attn${sub(l+1)}`,d:ly.O[f],c:'var(--attn)',l});states.push({v:ly.X2[f],lab:`+mlp${sub(l+1)}`,d:ly.M[f],c:'var(--mlp)',l})});
+  const r=12,gap=4,cy=200,ys=[...Array(8)].map((_,i)=>cy-(8*2*r+7*gap)/2+r+i*(2*r+gap));
+  road(gL,372,ys[0]-r-12,578,ys[7]-ys[0]+2*r+24,ys.slice(0,7).map((y,i)=>(y+ys[i+1])/2));
+  const xs=states.map((_,i)=>400+i*66);
+  let prev=null;
+  states.forEach((s,i)=>{
+    const x=xs[i];const c=column(gN,x,cy,s.v,{r,gap,dim:s.l!==undefined&&s.l!==st.layer&&false,tip:(k,v)=>`${s.lab}[${k+1}] = <b>${fmt(v)}</b>`});
+    if(prev)c.forEach((n,k)=>{S('line',{x1:prev[k].x+r,y1:prev[k].y,x2:n.x-r,y2:n.y,class:'lanes'},gL)});
+    const t=Tx(gN,x,ys[0]-r-22,s.lab,{class:'shp','text-anchor':'middle'});if(s.c)t.style.fill=s.c;
+    if(s.d){const dc=column(gN,x,420,s.d,{r:5,gap:2,text:false,tip:(k,v)=>`${s.lab.slice(1)} writes ${fmt(v)} to channel ${k+1}`});
+      const a=S('path',{d:`M${x},${colTop(dc)-4} V${ys[7]+r+16}`,fill:'none','marker-end':s.c==='var(--attn)'?'url(#arrA)':'url(#arrM)'},gL);a.style.stroke=s.c;a.style.strokeWidth=1.5;}
+    Tx(gN,x,500,fmt(norm(s.v)),{class:'shp','text-anchor':'middle'});
+    if(s.l===st.layer){const b=S('rect',{x:x-r-5,y:ys[0]-r-6,width:2*r+10,height:ys[7]-ys[0]+2*r+12,rx:6,fill:'none'},gL);b.style.stroke='var(--lane)';b.style.strokeWidth=2}
+    prev=c;
+  });
+  Tx(gN,372,500,'‖x‖',{class:'shp','text-anchor':'end'});
+  Tx(gN,372,420,'writes',{class:'small','text-anchor':'end'});
+  Tx(gN,372,540,'Shape is [T × 8] after every sublayer, so blocks stack like identical bricks.',{class:'small'});
+  Tx(gN,372,558,'Click a block on the left to inspect it in steps 4 to 13.',{class:'small'});
+};
+
+STAGES[14]=(gL,gN)=>{
+  const f=st.focus,V=M.V,ln=M.lnf[f];
+  const xc=column(gN,80,305,M.XL[f],{r:14,gap:5,id:'xl',tip:(k,v)=>`x after block 4 [${k+1}] = <b>${fmt(v)}</b>`});colTitle(gN,xc,'x after block 4','',10);
+  const hc=column(gN,220,305,ln.out,{r:14,gap:5,id:'xf',tip:(k,v)=>`final LN [${k+1}] = <b>${fmt(v)}</b>`});colTitle(gN,hc,'LN_final(x)','',10);
+  oneToOne(gL,xc,hc,{sid:'xl',tid:'xf'});
+  const rv=Math.min(10,(520/V-3)/2);const lg=M.logits[f],pr=M.probs[f];const best=pr.indexOf(Math.max(...pr));
+  const lc=column(gN,560,305,lg,{r:rv,gap:3,id:'lg',scale:4,text:false,tip:(k,v)=>`logit(${W_(M.vocab[k])}) = x̂ · W_U[:,${k+1}]<div class="m">${dotTerms(ln.out,M.WU.map(r=>r[k]))}</div>= <b>${fmt(v)}</b>, p = ${fmt(pr[k])}`});
+  connect(gL,hc,lc,M.WU,{sid:'xf',tid:'lg',k:0.35,max:.35});
+  Tx(gN,400,colTop(hc)-34,'W_U = W_Eᵀ  [8 × V]',{class:'shp','text-anchor':'middle'});
+  Tx(gN,560,colTop(lc)-12,`logits [1 × ${V}]`,{class:'lbl','text-anchor':'middle'});
+  lc.forEach((n,k)=>{const w=pr[k]*260;const b=S('rect',{x:640,y:n.y-rv+1,width:Math.max(w,1),height:2*rv-2,rx:2},gN);b.style.fill=k===best?'rgb(var(--pos-rgb))':'rgba(var(--pos-rgb),.35)';
+    const t=Tx(gN,632,n.y+4,M.vocab[k],{class:'small','text-anchor':'end'});if(k===best){t.style.fontWeight=600;t.style.fill='var(--ink)'}
+    Tx(gN,646+w,n.y+4,fmt(pr[k]),{class:'shp'});
+  });
+  Tx(gN,640,colTop(lc)-12,`softmax: next token after ${W_(fw())}`,{class:'lbl'});
+  Tx(gN,40,585,`Random weights, so the guess (${W_(M.vocab[best])}) means nothing. Training adjusts every weight you have seen so the right word wins.`,{class:'small'});
+};
+
+/* ---------------- text per step ---------------- */
+const STEPS=[
+ {t:'Neuron view and matrix view',b:()=>`<p>In the neuron view, one input vector flows left to right through layers, and each bundle of lines is a weight matrix. A transformer keeps exactly that machinery. The difference is that a sentence gives you several input vectors at once, one per token, stacked as the rows of a matrix <code>X</code> with shape <code>[T × d]</code>. Here T = ${M.T} tokens and d = 8 numbers per token.</p><p>Three ideas carry the rest of the walk-through. Every Linear layer in the block (Q, K, V, O and both MLP layers) is that small neuron-view network applied to each row on its own, with the same weights; writing <code>X @ W</code> runs it on every row at once. Attention is the one place where rows exchange information. And the residual stream is each token's running vector: sublayers read from it and add their result back, they never overwrite it.</p>`,c:'Click a row of X. The same 8 numbers, stood upright, become the column of circles you will follow through the block.',s:'On a GPU, rows from many sentences are stacked too: a batch of B sentences is a [B, T, d] tensor, flattened to [B·T, d] for every Linear layer. More rows, same matmul. Rows in, rows out is exactly how the hardware sees it.'},
+ {t:'Tokens become vectors',b:()=>`<p>Each word is looked up in the embedding table <code>W_E</code>, a <code>[V × d]</code> matrix with one learned row per vocabulary word. Multiplying a one-hot vector by <code>W_E</code> just selects that row, so in practice it is an index lookup. A position vector is added so the model can tell the first “the” from the second; this playground uses the original sine and cosine encoding.</p>`,c:'The one-hot column on the left is a layer of V input neurons with exactly one lit. Only that neuron’s 8 outgoing weights matter, which is why the lookup is cheap.',s:'Real vocabularies hold 32k to 256k tokens, so W_E alone can be hundreds of millions of parameters. It is often shared with the output layer (weight tying). Most recent LLMs drop the added position vector and use RoPE, which rotates q and k inside attention instead.'},
+ {t:'The residual stream is T parallel highways',b:()=>`<p>Stand every token's column up side by side and you have the whole residual stream: the <code>[${M.T} × 8]</code> matrix X₀. Each token owns a lane that runs up through every block. Sublayers never replace a lane’s contents; they compute something and add it back.</p><p>Attention arcs between lanes (thickness is the real attention weight from block 1, averaged over heads, and always points from earlier to later tokens). The MLP works on each lane separately.</p>`,c:'In a plain feed-forward network the vector is replaced at every layer. Here x keeps flowing straight up and each sublayer adds a correction Δx to it. That is why it is called a stream.',s:'The identity path is why deep transformers train at all: gradients flow back along it untouched. It is also the only tensor that must be kept between blocks when activation checkpointing is on.'},
+ {t:'LayerNorm: rescale the lane before reading it',b:()=>`<p>Before attention reads a token's vector, a copy is normalised: subtract its mean μ, divide by its standard deviation σ, then multiply by a learned γ and add a learned β. Statistics run across the 8 numbers of one token, never across tokens. The result x̂ has mean 0 and variance 1, so the next matmul sees inputs of a stable size however large the stream grows. The stream itself is not changed.</p>`,c:'Each output circle is mostly its own input, but every output also depends on all 8 inputs through the two hub nodes μ and σ.',s:'This is pre-LN (normalise on the branch, leave the highway alone), standard since GPT-2 because it trains stably. Many recent models use RMSNorm, which skips the mean subtraction. Norms are memory-bound, so they are usually fused into a neighbouring kernel.'},
+ {t:'Three linear layers: queries, keys, values',b:()=>`<p>x̂ goes through three separate 8 → 8 layers, each an ordinary fully connected layer with no activation function. The query says what this token is looking for, the key says what it offers to others, and the value is what it hands over when someone attends to it. For all tokens at once: <code>X̂ [${M.T}×8] @ W_Q [8×8] = Q [${M.T}×8]</code>, and the same for K and V.</p>`,c:'Hover any q, k or v circle to see its 8 incoming weights. Every token uses these same lines; only the input column changes.',s:'Frameworks concatenate W_Q, W_K and W_V into one [d × 3d] matrix so a single GEMM produces all three. Grouped-query attention, used in many current open models, makes W_K and W_V narrower so several query heads share one key/value head, which shrinks the KV cache.'},
+ {t:'Split into heads',b:()=>`<p>Q, K and V are each cut into H = 2 heads of d_head = 4 numbers. Head 1 takes dimensions 1–4, head 2 takes 5–8. Nothing is computed: <code>[T, 8]</code> is reshaped to <code>[T, 2, 4]</code> and transposed to <code>[2, T, 4]</code>, so each head becomes an independent small attention problem with its own queries, keys and values.</p>`,c:'Think of each head as a separate bank of neurons running in parallel, free to look for a different relationship: the previous word, the subject, a repeated word.',s:'The reshape is free: only the indexing of the same memory changes. All heads then run as one batched matmul over a [B·H] batch dimension. In tensor parallelism, whole heads go to different GPUs because heads never interact until W_O.'},
+ {t:'Scores: how much should this token listen to each other token?',b:()=>`<p>For head ${st.head+1}, the query of ${W_(fw())} is dotted with every token's key: <code>sⱼ = q · kⱼ</code>. Scores are divided by √d_head = 2 so they do not grow with head size. Future tokens are masked to −∞ (a token may only look backwards), and softmax turns the row into weights that sum to 1. For every query at once: <code>Q_h [${M.T}×4] @ K_hᵀ [4×${M.T}] = S [${M.T}×${M.T}]</code>.</p>`,c:'This is the genuinely new part compared with a plain feed-forward network: these connection strengths between lanes are not learned weights. They are computed from the data, and change with every sentence.',s:'S is [T × T] per head, so at 8k tokens that is 64 million entries per head per sequence. FlashAttention never stores it: it streams tiles of K and V through fast on-chip SRAM, keeping a running max and running sum so the softmax is still exact. Memory drops from O(T²) to O(T).'},
+ {t:'Mix the values',b:()=>`<p>The head's output for ${W_(fw())} is a weighted average of value vectors: <code>z = Σⱼ aⱼ vⱼ</code>, using the weights from the previous step. Thick ribbons are large weights. For all tokens at once: <code>A [${M.T}×${M.T}] @ V_h [${M.T}×4] = Z_h [${M.T}×4]</code>.</p>`,c:'z is still a column of circles, but each circle is a blend of circles from other tokens’ columns. Without this step every token would be processed alone, like a row of separate feed-forward networks.',s:'At inference the K and V rows of past tokens are kept in a KV cache. Generating one new token adds one row and runs this step as a vector–matrix product, which is limited by memory bandwidth rather than arithmetic.'},
+ {t:'Concatenate the heads and project with W_O',b:()=>`<p>The two heads’ 4-number outputs are concatenated back into 8 numbers and passed through one more 8 → 8 layer, <code>W_O</code>. Because concatenation is just stacking, W_O splits into one 4 × 8 slice per head: <code>attn_out = z₁ W_O¹ + z₂ W_O²</code>. Each head writes its own vector into the stream, and the writes are summed.</p>`,c:'This is an ordinary fully connected layer, 8 inputs and 8 outputs, exactly the neuron view from step 1.',s:'In Megatron-style tensor parallelism each GPU holds some heads plus the matching rows of W_O, and their partial outputs are summed with one all-reduce: the same sum shown on the right.'},
+ {t:'Add back to the highway',b:()=>`<p>attn_out is added element by element to the stream: <code>x₁ = x + attn_out</code>. This view zooms into a single token’s lane, ${W_(fw())}, and draws its 8 numbers as 8 channels. The original channels run straight across; attention only contributes a correction. No mixing between tokens happens here: that already happened inside attention, so attn_out arrives with one row per token. Shapes: <code>[${M.T}×8] + [${M.T}×8] = [${M.T}×8]</code>.</p>`,c:'A lane is one token; a channel is one of its 8 dimensions. Addition happens channel by channel within the same token: channel 3 of attn_out for a token only touches channel 3 of that token’s lane.',s:'Optimised implementations fuse this add into the end of the W_O kernel, so x₁ is written to memory once instead of being read and written again.'},
+ {t:'MLP, part 1: widen to 4× and apply GELU',b:()=>`<p>The second branch normalises x₁ again (LN₂) and runs a regular two-layer network on it. The first layer goes 8 → 32, four times wider: <code>X̂₂ [${M.T}×8] @ W_in [8×32] = H [${M.T}×32]</code>. Then GELU, a smooth version of ReLU, is applied to each of the 32 numbers.</p>`,c:'This branch is literally a classic feed-forward network: input layer, hidden layer with a nonlinearity, output layer. It runs on each token’s lane separately, with the same weights for every token.',s:'Two thirds of a transformer’s block parameters live in these MLPs (8d² of the 12d² per block). Llama-style models use SwiGLU: two up-projections, one passed through SiLU and multiplied with the other, with hidden width about 8/3 · d so the parameter count matches the 4× version.'},
+ {t:'MLP, part 2: project back to 8',b:()=>`<p>The 32 hidden activations are combined back into 8 numbers: <code>H [${M.T}×32] @ W_out [32×8] = mlp_out [${M.T}×8]</code>. A useful reading: each hidden neuron has an input pattern it detects (its column of W_in) and an output vector it writes when active (its row of W_out).</p>`,c:'Hover a hidden neuron on the left to see the 8 lines it writes along. Hover an output on the right to see the 32 lines feeding it.',s:'Tensor parallelism splits W_in by columns and W_out by rows across GPUs. Each GPU computes its share of hidden neurons entirely locally, and one all-reduce sums the outputs.'},
+ {t:'Add again: the block’s output',b:()=>`<p><code>x₂ = x₁ + mlp_out</code>. This is the output of block ${st.layer+1} and the input to the next one, still <code>[${M.T}×8]</code>. Shape in equals shape out, which is exactly what makes blocks stackable.</p>`,c:'Follow any channel from left to right: x, plus attention, plus MLP. Nothing was overwritten, only added to.',s:'With activation checkpointing, the block input x is typically all that is stored for the backward pass; everything inside the block is recomputed when gradients are needed.'},
+ {t:'Stacking blocks',b:()=>`<p>A model is N copies of this block with different weights, applied one after another. The highway form shows each block’s two branches leaving and rejoining. The neuron form shows the 8 channels of ${W_(fw())}’s lane after every sublayer, with each sublayer’s write drawn underneath. This toy has 4 blocks; GPT-2 small has 12 and GPT-3 has 96.</p>`,c:'Earlier blocks can write information into the stream that later blocks read. Attention heads in different layers chained this way are what interpretability research calls circuits.',s:'Pipeline parallelism cuts the stack into groups of blocks on different GPUs and streams micro-batches through them like an assembly line. Because every block has identical shapes, the cuts can go anywhere.'},
+ {t:'From the stream to a prediction',b:()=>`<p>After the last block a final LayerNorm is applied, then the unembedding <code>W_U [8 × V]</code> turns each token’s lane into V scores (logits), one per vocabulary word. Softmax gives a probability for the next token. Here W_U is tied to the embedding (<code>W_U = W_Eᵀ</code>).</p>`,c:'This is a plain output layer in the neuron view: V output neurons, fully connected to the last column.',s:'Training computes this for every position in parallel: logits [B, T, V] scored against the true next tokens with cross-entropy. With V around 128k the tensor is huge, so it is often computed in chunks and fused with the loss.'},
+ {t:'How it is done at scale',b:()=>'',c:'',s:''}
+];
+const MAPNAME=['Start','Embed','Stream','LN₁','Q K V','Heads','Scores','Mix V','W_O','Add','MLP up','MLP down','Add','Stack','Unembed','At scale'];
+
+/* ---------------- matmul card ---------------- */
+function matScale(Mx){let m=0;Mx.forEach(r=>r.forEach(v=>{if(Number.isFinite(v))m=Math.max(m,Math.abs(v))}));return Math.max(0.3,m*0.85)}
+function heat(Mx,o){
+  const rows=Mx.length,cols=Mx[0].length,c=o.cell,lw=o.rowNames?44:0;
+  const wrap=document.createElement('div');wrap.className='hm';
+  const svg=S('svg',{width:cols*c+lw,height:rows*c});wrap.appendChild(svg);
+  const sc=o.scale||matScale(Mx);const cells=[];
+  for(let i=0;i<rows;i++){
+    if(o.rowNames){const t=Tx(svg,lw-4,i*c+c/2+3.5,o.rowNames[i].slice(0,6),{class:'shp','text-anchor':'end'});t.style.fontSize=Math.min(11,c*.7+2)+'px'}
+    cells.push([]);
+    for(let j=0;j<cols;j++){const v=Mx[i][j];const r=S('rect',{x:lw+j*c,y:i*c,width:c-1,height:c-1,rx:Math.min(2,c/6)},svg);r.style.fill=vfill(v,sc);
+      r.addEventListener('mouseenter',e=>{o.onHover&&o.onHover(i,j,true);showTip(e,o.tip?o.tip(i,j):`${o.name}[${i+1},${j+1}] = <b>${fmt(v)}</b>`)});
+      r.addEventListener('mousemove',moveTip);r.addEventListener('mouseleave',()=>{o.onHover&&o.onHover(i,j,false);hideTip()});cells[i].push(r)}
+  }
+  if(o.focusRow!=null&&o.focusRow<rows){const fr=S('rect',{x:lw-1,y:o.focusRow*c-1,width:cols*c+1,height:c+1,fill:'none','stroke-width':1.5},svg);fr.style.stroke='var(--focus)'}
+  if(o.split){S('line',{x1:lw+o.split*c-.5,y1:-3,x2:lw+o.split*c-.5,y2:rows*c+3,'stroke-width':2,stroke:'var(--ink)'},svg)}
+  const ov=S('rect',{fill:'none','stroke-width':2,visibility:'hidden'},svg);ov.style.stroke='var(--lane)';
+  const cap=document.createElement('div');cap.className='hmcap';cap.innerHTML=`<b>${o.name}</b> [${rows}×${cols}]`;wrap.appendChild(cap);
+  return{el:wrap,
+    row(i,on){ov.setAttribute('x',lw-1);ov.setAttribute('y',i*c-1);ov.setAttribute('width',cols*c+1);ov.setAttribute('height',c+1);ov.setAttribute('visibility',on?'visible':'hidden')},
+    col(j,on){ov.setAttribute('x',lw+j*c-1);ov.setAttribute('y',-1);ov.setAttribute('width',c+1);ov.setAttribute('height',rows*c+1);ov.setAttribute('visibility',on?'visible':'hidden')},
+    cell(i,j,on){ov.setAttribute('x',lw+j*c-1);ov.setAttribute('y',i*c-1);ov.setAttribute('width',c+1);ov.setAttribute('height',c+1);ov.setAttribute('visibility',on?'visible':'hidden')}};
+}
+function sym(s){const e=document.createElement('span');e.className='opsym';e.textContent=s;return e}
+function renderOp(op,avail){
+  const box=document.createElement('div');box.className='op';
+  const items=op.items;const totalCols=items.reduce((a,it)=>a+it.M[0].length,0);const labeled=items.filter(it=>it.rowNames).length;
+  const maxRows=Math.max(...items.map(it=>it.M.length));
+  let cell=Math.floor((avail-28*(items.length-1)-44*labeled-10)/totalCols);cell=Math.max(5,Math.min(20,cell,Math.floor(260/maxRows)));
+  const eq=document.createElement('div');eq.className='eq';eq.innerHTML=op.eq;box.appendChild(eq);
+  const row=document.createElement('div');row.className='oprow';box.appendChild(row);
+  const hs=[];
+  items.forEach((it,k)=>{
+    const o={cell,name:it.name,rowNames:it.rowNames,focusRow:it.focus===false?null:(it.M.length===M.T?st.focus:null),split:it.split,scale:it.scale};
+    if(op.kind==='mm'&&k===2){const A=items[0].M,B=items[1].M;o.onHover=(i,j,on)=>{hs[0].row(i,on);hs[1].col(j,on);hs[2].cell(i,j,on)};
+      o.tip=(i,j)=>`${it.name}[${i+1},${j+1}] = row ${i+1} of ${items[0].name} · column ${j+1} of ${items[1].name}<div class="m">${dotTerms(A[i],B.map(r=>r[j]),6)}</div>= <b>${fmt(it.M[i][j])}</b>`}
+    if(op.kind==='ew'&&k===2){o.onHover=(i,j,on)=>{hs[0].cell(i,j,on);hs[1].cell(i,j,on);hs[2].cell(i,j,on)};o.tip=(i,j)=>`${fmt(items[0].M[i][j])} ${op.op} ${fmt(items[1].M[i][j])} = <b>${fmt(it.M[i][j])}</b>`}
+    const h=heat(it.M,o);hs.push(h);
+    if(k>0)row.appendChild(sym(op.syms[k-1]));row.appendChild(h.el);
+  });
+  if(op.note){const n=document.createElement('div');n.className='opnote';n.innerHTML=op.note;box.appendChild(n)}
+  return box;
+}
+function shp(m){return`<span class="sh">[${m.length}×${m[0].length}]</span>`}
+function ops(){
+  const ly=M.layers[st.layer],h=st.head,hd=ly.heads[h],T=M.T,hn=h+1,tk=M.toks;
+  const mm=(a,an,b,bn,c,cn,note,extra={})=>({kind:'mm',syms:['@','='],items:[{M:a,name:an,...extra.a},{M:b,name:bn,...extra.b},{M:c,name:cn,...extra.c}],eq:`<b>${an}</b> ${shp(a)} @ <b>${bn}</b> ${shp(b)} = <b>${cn}</b> ${shp(c)}`,note});
+  const ew=(a,an,b,bn,c,cn,opS,note)=>({kind:'ew',op:opS,syms:[opS,'='],items:[{M:a,name:an},{M:b,name:bn},{M:c,name:cn}],eq:`<b>${an}</b> ${shp(a)} ${opS} <b>${bn}</b> ${shp(b)} = <b>${cn}</b> ${shp(c)}`,note});
+  const show=(arr,syms,eq,note)=>({kind:'show',syms,items:arr,eq,note});
+  switch(st.step){
+    case 0:return[show([{M:M.X0,name:'X₀',rowNames:tk}],[],`<b>X₀</b> ${shp(M.X0)}: one row per token, one column per feature`,'Hover a cell for its value. In every Linear layer, each row is pushed through the same weights independently.')];
+    case 1:return[mm(M.onehot,'onehot',M.E,'W_E',M.Etok,'E','Hover an output cell: the dot product has only one non-zero term, so each row of E is one row of W_E.',{a:{rowNames:tk},b:{rowNames:M.vocab,focus:false},c:{rowNames:tk}}),ew(M.Etok,'E',M.P,'P',M.X0,'X₀','+','Position vectors are added, not concatenated, so the width stays 8.')];
+    case 2:return[show([{M:M.X0,name:'X₀',rowNames:tk}],[],`Residual stream <b>X₀</b> ${shp(M.X0)}`,'This matrix flows through every block. Its shape never changes; only its values are added to.')];
+    case 3:return[show([{M:ly.Xin,name:'X',rowNames:tk},{M:ly.Xh,name:'X̂',rowNames:tk}],['→'],`<b>X̂</b> = LayerNorm(<b>X</b>), row by row: ${shp(ly.Xin)} → ${shp(ly.Xh)}`,'No matmul here. Each row is centred and scaled using only its own 8 numbers.')];
+    case 4:{const N=st.qkv,W=ly.W[N],R=ly[N];const o=mm(ly.Xh,'X̂',W,'W_'+N,R,N,`Row i of ${N} is token i’s x̂ pushed through the same 8 → 8 layer. Hover a cell of ${N} to see the row and column being multiplied.`,{a:{rowNames:tk},c:{rowNames:tk}});o.tabs=true;return[o]}
+    case 5:return[show([{M:ly.Q,name:'Q',rowNames:tk,split:4},{M:hd.Qh,name:`Q_h${hn}`,rowNames:tk}],['→'],`<b>Q</b> ${shp(ly.Q)} → reshape [${T}×2×4] → head ${hn}: <b>Q_h${hn}</b> ${shp(hd.Qh)}`,`The bar marks the cut. Head ${hn} gets columns ${h*4+1}–${h*4+4}. Same for K and V.`)];
+    case 6:{const KT=tr(hd.Kh);return[mm(hd.Qh,`Q_h${hn}`,KT,`K_h${hn}ᵀ`,hd.S,'S',`Entry [i, j] is how well query i matches key j.`,{a:{rowNames:tk},b:{focus:false},c:{rowNames:tk}}),show([{M:hd.S,name:'S',rowNames:tk},{M:hd.A,name:'A',rowNames:tk,scale:1}],['→'],`<b>A</b> = softmax(mask(<b>S</b> / √4)) ${shp(hd.A)}`,'Upper triangle is masked to −∞ before softmax, so it becomes 0. Every row of A sums to 1.')]}
+    case 7:return[mm(hd.A,`A_h${hn}`,hd.Vh,`V_h${hn}`,hd.Z,`Z_h${hn}`,'Row i of Z is a mix of the rows of V, weighted by row i of A. This matmul is where tokens exchange information.',{a:{rowNames:tk,scale:1},c:{rowNames:tk}})];
+    case 8:return[mm(ly.Z,'Z',ly.W.O,'W_O',ly.O,'attn_out','Z is both heads side by side (columns 1–4 from head 1, 5–8 from head 2).',{a:{rowNames:tk,split:4},c:{rowNames:tk}})];
+    case 9:return[ew(ly.Xin,'X',ly.O,'attn_out',ly.X1,'X₁','+','Hover a cell of X₁: it is the sum of the same cell in the other two.')];
+    case 10:return[mm(ly.Xh2,'X̂₂',ly.W.In,'W_in',ly.Hpre,'H','Each row widens from 8 to 32 numbers. Then GELU is applied to every entry of H.',{a:{rowNames:tk},c:{rowNames:tk}})];
+    case 11:return[mm(ly.Hpost,'gelu(H)',ly.W.Out,'W_out',ly.M,'mlp_out','32 numbers per token are folded back into 8.',{a:{rowNames:tk},c:{rowNames:tk}})];
+    case 12:return[ew(ly.X1,'X₁',ly.M,'mlp_out',ly.X2,'X₂','+',`X₂ is block ${st.layer+1}’s output and the next block’s input.`)];
+    case 13:return[show([{M:M.X0,name:'X₀',rowNames:tk},{M:M.XL,name:'X₄',rowNames:tk}],['→'],`<b>X₀</b> ${shp(M.X0)} → 4 blocks → <b>X₄</b> ${shp(M.XL)}`,'Same shape at the bottom and the top of the stack.')];
+    case 14:return[mm(M.Xf,'X̂_final',M.WU,'W_U',M.logits,'logits','One row of logits per position: every position predicts its own next token, which is why training on one sentence gives T training examples at once.',{a:{rowNames:tk},c:{rowNames:tk}})];
+  }
+  return[];
+}
+function renderMM(){
+  const mmEl=document.getElementById('mm');mmEl.innerHTML='<h3>The matmul behind this step</h3>';
+  const avail=mmEl.clientWidth-40;
+  ops().forEach(op=>{
+    if(op.tabs){const t=document.createElement('div');t.className='qkvtabs';['Q','K','V'].forEach(n=>{const b=document.createElement('button');b.textContent=n;b.setAttribute('aria-pressed',st.qkv===n);b.onclick=()=>{st.qkv=n;renderMM()};t.appendChild(b)});mmEl.appendChild(t)}
+    mmEl.appendChild(renderOp(op,avail));
+  });
+}
+
+/* ---------------- industry page ---------------- */
+function industryHTML(){
+  const T=M.T,V=M.V;
+  const rows=[
+   ['Token ids','ids','[B, T]',`[1, ${T}]`],
+   ['Embed and add positions','X = W_E[ids] + P','[B, T, d]',`[1, ${T}, 8]`],
+   ['LayerNorm','X̂ = LN(X)','[B, T, d]',`[1, ${T}, 8]`],
+   ['Fused Q, K, V','X̂ @ W_QKV','[B·T, d] @ [d, 3d] → [B·T, 3d]',`[${T}, 8] @ [8, 24]`],
+   ['Split heads','reshape, transpose','[B, H, T, d_h] × 3',`[1, 2, ${T}, 4] × 3`],
+   ['Scores, mask, softmax','A = softmax(QKᵀ/√d_h)','[B, H, T, T]',`[1, 2, ${T}, ${T}]`],
+   ['Mix values','Z = A V, merge heads','[B, H, T, d_h] → [B, T, d]',`[1, ${T}, 8]`],
+   ['Output projection, add','X += Z W_O','[B·T, d] @ [d, d]',`[${T}, 8] @ [8, 8]`],
+   ['MLP up, GELU','H = gelu(LN(X) W_in)','[B·T, d] @ [d, 4d]',`[${T}, 8] @ [8, 32]`],
+   ['MLP down, add','X += H W_out','[B·T, 4d] @ [4d, d]',`[${T}, 32] @ [32, 8]`],
+   ['Unembed (after N blocks)','logits = LN(X) W_U','[B·T, d] @ [d, V]',`[${T}, 8] @ [8, ${V}]`]];
+  const notes=[
+   ['Every Linear layer is one big GEMM','Batch and sequence are flattened into rows: [B, T, d] becomes [B·T, d]. A single training step at 4M tokens per batch multiplies a 4M-row matrix by each weight matrix. GPUs are built for exactly this shape of work.'],
+   ['FlashAttention','Attention is computed tile by tile in on-chip SRAM with an online softmax (running max and sum), so the T × T matrix is never written to GPU memory. The backward pass recomputes it instead of storing it.'],
+   ['Mixed precision on tensor cores','Matmuls run in bf16 (or fp8 on newer hardware) with fp32 accumulation. An fp32 master copy of the weights lives in the optimizer. With Adam this costs roughly 16 bytes per parameter during training.'],
+   ['Kernel fusion','LayerNorm, GELU, residual adds and dropout do little arithmetic per byte moved, so they are fused into neighbouring matmul kernels (by hand, or by compilers such as torch.compile and Triton).'],
+   ['Four kinds of parallelism','Data parallel: each GPU gets different sentences; FSDP/ZeRO also shards weights and optimizer state. Tensor parallel: W_in split by columns, W_out by rows, heads split across GPUs. Pipeline parallel: groups of blocks on different GPUs. Sequence or context parallel: long sequences split across GPUs.'],
+   ['Activation checkpointing','Only the residual stream at block boundaries is saved during the forward pass; the inside of each block is recomputed during backward. Trades about a third more compute for much less memory.'],
+   ['Inference and the KV cache','Each generated token appends one row of K and V per layer to a cache and attends over it. Prefill (the prompt) is matmul-heavy; decode (one token at a time) is memory-bandwidth-bound. Grouped-query attention shrinks the cache.'],
+   ['What recent models change','Pre-norm with RMSNorm instead of LayerNorm, SwiGLU instead of GELU, RoPE instead of added positions, grouped-query attention, and usually no bias terms. Mixture-of-experts models replace the single MLP with many, routing each token to a few.']];
+  return `<div class="ind">
+  <section><h3>The whole block in shapes</h3><p>B = batch of sentences, T = tokens per sentence, d = model width, H = heads, d_h = d / H, V = vocabulary. The highlighted rows are the only ones where tokens interact; everything else is the same small network applied to every row.</p>
+  <div class="tablewrap"><table class="shapes"><thead><tr><th>Step</th><th>Operation</th><th>Real model</th><th>This toy</th></tr></thead><tbody>
+  ${rows.map(r=>`<tr class="${/Scores|Mix/.test(r[0])?'cross':''}"><td>${r[0]}</td><td class="m">${r[1]}</td><td class="m">${r[2]}</td><td class="m">${r[3]}</td></tr>`).join('')}
+  </tbody></table></div></section>
+  <section><h3>Size it up</h3><p>Standard back-of-envelope formulas for a dense transformer with a 4× GELU MLP. Pick a preset or type your own numbers.</p>
+  <div class="calc"><div><div class="presets" id="presets"></div><div class="inputs">
+   <label for="cd">d (width)</label><input id="cd" type="number" min="8" step="8">
+   <label for="cl">N blocks</label><input id="cl" type="number" min="1">
+   <label for="ch">heads</label><input id="ch" type="number" min="1">
+   <label for="cv">vocab V</label><input id="cv" type="number" min="2">
+   <label for="ct">context T</label><input id="ct" type="number" min="1">
+  </div></div><dl class="out" id="calcout"></dl></div></section>
+  <section><h3>How training actually runs the matmuls</h3><div class="notes">${notes.map(n=>`<article><h4>${n[0]}</h4><p>${n[1]}</p></article>`).join('')}</div></section>
+  </div>`;
+}
+const PRESETS=[['This toy',8,4,2,14,6],['GPT-2 small',768,12,12,50257,1024],['7B class',4096,32,32,32000,4096],['70B class',8192,80,64,128256,8192]];
+function human(n){const u=[['T',1e12],['B',1e9],['M',1e6],['K',1e3]];for(const[s,v]of u)if(Math.abs(n)>=v)return(n/v).toFixed(n/v>=100?0:n/v>=10?1:2)+s;return Math.round(n).toString()}
+function bytes(n){const u=[['TB',1e12],['GB',1e9],['MB',1e6],['KB',1e3]];for(const[s,v]of u)if(n>=v)return(n/v).toFixed(n/v>=100?0:1)+' '+s;return Math.round(n)+' B'}
+function initCalc(){
+  const ids=['cd','cl','ch','cv','ct'];const pr=document.getElementById('presets');
+  const set=p=>{ids.forEach((id,k)=>document.getElementById(id).value=p[k+1]);calc()};
+  PRESETS[0][4]=M.V;PRESETS[0][5]=M.T;
+  PRESETS.forEach(p=>{const b=document.createElement('button');b.className='btn';b.textContent=p[0];b.onclick=()=>set(p);pr.appendChild(b)});
+  ids.forEach(id=>document.getElementById(id).addEventListener('input',calc));
+  set(PRESETS[1]);
+}
+function calc(){
+  const g=id=>Math.max(1,+document.getElementById(id).value||1);const d=g('cd'),Lb=g('cl'),Hh=g('ch'),V=g('cv'),T=g('ct');
+  const block=12*d*d,nonEmb=Lb*block,emb=V*d,N=nonEmb+emb;
+  const flops=6*N+6*Lb*T*d;
+  const out=[
+   ['Parameters',`${human(N)}  (blocks ${human(nonEmb)}, embedding ${human(emb)})`],
+   ['Per block','12·d² = 4d² attention + 8d² MLP'],
+   ['Head size',`d_h = ${(d/Hh).toFixed(Hh>d?2:0)}`],
+   ['Training FLOPs per token',`≈ 6N + 6·N_blocks·T·d = ${human(flops)}`],
+   ['Attention matrix if stored',`${human(Hh*T*T)} entries per block per sequence (${bytes(Hh*T*T*2)} in bf16)`],
+   ['KV cache per token',`${bytes(2*Lb*d*2)} (bf16, every head keeps K and V)`],
+   ['Weights in bf16',bytes(2*N)],
+   ['Training state with Adam',`≈ ${bytes(16*N)} before activations`]];
+  document.getElementById('calcout').innerHTML=out.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('');
+}
+
+/* ---------------- map ---------------- */
+function drawMap(){
+  const g=document.getElementById('map');g.innerHTML='';defsMap(g);
+  const item=(step,cls='')=>{const e=S('g',{class:'mi '+cls,tabindex:0,role:'button','aria-label':`Go to step ${step+1}: ${STEPS[step].t}`},g);if(st.step===step||(Array.isArray(step)))e.classList.add('on');e.addEventListener('click',()=>go(step));e.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();go(step)}});return e};
+  // highway
+  const hw=item(2,'road');S('rect',{x:167,y:40,width:26,height:542,rx:5,class:'m-road'},hw);S('line',{x1:180,y1:48,x2:180,y2:575,class:'m-dash'},hw);
+  const tri=S('path',{d:'M171,48 L180,36 L189,48 z'},g);tri.style.fill='var(--lane)';
+  const rl=Tx(hw,0,0,'residual stream',{transform:'translate(184,560) rotate(-90)'});rl.style.fontSize='10px';rl.style.fill='var(--ink2)';
+  // embed & unembed
+  const em=item(1);S('rect',{x:120,y:588,width:114,height:26,rx:6,class:'bg'},em);S('rect',{x:120,y:588,width:114,height:26,rx:6,fill:'none',stroke:'var(--ink3)'},em);Tx(em,177,605,'tokens, embed',{'text-anchor':'middle'});
+  const ue=item(14);S('rect',{x:120,y:6,width:114,height:26,rx:6,class:'bg'},ue);S('rect',{x:120,y:6,width:114,height:26,rx:6,fill:'none',stroke:'var(--ink3)'},ue);Tx(ue,177,23,'unembed, predict',{'text-anchor':'middle'});
+  // attention
+  S('rect',{x:6,y:330,width:128,height:150,rx:8,class:'m-box-attn'},g);
+  Tx(g,14,348,'Attention branch',{}).style.cssText='font-size:11.5px;font-weight:600;fill:var(--attn)';
+  ['LayerNorm₁','Q, K, V','split into heads','scores, softmax','mix values','concat, W_O'].forEach((t,k)=>{const e=item(3+k);const y=356+k*20;S('rect',{x:10,y,width:120,height:18,rx:4,class:'bg'},e);Tx(e,18,y+13,t)});
+  S('path',{d:'M167,505 H70 V484',class:'mpath','marker-end':'url(#ma)'},g);
+  S('path',{d:'M70,330 V312 H166',class:'mpath','marker-end':'url(#ma)'},g);
+  const p1=item(9,'plus');S('circle',{cx:180,cy:312,r:10},p1);Tx(p1,180,316,'+',{'text-anchor':'middle'}).style.fontSize='13px';
+  // mlp
+  S('rect',{x:6,y:150,width:128,height:102,rx:8,class:'m-box-mlp'},g);
+  Tx(g,14,168,'MLP branch',{}).style.cssText='font-size:11.5px;font-weight:600;fill:var(--mlp)';
+  [['LayerNorm₂',10],['up 8 → 32',10],['GELU',10],['down 32 → 8',11]].forEach(([t,s],k)=>{const e=item(s);const y=176+k*18;S('rect',{x:10,y,width:120,height:17,rx:4,class:'bg'},e);Tx(e,18,y+12.5,t)});
+  S('path',{d:'M167,290 H70 V256',class:'mpath','marker-end':'url(#ma)'},g);
+  S('path',{d:'M70,150 V122 H166',class:'mpath','marker-end':'url(#ma)'},g);
+  const p2=item(12,'plus');S('circle',{cx:180,cy:122,r:10},p2);Tx(p2,180,126,'+',{'text-anchor':'middle'}).style.fontSize='13px';
+  // xN
+  const bk=item(13,'brk');S('path',{d:'M203,525 h7 V100 h-7'},bk);S('rect',{x:200,y:100,width:36,height:425,class:'bg'},bk);Tx(bk,215,318,'×4',{}).style.cssText='font-size:13px;font-weight:600';
+  // start / scale
+  const s0=item(0,'txt');Tx(s0,6,630,'Start: neuron and matrix views');
+  const s15=item(15,'txt');Tx(s15,6,58,'At scale (industry)');
+  document.getElementById('mapnote').textContent=(st.step>=3&&st.step<=12)?`Inside view: block ${st.layer+1} of 4. Change it with the Block menu.`:'Click any part of the map to jump there.';
+}
+function defsMap(g){const d=S('defs',{},g);const m=S('marker',{id:'ma',viewBox:'0 0 10 10',refX:8,refY:5,markerWidth:6,markerHeight:6,orient:'auto'},d);S('path',{d:'M0,0 L10,5 L0,10 z',fill:'var(--ink3)'},m).style.fill='var(--ink3)'}
+
+/* ---------------- render ---------------- */
+function renderToks(){const t=document.getElementById('toks');t.innerHTML='<span class="lab">Follow</span>';M.toks.forEach((w,i)=>{const b=document.createElement('button');b.className='tok';b.innerHTML=`${w.replace(/</g,'&lt;')}<sub>${i}</sub>`;b.setAttribute('aria-pressed',i===st.focus);b.onclick=()=>setFocus(i);t.appendChild(b)})}
+function render(){
+  const svg=document.getElementById('stage'),hs=document.getElementById('htmlStage'),isInd=st.step===15;
+  svg.innerHTML='';svg.classList.remove('hlmode');hideTip();
+  document.getElementById('stepno').textContent=`Step ${st.step+1} of ${STEPS.length}`;
+  document.getElementById('stitle').textContent=STEPS[st.step].t;
+  svg.style.display=isInd?'none':'block';hs.style.display=isInd?'block':'none';
+  document.getElementById('lower').style.display=isInd?'none':'grid';
+  document.getElementById('scalebar').style.display=isInd?'none':'flex';
+  if(isInd){hs.innerHTML=industryHTML();initCalc()}
+  else{defs(svg);const gL=S('g',{},svg),gN=S('g',{},svg);STAGES[st.step](gL,gN,svg);fitStage(svg);
+    const s=STEPS[st.step];document.getElementById('explain').innerHTML=`<h3>What happens</h3>${s.b()}<h3>In the neuron view</h3><p>${s.c}</p><div class="scale"><h3>At scale</h3><p>${s.s}</p></div>`;
+    renderMM();}
+  renderToks();drawMap();
+  document.querySelectorAll('#dots button').forEach((b,i)=>b.setAttribute('aria-current',i===st.step?'step':'false'));
+  document.getElementById('prev').disabled=st.step===0;document.getElementById('next').disabled=st.step===STEPS.length-1;
+  document.querySelectorAll('#heads button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.h===st.head));
+  document.getElementById('layer').value=st.layer;
+}
+function fitStage(svg){svg.setAttribute('viewBox','0 0 960 600');let bb;try{bb=svg.getBBox()}catch(e){return}if(!bb||!bb.width)return;const w=Math.max(960,bb.width+48),x=bb.x-(w-bb.width)/2,y=Math.min(0,bb.y-12),h=Math.max(600,bb.y+bb.height+12-y);svg.setAttribute('viewBox',`${x.toFixed(1)} ${y.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`)}
+function go(s){st.step=Math.max(0,Math.min(STEPS.length-1,s));render();if(innerWidth<=1180)document.querySelector('.stagehead').scrollIntoView({block:'start'})}
+function rebuild(){const prevT=M?M.T:0;M=build(document.getElementById('sent').value);if(st.focus>=M.T||M.T!==prevT)st.focus=M.T-1;render()}
+
+/* ---------------- wire up ---------------- */
+(function init(){
+  const lay=document.getElementById('layer');for(let l=0;l<L;l++){const o=document.createElement('option');o.value=l;o.textContent=`${l+1} of ${L}`;lay.appendChild(o)}
+  lay.onchange=()=>{st.layer=+lay.value;render()};
+  document.querySelectorAll('#heads button').forEach(b=>b.onclick=()=>{st.head=+b.dataset.h;render()});
+  document.getElementById('nums').onchange=e=>{st.nums=e.target.checked;render()};
+  document.getElementById('reroll').onclick=()=>{seedBase=(Math.random()*1e9)|0;rebuild()};
+  let tm;document.getElementById('sent').addEventListener('input',()=>{clearTimeout(tm);tm=setTimeout(rebuild,250)});
+  const dots=document.getElementById('dots');STEPS.forEach((s,i)=>{const b=document.createElement('button');b.textContent=i+1;b.title=s.t;b.setAttribute('aria-label',`Step ${i+1}: ${s.t}`);b.onclick=()=>go(i);dots.appendChild(b)});
+  document.getElementById('prev').onclick=()=>go(st.step-1);document.getElementById('next').onclick=()=>go(st.step+1);
+  document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;if(e.key==='ArrowRight')go(st.step+1);if(e.key==='ArrowLeft')go(st.step-1)});
+  let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(st.step!==15)renderMM()},150)});
+  const mq=matchMedia('(max-width:1180px)'),mapd=document.querySelector('details.mapd');
+  const syncMap=()=>{mapd.open=!mq.matches};syncMap();
+  (mq.addEventListener?mq.addEventListener('change',syncMap):mq.addListener(syncMap));
+  rebuild();
+})();
+</script>
+</body>
+</html>
