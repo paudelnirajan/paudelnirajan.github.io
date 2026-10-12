@@ -1275,6 +1275,7 @@ position 19: input ' say', actual next ' plasma'
 <li><strong>Which component does the copying?</strong> Look at <code>cache["pattern", L]</code> (<code>[batch, head, query, key]</code>) in layers ~5–9 for a head that attends from position 19 to position 5 (the token after the earlier <code>' say'</code>). Then <strong>ablate</strong> it and check whether <code>' plasma'</code>'s rank collapses.</li>
 <li><strong>Your own texts:</strong> <code>tokens, L, names = run_example("...")</code>, then plot.</li>
 <li><strong><code>prepend_bos=True</code>:</strong> does keeping BOS change the early positions?</li>
+<li><strong>Without a notebook:</strong> the same lens on GPT-2, Pythia and Qwen3 runs live in <a href="https://attnlab.sarvabhaum.ai/logit-lens" target="_blank" rel="noopener">attnlab's logit lens lab</a>, with trajectories and direct logit attribution on top.</li>
 <li><strong>Further reading:</strong> the <em>tuned lens</em> (a learned per-layer correction instead of <code>ln_final</code>).</li>
 </ul>
         </div>

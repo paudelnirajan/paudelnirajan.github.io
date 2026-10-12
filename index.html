@@ -38,7 +38,12 @@
         "@type": "CollegeOrUniversity",
         "name": "University of Colorado Boulder"
       },
-      "knowsAbout": ["Multilingual NLP", "Speculative Decoding", "Low-Resource Languages", "Machine Learning"],
+      "knowsAbout": ["Multilingual NLP", "Speculative Decoding", "Low-Resource Languages", "Mechanistic Interpretability", "Machine Learning"],
+      "memberOf": {
+        "@type": "Organization",
+        "name": "Sarvabhaum AI",
+        "url": "https://sarvabhaum.ai"
+      },
       "sameAs": [
         "https://github.com/paudelnirajan",
         "https://www.linkedin.com/in/nirajanpaudel17/",
@@ -119,7 +124,7 @@
                 <h1>Nirajan Paudel</h1>
 
                 <p class="affiliation">
-                    <strong>M.S. Computer Science</strong>, University of Colorado Boulder<span class="sep">/</span><span class="advisor">advised by <a href="https://www.colorado.edu/linguistics/alexis-palmer" target="_blank" rel="noopener">Alexis Palmer</a></span>
+                    <strong>M.S. Computer Science</strong>, University of Colorado Boulder<span class="sep">/</span><span class="advisor">LECS Lab, advised by <a href="https://www.colorado.edu/linguistics/alexis-palmer" target="_blank" rel="noopener">Alexis Palmer</a></span>
                 </p>
 
                 <div class="bio lede">
@@ -141,6 +146,12 @@
                         I also build things — production ML systems, developer tools, infrastructure — because
                         the engineering keeps the research honest.
                     </p>
+                    <p>
+                        Lately that building happens at <a href="https://sarvabhaum.ai" target="_blank" rel="noopener"><strong>Sarvabhaum</strong></a>,
+                        where I make free, open tools for seeing inside language models: <a href="https://attnlab.sarvabhaum.ai" target="_blank" rel="noopener">attnlab</a>
+                        for attention and the logit lens, and a <a href="https://specdec.sarvabhaum.ai" target="_blank" rel="noopener">speculative decoding playground</a>
+                        that grew out of the research above.
+                    </p>
                 </div>
 
                 <blockquote class="pullquote">
@@ -154,6 +165,7 @@
                     <!-- TODO: replace with your own Google Scholar profile URL once you have one -->
                     <a href="https://scholar.google.com/citations?hl=en&user=YA1G4aYAAAAJ" target="_blank" rel="noopener"><i class="fas fa-graduation-cap"></i> Scholar</a>
                     <a href="https://arxiv.org/abs/2605.30580" target="_blank" rel="noopener"><i class="fas fa-file-lines"></i> arXiv</a>
+                    <a href="https://sarvabhaum.ai" target="_blank" rel="noopener"><i class="fas fa-flask"></i> Sarvabhaum</a>
                     <a href="https://github.com/paudelnirajan" class="icon-only" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><i class="fab fa-github"></i></a>
                     <a href="https://www.linkedin.com/in/nirajanpaudel17/" class="icon-only" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
                     <a href="https://x.com/paudelnirajan17" class="icon-only" target="_blank" rel="noopener" aria-label="X" title="X"><i class="fab fa-x-twitter"></i></a>
@@ -239,6 +251,8 @@
                 <span class="sec-kicker">things I built</span>
             </header>
 
+            <div id="sarvabhaum-slot"></div>
+
             <div class="filters" role="group" aria-label="Filter projects">
                 <button class="filter-btn active" data-filter="featured">Featured</button>
                 <button class="filter-btn" data-filter="all">All</button>
@@ -258,6 +272,15 @@
                 <span class="sec-kicker">notes &amp; long-form</span>
             </header>
             <div class="writing-list" id="writing-list"></div>
+            <div class="writing-foot">
+                <button class="news-more" id="writing-more" hidden>
+                    <i class="fas fa-plus"></i> <span>Show all writing</span>
+                </button>
+                <p class="writing-note">
+                    The interactive explainers are also collected on
+                    <a href="https://sarvabhaum.ai/explainers" target="_blank" rel="noopener">sarvabhaum.ai/explainers</a>.
+                </p>
+            </div>
         </div>
     </section>
 
@@ -284,7 +307,7 @@
         <div class="wrap footer-inner">
             <div class="footer-meta">
                 <b>Nirajan Paudel</b> — University of Colorado Boulder<br>
-                Set in Fraunces &amp; Inter · built by hand, no framework
+                Tools at <a href="https://sarvabhaum.ai" target="_blank" rel="noopener">sarvabhaum.ai</a> · set in Fraunces &amp; Inter · built by hand
             </div>
             <div class="footer-socials">
                 <a href="mailto:nirajan.paudel@colorado.edu" aria-label="Email"><i class="fas fa-envelope"></i></a>

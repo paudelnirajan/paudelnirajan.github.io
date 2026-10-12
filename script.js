@@ -1,6 +1,6 @@
 /* =================================================================
    Nirajan Paudel — site behaviour
-   Content lives in site-data.js (news/pubs/projects) and
+   Content lives in site-data.js (news/pubs/tools/projects) and
    blog-data.js (writing). This file only renders and animates.
 ================================================================= */
 
@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initGreeting();
     renderNews();
     renderPublications();
+    renderSarvabhaum();
     renderProjects();
     initFilters();
     initModal();
@@ -180,20 +181,41 @@ function renderNews() {
         </div>
     `).join('');
 
-    const more = document.getElementById('news-more');
-    if (!more) return;
+    wireShowMore({
+        list, button: document.getElementById('news-more'),
+        selector: '.news-item', visible: NEWS_VISIBLE,
+        moreLabel: 'Show earlier news'
+    });
+}
 
-    if (items.length <= NEWS_VISIBLE) { more.hidden = true; return; }
+/* shared "show more / show less" toggle for lists that render
+   their overflow items with .is-hidden */
+function wireShowMore({ list, button, selector, visible, moreLabel }) {
+    if (!list || !button) return;
 
-    more.hidden = false;
+    const items = [...list.querySelectorAll(selector)];
+    if (items.length <= visible) { button.hidden = true; return; }
+
+    button.hidden = false;
+    button.querySelector('span').textContent = moreLabel;
+    button.setAttribute('aria-expanded', 'false');
+    if (list.id) button.setAttribute('aria-controls', list.id);
+
     let open = false;
-    more.addEventListener('click', () => {
+    button.addEventListener('click', () => {
         open = !open;
-        list.querySelectorAll('.news-item').forEach((el, i) => {
-            if (i >= NEWS_VISIBLE) el.classList.toggle('is-hidden', !open);
+        items.forEach((el, i) => {
+            if (i >= visible) el.classList.toggle('is-hidden', !open);
         });
-        more.querySelector('span').textContent = open ? 'Show less' : 'Show earlier news';
-        more.querySelector('i').className = open ? 'fas fa-minus' : 'fas fa-plus';
+        button.setAttribute('aria-expanded', String(open));
+        button.querySelector('span').textContent = open ? 'Show less' : moreLabel;
+        button.querySelector('i').className = open ? 'fas fa-minus' : 'fas fa-plus';
+
+        /* collapsing from far down the page would strand the reader
+           below the section, so bring the list's top back into view */
+        if (!open && list.getBoundingClientRect().top < 0) {
+            list.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
+        }
     });
 }
 
@@ -495,6 +517,51 @@ function initSpecViz() {
 }
 
 /* -----------------------------------------------------------------
+   SARVABHAUM — live tools band at the top of Projects
+----------------------------------------------------------------- */
+function renderSarvabhaum() {
+    const slot = document.getElementById('sarvabhaum-slot');
+    if (!slot || typeof SARVABHAUM === 'undefined') return;
+
+    const s = SARVABHAUM;
+    slot.innerHTML = `
+        <section class="sarv" id="tools" aria-labelledby="sarv-title">
+            <header class="sarv-head">
+                <div>
+                    <span class="sarv-flag">Live tools</span>
+                    <h3 class="sarv-title" id="sarv-title">
+                        <a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}</a>
+                    </h3>
+                    <p class="sarv-blurb">${esc(s.blurb)}</p>
+                </div>
+                <a class="sarv-visit" href="${esc(s.url)}" target="_blank" rel="noopener">
+                    ${esc(s.url.replace(/^https?:\/\//, ''))} <i class="fas fa-arrow-up-right-from-square"></i>
+                </a>
+            </header>
+            <div class="sarv-tools">
+                ${s.tools.map(t => `
+                    <article class="tool">
+                        <div class="tool-top">
+                            <span class="tool-live">Live</span>
+                            <span class="tool-host">${esc(t.host)}</span>
+                        </div>
+                        <h4><a href="${esc(t.url)}" target="_blank" rel="noopener">${esc(t.name)}</a></h4>
+                        <p>${esc(t.desc)}</p>
+                        <div class="project-tech">${t.tech.map(x => `<span>${esc(x)}</span>`).join('')}</div>
+                        <div class="tool-actions">
+                            <a class="tool-open" href="${esc(t.url)}" target="_blank" rel="noopener">
+                                Open the app <i class="fas fa-arrow-right"></i>
+                            </a>
+                            ${t.source ? `<a href="${esc(t.source)}" target="_blank" rel="noopener"><i class="fab fa-github"></i> Source</a>` : ''}
+                        </div>
+                    </article>
+                `).join('')}
+            </div>
+        </section>
+    `;
+}
+
+/* -----------------------------------------------------------------
    PROJECTS
 ----------------------------------------------------------------- */
 function renderProjects() {
@@ -597,14 +664,16 @@ function initModal() {
 }
 
 /* -----------------------------------------------------------------
-   WRITING
+   WRITING — newest few up front, the archive behind a toggle
 ----------------------------------------------------------------- */
+const WRITING_VISIBLE = 4;
+
 function renderWriting() {
     const list = document.getElementById('writing-list');
     if (!list || typeof blogPosts === 'undefined') return;
 
-    list.innerHTML = blogPosts.map(post => `
-        <article class="post-row" data-href="${post.href || `blog-post.html?post=${encodeURIComponent(post.slug)}`}"
+    list.innerHTML = blogPosts.map((post, i) => `
+        <article class="post-row ${i >= WRITING_VISIBLE ? 'is-hidden' : ''}" data-href="${post.href || `blog-post.html?post=${encodeURIComponent(post.slug)}`}"
                  tabindex="0" role="link" aria-label="${esc(post.title)}">
             <span class="post-row-date">${esc(post.date)}</span>
             <div>
@@ -622,5 +691,11 @@ function renderWriting() {
         row.addEventListener('keydown', e => {
             if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(row); }
         });
+    });
+
+    wireShowMore({
+        list, button: document.getElementById('writing-more'),
+        selector: '.post-row', visible: WRITING_VISIBLE,
+        moreLabel: `Show all ${blogPosts.length} posts`
     });
 }

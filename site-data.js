@@ -2,25 +2,38 @@
    SITE DATA — edit this file to update the site content.
      NEWS         → the dated updates feed on the homepage
      PUBLICATIONS → the research / publications list
+     SARVABHAUM   → the live tools hosted on sarvabhaum.ai
      PROJECTS     → the engineering projects grid
    Blog posts live in blog-data.js + posts/<slug>.md
 ================================================================= */
 
 /* -----------------------------------------------------------------
    NEWS — newest first. `date` is the display string, `sort` is
-   YYYY-MM used only for ordering. Set `highlight: true` for a dot
+   YYYY-MM or YYYY-MM-DD, used only for ordering. Set `highlight: true` for a dot
    accent on especially good news.
 ----------------------------------------------------------------- */
 const NEWS = [
     {
-        sort: '2026-09',
+        sort: '2026-10-08',
+        date: 'Oct 2026',
+        html: 'Released the <a href="https://specdec.sarvabhaum.ai" target="_blank" rel="noopener">Speculative Decoding Playground</a>: watch a small model draft and a large one verify, round by round, on real models. A hands-on companion to our paper on speculative decoding across languages.',
+        highlight: true
+    },
+    {
+        sort: '2026-09-27',
+        date: 'Sep 2026',
+        html: 'Launched <a href="https://attnlab.sarvabhaum.ai" target="_blank" rel="noopener">attnlab</a>, a hosted interpretability playground with tokenizer, attention-pattern and logit-lens labs, as the first tool on <a href="https://sarvabhaum.ai" target="_blank" rel="noopener">Sarvabhaum</a>.',
+        highlight: false
+    },
+    {
+        sort: '2026-09-25',
         date: 'Sep 2026',
         html: 'Getting into <strong>mechanistic interpretability</strong>. First write-up: <a href="posts/logit-lens/">the logit lens in PyTorch</a>, a runnable GPT-2 walkthrough that watches the model build its prediction layer by layer.',
         highlight: false
     },
     {
         sort: '2026-08',
-        date: 'August 2026',
+        date: 'Aug 2026',
         html: '<strong>Speculative Decoding and the Curse of Multilinguality</strong> is on arXiv and under review at <strong>ACL 2026</strong>.',
         highlight: true
     },
@@ -69,7 +82,8 @@ const PUBLICATIONS = [
         tags: ['Multilingual NLP', 'Efficient Inference', 'Low-Resource Languages'],
         links: [
             { href: 'https://arxiv.org/abs/2605.30580', label: 'arXiv', icon: 'fas fa-file-lines' },
-            { href: 'https://arxiv.org/pdf/2605.30580', label: 'PDF', icon: 'fas fa-file-pdf' }
+            { href: 'https://arxiv.org/pdf/2605.30580', label: 'PDF', icon: 'fas fa-file-pdf' },
+            { href: 'https://specdec.sarvabhaum.ai', label: 'Playground', icon: 'fas fa-play' }
         ],
         bibtex: `@misc{paudel2026speculative,
   title         = {Speculative Decoding and the Curse of Multilinguality},
@@ -141,6 +155,38 @@ const PUBLICATIONS = [
 }`
     }
 ];
+
+/* -----------------------------------------------------------------
+   SARVABHAUM — free, open interpretability tools I build and host.
+   Rendered as the band at the top of Projects; `tools` are the
+   live apps, newest first.
+----------------------------------------------------------------- */
+const SARVABHAUM = {
+    name: 'Sarvabhaum AI',
+    url: 'https://sarvabhaum.ai',
+    tagline: 'See inside language models.',
+    blurb: 'A small home for free, open-source tools and interactive explainers that show what language models are doing inside. Each one runs real models behind a web page, so there is no notebook to set up.',
+    tools: [
+        {
+            name: 'Speculative Decoding Playground',
+            year: '2026',
+            url: 'https://specdec.sarvabhaum.ai',
+            host: 'specdec.sarvabhaum.ai',
+            desc: 'A small draft model guesses a few tokens, a large target model checks them all in one forward pass, and the output is exactly what the large model would have written. Step through every round: what was guessed, kept, and why.',
+            tech: ['PyTorch', 'Transformers', 'FastAPI', 'KV cache'],
+            source: 'https://github.com/paudelnirajan/specdec'
+        },
+        {
+            name: 'attnlab',
+            year: '2026',
+            url: 'https://attnlab.sarvabhaum.ai',
+            host: 'attnlab.sarvabhaum.ai',
+            desc: 'Interpretability labs on live TransformerLens models: 9 tokenizers across 32 languages, per-head attention patterns, and a logit lens with exact direct logit attribution to every head and MLP.',
+            tech: ['TransformerLens', 'PyTorch', 'FastAPI', 'React'],
+            source: 'https://github.com/paudelnirajan/attnlab'
+        }
+    ]
+};
 
 /* -----------------------------------------------------------------
    PROJECTS — engineering work, shown below research.
