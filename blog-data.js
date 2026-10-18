@@ -7,6 +7,14 @@
 ================================================================= */
 const blogPosts = [
     {
+        slug:    "token-concept-visualization",
+        href:    "posts/token-concept-visualization/",
+        title:   "Do Llamas Think in English? A Sphere You Can Rotate",
+        date:    "October 18, 2026",
+        excerpt: "An interactive 3D take on Wendler et al. (ACL 2024): follow a Llama-2 hidden state from input space through an English-leaning concept space to the output language, and see why the logit lens reads English in the middle layers.",
+        tags:    ["Interpretability", "Multilingual", "Logit Lens", "Interactive"]
+    },
+    {
         slug:    "transformer-block-neurons",
         href:    "posts/transformer-block-neurons/",
         title:   "One Transformer Block, Neuron by Neuron",

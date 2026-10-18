@@ -1,0 +1,1036 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Do Llamas think in English? — Nirajan Paudel</title>
+<meta name="description" content="An interactive sphere for Wendler et al. (ACL 2024): watch a Llama-2 hidden state travel from input space through an English-leaning concept space to the output language, and see why the logit lens reads English in the middle layers.">
+<meta name="author" content="Nirajan Paudel">
+<link rel="canonical" href="https://paudelnirajan.github.io/posts/token-concept-visualization/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Nirajan Paudel">
+<meta property="og:title" content="Do Llamas think in English? A sphere you can rotate">
+<meta property="og:description" content="Token space, concept space and the English detour inside Llama-2, as a 3D playground built on 'Do Llamas Work in English?' (Wendler et al., ACL 2024).">
+<meta property="og:url" content="https://paudelnirajan.github.io/posts/token-concept-visualization/">
+<meta property="article:published_time" content="2026-10-18">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:creator" content="@paudelnirajan17">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' font-family='Georgia,serif'>न</text></svg>">
+<script>
+(function(){try{document.documentElement.setAttribute('data-theme',localStorage.getItem('np-theme')||'light');}
+catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Sans+SC:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  --bg:#EEF0F3; --paper:#FFFFFF; --soft:#F5F6F8; --ink:#1A1F2C; --ink2:#4E566A; --ink3:#8990A2; --line:#D6DAE2;
+  --en:#2a78d6; --zh:#eb6834; --de:#1baf7a; --fr:#6250d6; --ru:#eda100;
+  --concept:#e87ba4; --concept-ink:#B93D73; --h:#1A1F2C; --accent:#D9A21B;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --cond:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --cjk:"Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#11141A; --paper:#181C24; --soft:#1E232D; --ink:#E6E9F0; --ink2:#A6ADBD; --ink3:#6B7387; --line:#2A303C;
+    --en:#3987e5; --zh:#d95926; --de:#199e70; --fr:#9085e9; --ru:#c98500;
+    --concept:#d55181; --concept-ink:#F08DB5; --h:#E6E9F0; --accent:#C9951C;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11141A; --paper:#181C24; --soft:#1E232D; --ink:#E6E9F0; --ink2:#A6ADBD; --ink3:#6B7387; --line:#2A303C;
+  --en:#3987e5; --zh:#d95926; --de:#199e70; --fr:#9085e9; --ru:#c98500;
+  --concept:#d55181; --concept-ink:#F08DB5; --h:#E6E9F0; --accent:#C9951C;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:inherit;text-decoration-color:var(--ink3);text-underline-offset:2px}
+a:hover{text-decoration-color:var(--ink)}
+code,kbd{font-family:var(--mono);font-size:.9em}
+.cjk{font-family:var(--cjk)}
+
+/* ---------- header ---------- */
+.top{background:var(--paper);border-bottom:1px solid var(--line)}
+.top-in{max-width:1440px;margin:0 auto;padding:22px 24px 20px}
+.back{display:inline-block;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);text-decoration:none;margin-bottom:10px}
+.back:hover{color:var(--ink)}
+.kicker{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin:0 0 4px}
+.top h1{font-family:var(--cond);font-weight:700;font-size:clamp(26px,3.4vw,38px);line-height:1.08;margin:0;letter-spacing:-.01em}
+.dek{margin:8px 0 0;color:var(--ink2);max-width:78ch;font-size:16px}
+.citeline{margin:10px 0 0;font-size:13.5px;color:var(--ink2)}
+.citeline a{color:var(--ink)}
+
+/* ---------- playground layout ---------- */
+.play{max-width:1440px;margin:0 auto;padding:18px 24px 8px;display:grid;grid-template-columns:minmax(0,1fr) 384px;gap:18px;align-items:start}
+.stage{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:12px;height:min(78vh,780px);min-height:480px;overflow:hidden;position:sticky;top:12px}
+#sphere{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+#sphere.dragging{cursor:grabbing}
+#sphere.over-h{cursor:move}
+.ov{position:absolute;z-index:2}
+.legend{top:12px;left:12px;background:color-mix(in srgb,var(--paper) 88%,transparent);border:1px solid var(--line);border-radius:10px;padding:8px 12px 10px;font-size:12.5px;max-width:260px;backdrop-filter:blur(4px)}
+.legend summary{cursor:pointer;font-family:var(--cond);font-weight:600;font-size:14px;list-style:none;display:flex;align-items:center;gap:6px}
+.legend summary::-webkit-details-marker{display:none}
+.legend summary::after{content:"▾";color:var(--ink3);font-size:11px}
+.legend:not([open]) summary::after{content:"▸"}
+.legend ul{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:5px}
+.legend li{display:grid;grid-template-columns:18px 1fr;gap:6px;align-items:start;color:var(--ink2);line-height:1.35}
+.legend li b{color:var(--ink);font-weight:600}
+.sw{width:14px;height:14px;margin-top:1px;border-radius:50%;display:inline-block}
+.sw.sq{border-radius:3px}
+.views{top:12px;right:12px;display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.chip{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:4px 11px;font-size:12.5px;cursor:pointer;color:var(--ink2)}
+.chip:hover{color:var(--ink);border-color:var(--ink3)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.hint{bottom:10px;right:12px;font-size:12px;color:var(--ink3);text-align:right;pointer-events:none}
+.layerbadge{bottom:12px;left:12px;font-family:var(--mono);font-size:12.5px;color:var(--ink2);pointer-events:none}
+.layerbadge b{font-size:22px;color:var(--ink);font-weight:600;font-family:var(--cond)}
+#tip{position:absolute;z-index:5;display:none;pointer-events:none;max-width:260px;background:var(--ink);color:var(--paper);padding:7px 10px;border-radius:6px;font-size:12.5px;line-height:1.45;box-shadow:0 4px 18px rgba(0,0,0,.18)}
+
+/* tour */
+.tour{left:12px;right:12px;bottom:12px;max-width:470px;background:var(--paper);border:1px solid var(--ink);border-radius:12px;padding:14px 16px 12px;box-shadow:0 10px 30px rgba(0,0,0,.14);display:none}
+.tour.on{display:block}
+.tour .tstep{font-family:var(--mono);font-size:11.5px;color:var(--ink3);letter-spacing:.05em;text-transform:uppercase}
+.tour h3{font-family:var(--cond);font-size:19px;font-weight:600;margin:2px 0 6px;line-height:1.2}
+.tour p{margin:0 0 10px;font-size:14px;color:var(--ink2)}
+.tour p b{color:var(--ink)}
+.tour .trow{display:flex;align-items:center;gap:8px}
+.tour .tdots{display:flex;gap:4px;flex:1}
+.tour .tdots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.tour .tdots i.on{background:var(--ink)}
+.btn{border:1px solid var(--line);background:var(--soft);padding:6px 12px;border-radius:7px;cursor:pointer;font-size:14px;white-space:nowrap}
+.btn:hover{border-color:var(--ink3)}
+.btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn.primary:hover{opacity:.9}
+.btn.ghost{background:transparent}
+
+/* panel */
+.panel{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.card h2{font-family:var(--cond);font-weight:600;font-size:15px;margin:0 0 10px;display:flex;align-items:baseline;gap:8px}
+.card h2 .n{font-family:var(--mono);font-size:11.5px;color:var(--ink3);font-weight:500}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--soft)}
+.seg button{flex:1;border:0;background:transparent;padding:6px 8px;font-size:13.5px;cursor:pointer;color:var(--ink2)}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.row label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--ink3);flex:1;min-width:92px}
+.row select{padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:var(--soft);font-size:14px;color:var(--ink)}
+.prompt{margin:10px 0 0;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-family:var(--mono);font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.prompt .dim{color:var(--ink3)}
+.prompt .q{color:var(--ink);font-weight:500}
+.prompt .cur{display:inline-block;width:8px;height:1.05em;vertical-align:-2px;background:var(--ink);animation:blink 1.1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.ans{margin-top:8px;font-size:13px;color:var(--ink2)}
+.ans b{font-weight:600;color:var(--ink)}
+.note{font-size:12.5px;color:var(--ink3);margin:8px 0 0;line-height:1.45}
+
+.layerhead{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:8px}
+.layerhead .big{font-family:var(--cond);font-size:28px;font-weight:700;line-height:1}
+.layerhead .of{color:var(--ink3);font-size:13px}
+.seg.small button{font-size:12px;padding:4px 8px}
+input[type=range]{width:100%;margin:6px 0 2px;accent-color:var(--ink)}
+#layer{-webkit-appearance:none;appearance:none;height:10px;border-radius:5px;background:var(--line);outline-offset:4px}
+#layer::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--paper);border:3px solid var(--ink);cursor:pointer}
+#layer::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--paper);border:3px solid var(--ink);cursor:pointer}
+.ticks{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--ink3);position:relative;height:14px}
+.ticks span{position:absolute;transform:translateX(-50%)}
+.ctrls{display:flex;gap:6px;margin-top:10px}
+.ctrls .btn{flex:0 0 auto}
+.ctrls .btn.grow{flex:1}
+.phase{margin-top:12px;border-left:3px solid var(--ink3);padding:2px 0 2px 12px}
+.phase .pname{font-family:var(--cond);font-weight:600;font-size:15px}
+.phase .pname small{font-family:var(--mono);font-weight:400;font-size:11.5px;color:var(--ink3);margin-left:6px}
+.phase p{margin:3px 0 0;font-size:13.5px;color:var(--ink2)}
+.free{display:none;margin-top:10px;background:var(--soft);border:1px dashed var(--ink3);border-radius:8px;padding:8px 10px;font-size:13px;color:var(--ink2);align-items:center;gap:8px;justify-content:space-between}
+.free.on{display:flex}
+
+.readtop{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.readtop .w{font-family:var(--cond);font-size:30px;font-weight:700;line-height:1}
+.readtop .w.none{font-size:20px}
+.readtop .meta{font-size:12.5px;color:var(--ink2)}
+.bars{display:grid;gap:6px}
+.bar{display:grid;grid-template-columns:118px 1fr 52px;align-items:center;gap:8px;font-size:13px}
+.bar .lab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink2)}
+.bar .lab b{color:var(--ink);font-weight:600}
+.bar .track{height:9px;border-radius:5px;background:var(--soft);border:1px solid var(--line);overflow:hidden}
+.bar .fill{height:100%;border-radius:0 4px 4px 0;transition:width .12s}
+.bar .v{font-family:var(--mono);font-size:12px;text-align:right;color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.stat{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+.stat .k{font-size:11px;color:var(--ink3);line-height:1.25}
+.stat .val{font-family:var(--mono);font-size:16px;font-weight:600;margin-top:2px}
+.whatif label.sl{display:flex;justify-content:space-between;font-size:13.5px;color:var(--ink)}
+.whatif label.sl span{font-family:var(--mono);color:var(--ink2)}
+.toggles{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;margin-top:10px;font-size:13px;color:var(--ink2)}
+.toggles label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.toggles input{accent-color:var(--ink)}
+
+/* charts */
+.charts{grid-column:1/-1;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px 18px 14px}
+.charts-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px;margin-bottom:8px}
+.charts-head h2{font-family:var(--cond);font-weight:600;font-size:18px;margin:0}
+.charts-head p{margin:0;font-size:13px;color:var(--ink2);max-width:80ch}
+.cgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.cpanel h3{font-family:var(--cond);font-size:14.5px;font-weight:600;margin:0 0 2px}
+.cpanel .csub{font-size:12px;color:var(--ink3);margin:0 0 4px;min-height:18px}
+.cpanel svg{display:block;width:100%;height:180px;overflow:visible;cursor:crosshair}
+.ckey{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--ink2);min-height:18px;margin:0 0 4px}
+.ckey span{display:inline-flex;align-items:center;gap:5px}
+.ckey i{display:inline-block;width:16px;height:0;border-top:2px solid}
+.ckey i.dash{border-top-style:dashed}
+svg text{font-family:var(--sans);fill:var(--ink2);font-size:11px}
+svg .axis{stroke:var(--line);stroke-width:1}
+svg .grid{stroke:var(--line);stroke-width:1;stroke-dasharray:2 3}
+.ctable{margin-top:10px;font-size:13px}
+.ctable summary{cursor:pointer;color:var(--ink2)}
+.tw{max-height:320px;overflow:auto;margin-top:8px;border:1px solid var(--line);border-radius:8px}
+.tw table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:12px}
+.tw th{position:sticky;top:0;background:var(--soft);text-align:right;padding:5px 10px;font-weight:500;color:var(--ink2);border-bottom:1px solid var(--line)}
+.tw td{text-align:right;padding:3px 10px;border-bottom:1px solid var(--line)}
+.tw tr.cur td{background:color-mix(in srgb,var(--accent) 18%,transparent)}
+.tw th:first-child,.tw td:first-child{text-align:left}
+
+/* ---------- article ---------- */
+.prose{max-width:760px;margin:0 auto;padding:30px 24px 60px}
+.prose h2{font-family:var(--cond);font-weight:700;font-size:26px;line-height:1.15;margin:44px 0 10px;letter-spacing:-.005em}
+.prose h2 .sn{font-family:var(--mono);font-size:13px;color:var(--ink3);font-weight:500;margin-right:8px;vertical-align:3px}
+.prose h3{font-family:var(--cond);font-weight:600;font-size:18px;margin:24px 0 6px}
+.prose p,.prose li{font-size:16.5px;line-height:1.68}
+.prose p{margin:0 0 14px}
+.prose ul,.prose ol{padding-left:22px;margin:0 0 14px}
+.prose li{margin-bottom:6px}
+.prose sup a{font-family:var(--mono);font-size:11px;text-decoration:none;color:var(--ink2);padding:0 1px}
+.prose sup a:hover{color:var(--ink);text-decoration:underline}
+.lead{font-size:18px!important;color:var(--ink)}
+.callout{background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:14px 18px;margin:18px 0}
+.callout p:last-child{margin-bottom:0}
+.callout.concept{border-left-color:var(--concept)}
+pre.pr{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-family:var(--mono);font-size:13.5px;line-height:1.6;overflow-x:auto;margin:10px 0 16px}
+pre.pr .c{color:var(--ink3)}
+.eq{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px 16px;font-family:var(--mono);font-size:14.5px;margin:12px 0 16px;overflow-x:auto;text-align:center;line-height:1.8}
+.tbl{overflow-x:auto;margin:12px 0 18px}
+.tbl table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:560px;background:var(--paper);border:1px solid var(--line);border-radius:8px}
+.tbl th{text-align:left;font-weight:600;color:var(--ink2);font-size:13px;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--soft)}
+.tbl td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:0;margin-right:5px}
+.maplist{list-style:none;padding:0!important}
+.maplist li{display:grid;grid-template-columns:26px 1fr;gap:8px;align-items:start}
+.maplist .sw{margin-top:7px}
+.refs{font-size:14.5px!important}
+.refs li{font-size:14.5px!important;line-height:1.55!important;margin-bottom:10px!important}
+.refs li:target{background:color-mix(in srgb,var(--accent) 20%,transparent);border-radius:4px}
+.endnote{margin-top:36px;padding-top:16px;border-top:1px solid var(--line);font-size:14px!important;color:var(--ink2)}
+
+@media (max-width:1100px){
+  .play{grid-template-columns:minmax(0,1fr)}
+  .stage{position:relative;top:0;height:min(68vh,620px);min-height:420px}
+  .cgrid{grid-template-columns:minmax(0,1fr)}
+  .cpanel svg{height:160px}
+}
+@media (max-width:640px){
+  .top-in{padding:16px 16px 14px}
+  .play{padding:12px 16px 8px}
+  .prose{padding:20px 16px 48px}
+  .stage{height:auto;min-height:0}
+  #sphere{height:min(58vh,115vw);min-height:340px}
+  .tour{position:relative;left:auto;right:auto;bottom:auto;max-width:none;border:0;border-top:1px solid var(--line);border-radius:0;box-shadow:none}
+  .eq{white-space:nowrap;text-align:left}
+  .legend{max-width:calc(100% - 24px)}
+  .hint{display:none}
+  .views{top:auto;bottom:12px;right:12px}
+  .layerbadge{display:none}
+  .bar{grid-template-columns:96px 1fr 48px}
+  .prose p,.prose li{font-size:16px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="back" href="../../index.html#writing">← All writing</a>
+    <p class="kicker">Paper walkthrough · Interactive</p>
+    <h1>Do Llamas think in English? A sphere you can rotate</h1>
+    <p class="dek">Ask Llama‑2 to translate <i>fleur</i> into Chinese and peek at its middle layers: they say <b>flower</b>, in English, before the last layers settle on <span class="cjk">花</span>. Below is a 3D model of why that happens: a hidden state moving across a sphere, from <i>input space</i> through an English‑leaning <i>concept space</i> to <i>output space</i>.</p>
+    <p class="citeline">Based on Wendler, Veselovsky, Monea &amp; West, <a href="https://arxiv.org/abs/2402.10588"><i>Do Llamas Work in English? On the Latent Language of Multilingual Transformers</i></a>, ACL 2024.<sup><a href="#ref-1">[1]</a></sup> New here? Press <b>Take the tour</b>; it takes about a minute.</p>
+  </div>
+</header>
+
+<main>
+<section class="play" aria-label="Interactive sphere">
+  <div class="stage" id="stage">
+    <canvas id="sphere" tabindex="0" role="img" aria-label="3D sphere: the hidden state h moves from the north pole toward the concept direction, then toward the target-language token on the equator"></canvas>
+
+    <details class="legend ov" id="legend" open>
+      <summary>How to read this</summary>
+      <ul>
+        <li><span class="sw" style="background:var(--h)"></span><span><b>Black dot = h</b>, the model's hidden state at the last prompt token, after this layer.</span></li>
+        <li><span class="sw sq" style="background:color-mix(in srgb,var(--ink3) 35%,transparent);border:1px solid var(--ink3)"></span><span><b>Equator disk = token space.</b> Output words sit on its rim.</span></li>
+        <li><span class="sw sq" style="background:color-mix(in srgb,var(--concept) 40%,transparent);border:1px solid var(--concept)"></span><span><b>Pink half‑plane = concept space</b> for the current word's meaning.</span></li>
+        <li><span class="sw" style="background:transparent;border:2px dashed var(--ink2)"></span><span><b>Shadow</b> of h on the disk: the only part the logit lens can read.</span></li>
+        <li><span class="sw" style="background:var(--ink3)"></span><span><b>Path</b>: where h is after each of the layers.</span></li>
+      </ul>
+    </details>
+
+    <div class="views ov" role="group" aria-label="Camera view">
+      <button class="chip" data-view="front" aria-pressed="true">Front</button>
+      <button class="chip" data-view="above" aria-pressed="false">From above</button>
+      <button class="chip" data-view="side" aria-pressed="false">Side</button>
+    </div>
+
+    <div class="layerbadge ov" id="layerbadge"></div>
+    <div class="hint ov" id="hint">Drag to rotate · drag the black dot to steer h · ← → change layer</div>
+
+    <div class="tour ov" id="tour" role="dialog" aria-live="polite" aria-label="Guided tour">
+      <div class="tstep" id="tstep"></div>
+      <h3 id="ttitle"></h3>
+      <p id="ttext"></p>
+      <div class="trow">
+        <div class="tdots" id="tdots"></div>
+        <button class="btn ghost" id="tclose">Close</button>
+        <button class="btn" id="tprev">Back</button>
+        <button class="btn primary" id="tnext">Next</button>
+      </div>
+    </div>
+    <div id="tip"></div>
+  </div>
+
+  <aside class="panel" aria-label="Controls and readout">
+    <section class="card">
+      <h2><span class="n">01</span>The prompt</h2>
+      <div class="seg" id="task" role="group" aria-label="Task">
+        <button data-task="tr" aria-pressed="true">Translation</button>
+        <button data-task="rep" aria-pressed="false">Repetition</button>
+        <button data-task="cloze" aria-pressed="false">Cloze</button>
+      </div>
+      <div class="row">
+        <label>Word<select id="concept">
+          <option value="flower">flower</option>
+          <option value="dog">dog</option>
+          <option value="book">book</option>
+        </select></label>
+        <label id="srcWrap">From<select id="src"></select></label>
+        <label>Answer in<select id="tgt">
+          <option value="ZH">Chinese</option>
+          <option value="DE">German</option>
+          <option value="FR">French</option>
+          <option value="RU">Russian</option>
+        </select></label>
+      </div>
+      <div class="prompt" id="prompt" aria-label="Prompt fed to the model"></div>
+      <div class="ans" id="ans"></div>
+      <p class="note" id="tasknote"></p>
+    </section>
+
+    <section class="card">
+      <div class="layerhead">
+        <div><span class="big" id="lnum">58</span> <span class="of" id="lof">of 80 layers</span></div>
+        <div class="seg small" id="model" role="group" aria-label="Model size">
+          <button data-model="7B" aria-pressed="false">7B</button>
+          <button data-model="13B" aria-pressed="false">13B</button>
+          <button data-model="70B" aria-pressed="true">70B</button>
+        </div>
+      </div>
+      <input type="range" id="layer" min="1" max="80" value="58" aria-label="Layer">
+      <div class="ticks" id="ticks"></div>
+      <div class="ctrls">
+        <button class="btn" id="prev" aria-label="Previous layer">◀</button>
+        <button class="btn grow" id="play">▶ Play the forward pass</button>
+        <button class="btn" id="next" aria-label="Next layer">▶</button>
+      </div>
+      <div class="ctrls"><button class="btn primary grow" id="tourBtn">Take the tour</button></div>
+      <div class="free" id="free"><span>You're steering <b>h</b> by hand.</span><button class="btn" id="unfree">Back to layer</button></div>
+      <div class="phase" id="phase">
+        <div class="pname" id="pname"></div>
+        <p id="pdesc"></p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="n">02</span>What the logit lens reads here</h2>
+      <div class="readtop"><span class="w" id="topw">flower</span><span class="meta" id="topmeta"></span></div>
+      <div class="bars" id="bars"></div>
+      <div class="stats">
+        <div class="stat"><div class="k">Entropy of the guess</div><div class="val" id="sH">–</div></div>
+        <div class="stat"><div class="k">Token energy (toy)</div><div class="val" id="sE">–</div></div>
+        <div class="stat"><div class="k">Sphere radius √d</div><div class="val" id="sR">–</div></div>
+      </div>
+      <p class="note">Entropy runs from 0 bits (certain) to log₂ 32,000 ≈ 15 bits (every token equally likely). Token energy here is the shadow's length as a share of h.</p>
+    </section>
+
+    <section class="card whatif">
+      <h2><span class="n">03</span>What if…</h2>
+      <label class="sl" for="bias">English bias of concept space <span id="biasv">100%</span></label>
+      <input type="range" id="bias" min="0" max="100" value="100">
+      <p class="note" style="margin-top:2px">At 100%, the English word sits right next to the concept direction (the paper's hypothesis). At 0%, it sits as far away as other languages. Watch the middle layers.</p>
+      <div class="toggles">
+        <label><input type="checkbox" id="tPath" checked> Path</label>
+        <label><input type="checkbox" id="tShadow" checked> Shadow</label>
+        <label><input type="checkbox" id="tPlanes" checked> Planes</label>
+        <label><input type="checkbox" id="tLabels" checked> Labels</label>
+      </div>
+    </section>
+  </aside>
+
+  <section class="charts" aria-label="Charts across layers">
+    <div class="charts-head">
+      <h2>The whole forward pass at a glance</h2>
+      <p>Computed live from the sphere above for every layer: the same three panels as Figure&nbsp;4(a–c) of the paper, which plots the real Llama‑2‑70B measurements. Hover to inspect; click to jump to a layer.</p>
+    </div>
+    <div class="cgrid">
+      <div class="cpanel">
+        <h3>(a) How unsure is the lens?</h3>
+        <p class="csub">Entropy of the next‑token guess, bits</p>
+        <div class="ckey"><span><i style="border-color:var(--ink)"></i>entropy</span><span><i class="dash" style="border-color:var(--ink3)"></i>uniform over 32k tokens</span></div>
+        <svg id="cH" aria-label="Entropy by layer"></svg>
+      </div>
+      <div class="cpanel">
+        <h3>(b) How much of h is in token space?</h3>
+        <p class="csub">Toy token energy: shadow length ÷ length of h</p>
+        <div class="ckey"><span><i style="border-color:var(--ink)"></i>token energy (toy)</span></div>
+        <svg id="cE" aria-label="Token energy by layer"></svg>
+      </div>
+      <div class="cpanel">
+        <h3>(c) Which language does the lens read?</h3>
+        <p class="csub">Probability of the answer word in each language</p>
+        <div class="ckey" id="langKey"></div>
+        <svg id="cP" aria-label="Language probability by layer"></svg>
+      </div>
+    </div>
+    <details class="ctable">
+      <summary>Show the numbers for every layer</summary>
+      <div class="tw"><table id="ltable"></table></div>
+    </details>
+  </section>
+</section>
+
+<article class="prose">
+  <p class="lead">Llama‑2 learned from text that was overwhelmingly English: about 89.7% of its pretraining data.<sup><a href="#ref-3">[3]</a></sup> It still translates French into Chinese just fine. What is going on inside while it does that? Does it quietly translate into English first and then out again?</p>
+  <p>Chris Wendler, Veniamin Veselovsky, Giovanni Monea and Robert West asked exactly this.<sup><a href="#ref-1">[1]</a></sup> Their short answer is <i>not quite</i>: the middle of the model works in a space of concepts, but that space leans toward English. To explain it they drew a small sketch of a sphere. The playground above is that sketch, expanded so you can move it around. This page goes through the paper's argument piece by piece and points to the matching part of the playground at each step.</p>
+
+  <h2 id="lens"><span class="sn">1</span>Peeking inside: the logit lens</h2>
+  <p>A transformer keeps one running vector per token, the <b>residual stream</b> <code>h</code>. Each layer reads <code>h</code> and adds something to it. Only after the last layer does the model turn <code>h</code> into a guess about the next token: it multiplies by the <b>unembedding matrix</b> <code>U</code> (one row per vocabulary token) to get a score, or <i>logit</i>, for each token, then applies a softmax.</p>
+  <p>The <b>logit lens</b><sup><a href="#ref-2">[2]</a></sup> does that same final step early, after every layer:</p>
+  <div class="eq">z = U · h<sup>(layer)</sup> &nbsp;&nbsp;→&nbsp;&nbsp; P(next token = t) = softmax(z)<sub>t</sub></div>
+  <p>It answers one question: <i>if the model had to speak right now, what would it say?</i> Figure&nbsp;1 of the paper does this for Llama‑2‑7B on a French→Chinese translation prompt. The last layer correctly ranks <span class="cjk">花</span> first. The middle layers rank <b>flower</b> first: the English word, which nobody asked for.<sup><a href="#ref-1">[1]</a></sup> (For a hands‑on version on GPT‑2, see my <a href="../logit-lens/">logit lens walkthrough in PyTorch</a>.)</p>
+  <p>The authors deliberately used the plain logit lens rather than the <b>tuned lens</b>,<sup><a href="#ref-4">[4]</a></sup> which trains a small translator per layer to match the final output. A translator trained that way could learn to skip the English stage, hiding the very signal they were looking for.<sup><a href="#ref-1">[1]</a></sup></p>
+
+  <h2 id="experiment"><span class="sn">2</span>The experiment</h2>
+  <p>To measure "how English is this layer?" you need prompts whose correct answer is a single, unambiguous token. The paper builds three tasks (switch between them with the <b>Translation / Repetition / Cloze</b> buttons):</p>
+  <pre class="pr"><span class="c"># Translation: four example pairs, then the query</span>
+Français: "livre" - 中文: "书"
+<span class="c">…</span>
+Français: "fleur" - 中文: "      <span class="c">→ 花</span>
+
+<span class="c"># Repetition: copy the word</span>
+中文: "书" - 中文: "书"
+<span class="c">…</span>
+中文: "花" - 中文: "          <span class="c">→ 花</span>
+
+<span class="c"># Cloze: fill in the blank (two examples, written in English
+# with GPT-4, then translated)</span>
+A "___" … Answer: "                <span class="c">→ the missing word</span></pre>
+  <p>The word lists are filtered carefully. Each Chinese answer must be a single token whose English translation is also a single token. For the other target languages, words whose answer starts with the same token as the English word are dropped, so the two can always be told apart. That leaves 139 Chinese, 104 German, 56 French and 115 Russian words. The models are Llama‑2 7B, 13B and 70B (32, 40 and 80 layers; hidden sizes d = 4,096, 5,120 and 8,192; a 32,000‑token vocabulary).<sup><a href="#ref-1">[1]</a></sup></p>
+  <p>At every layer they read off two numbers with the logit lens: the probability of the answer in the <b>target language</b>, and the probability of its <b>English</b> translation. A word that spans several tokens counts the probability of every token it could start with.<sup><a href="#ref-1">[1]</a></sup></p>
+
+  <h2 id="phases"><span class="sn">3</span>Three phases</h2>
+  <p>Across tasks and model sizes the same pattern appears. For Llama‑2‑70B translating into Chinese:<sup><a href="#ref-1">[1]</a></sup></p>
+  <div class="tbl"><table>
+    <thead><tr><th></th><th>Layers (70B)</th><th>Entropy</th><th>Token energy</th><th>Logit lens reads</th><th>Paper's name</th></tr></thead>
+    <tbody>
+      <tr><td><b>Phase 1</b></td><td>1–40</td><td>high, ≈ 14 bits</td><td>low</td><td>no language in particular</td><td>input space</td></tr>
+      <tr><td><b>Phase 2</b></td><td>41–70</td><td>low, 1–2 bits</td><td>low, ≈ 20%</td><td><span class="dot" style="background:var(--en)"></span>English</td><td>concept space</td></tr>
+      <tr><td><b>Phase 3</b></td><td>71–80</td><td>low</td><td>rises to ≈ 30%</td><td><span class="dot" style="background:var(--zh)"></span>Chinese</td><td>output space</td></tr>
+    </tbody>
+  </table></div>
+  <p>English probability shoots up around the middle layers and then fades. Chinese grows slowly, crosses over English, and spikes in the last five layers. Press <b>▶ Play the forward pass</b> and watch chart (c) trace that crossover.</p>
+  <p>The odd one out is phase 2. Entropy is already low (the lens is confident it sees "flower") yet token energy is still low: most of <code>h</code> points somewhere the vocabulary doesn't. The sphere is the paper's way of making sense of that.</p>
+
+  <h2 id="sphere"><span class="sn">4</span>Why a sphere?</h2>
+  <p><b>The hidden state lives on a sphere.</b> Llama normalizes <code>h</code> with RMSNorm<sup><a href="#ref-5">[5]</a></sup> before using it, which rescales every vector to the same root‑mean‑square size. So the normalized hidden states lie on a hypersphere of radius √d, about 90.5 for d = 8,192.<sup><a href="#ref-1">[1]</a></sup> Change the model size in the playground and the "Sphere radius" readout updates.</p>
+  <p><b>The tokens live on a sphere too, but they don't fill it.</b> The output token embeddings (rows of <code>U</code>) all have similar lengths: mean 1.52, standard deviation 0.23. They also crowd into part of the space: the first 25% of principal components carry half of their variance.<sup><a href="#ref-1">[1]</a></sup> Call the region they occupy <b>token space</b>.</p>
+  <p><b>Token energy measures how much of h is in token space.</b> The paper defines it as</p>
+  <div class="eq">E(h)² = (v / d) · ‖Û h‖² / ‖Û Ûᵀ‖²<sub>F</sub></div>
+  <p>where <code>Û</code> is <code>U</code> with each row scaled to unit length, <code>v</code> is the vocabulary size and <code>d</code> the hidden size (with <code>h</code> taken at unit length). In words: how strongly <code>h</code> lines up with token directions, compared with how strongly the tokens line up with each other on average.<sup><a href="#ref-1">[1]</a></sup> Low energy means most of <code>h</code> sits in directions the unembedding barely reacts to.</p>
+  <div class="callout concept">
+    <p><b>The sphere picture.</b> Figure&nbsp;4(d) of the paper draws this in 3D instead of 8,192D. Token embeddings sit on the <b>equator</b>, English on one side and Chinese on the other. One direction in the equatorial plane stands for a concept (their toy example is "sweetness"). The third axis, through the <b>north pole</b>, holds everything else: context, details of the input, and which language to answer in. The hidden state starts at the north pole, <i>orthogonal to both the token and the concept embeddings</i>. Phase 2 rotates it into concept space, where English wins because English tokens have the larger concept component. Phase 3 rotates it along the equator to the target‑language token.<sup><a href="#ref-1">[1]</a></sup></p>
+  </div>
+  <p>That explains the puzzle. In phase 2 the hidden state has tipped just far enough toward the concept that its shadow on token space points clearly at a word, so entropy is low. But it is still mostly "up", so token energy stays low. The closest word to the concept happens to be English.</p>
+
+  <h2 id="playground"><span class="sn">5</span>Reading the playground</h2>
+  <ul class="maplist">
+    <li><span class="sw" style="background:var(--h)"></span><span><b>The black dot is h</b> at the last prompt position after the selected layer, drawn at unit length. The line from the center is the vector itself.</span></li>
+    <li><span class="sw" style="background:var(--ink3)"></span><span><b>The north pole</b> is every direction orthogonal to all output tokens. A hidden state there gives every token the same score.</span></li>
+    <li><span class="sw sq" style="background:color-mix(in srgb,var(--ink3) 35%,transparent);border:1px solid var(--ink3)"></span><span><b>The equator disk is token space.</b> Each colored dot on its rim is one output token: the selected word in English, Chinese, German, French and Russian.</span></li>
+    <li><span class="sw sq" style="background:color-mix(in srgb,var(--concept) 40%,transparent);border:1px solid var(--concept)"></span><span><b>The pink half‑plane is concept space</b> for the selected word. The dashed pink arrow on the disk is the concept direction.</span></li>
+    <li><span class="sw" style="background:transparent;border:2px dashed var(--ink2)"></span><span><b>The shadow</b> is h dropped straight down onto the disk. The logit lens only sees this part. Its <i>direction</i> picks the winning token; its <i>length</i> sets how confident the lens is.</span></li>
+  </ul>
+  <h3>How the numbers are computed</h3>
+  <p>Nothing in the readout is typed in by hand; it all follows from where h is on the sphere. For each of the five tokens the logit is <code>β · (ĥ · ê)</code>, a dot product of unit vectors scaled by β = 43, which stands in for the lengths of h and the token embedding. The other 31,995 tokens of the vocabulary get a logit of 0, because in thousands of dimensions an unrelated token is almost exactly orthogonal to h. A softmax over all 32,000 gives the probabilities and the entropy. Toy token energy is the shadow's length divided by the length of h, which is the cosine of h's latitude.</p>
+  <p>The path itself is hand‑made: it starts at the pole, reaches concept space at the halfway point and turns toward the target language at 7/8 of the depth, matching the paper's 70B boundaries (layers 40 and 70 of 80). For 7B and 13B I scale those boundaries proportionally; that is my assumption, not a number from the paper.</p>
+  <h3>Where the toy departs from the paper</h3>
+  <ul>
+    <li><b>Five languages on one ring.</b> The paper's sketch has only English and Chinese. In 3D, a rotation from the concept toward Chinese would pass over the German, French and Russian tokens, and the lens would briefly read them. That never happens in the real model. So the toy parks the non‑target languages at the back of the sphere and slides whichever language you pick into the slot across from English. In 8,192 dimensions there is room for every language to have its own direction.</li>
+    <li><b>Token energy.</b> In the toy it starts at 0 at the pole and climbs well past 50%. In Llama‑2‑70B it sits around 20% through phases 1 and 2 and ends near 30%.<sup><a href="#ref-1">[1]</a></sup> Compare shapes, not values.</li>
+    <li><b>Repetition.</b> When the task is to repeat a Chinese word, the paper finds that Chinese rises <i>alongside</i> English in the middle layers rather than after it; for the other languages English still comes first.<sup><a href="#ref-1">[1]</a></sup> The toy builds this in by tilting the phase‑2 path partway toward the target. That tilt is a hand‑set number, not something the geometry predicts.</li>
+    <li><b>The English‑bias slider</b> is a what‑if, not an experiment from the paper. It moves the English token away from the concept direction to show what the middle layers would look like if concept space did not lean toward English.</li>
+  </ul>
+
+  <h2 id="answer"><span class="sn">6</span>So, do Llamas think in English?</h2>
+  <p>Not in the sense of literally translating word by word. The middle layers seem to hold <b>concepts</b>: the hidden state is mostly made of things that are not tokens at all. But that concept space is <b>biased toward English</b>. When you project it onto the vocabulary, English words come out on top. The authors suggest English may still act as a pivot "in a semantic, rather than a purely lexical, sense".<sup><a href="#ref-1">[1]</a></sup></p>
+  <p>This matters beyond curiosity. If the space where a multilingual model "thinks" is shaped mainly by English text, then associations and biases learned from English could carry over into every other language the model speaks. The paper also observes that the detour through English looks weaker where a language has its own dedicated tokens. Nearly all of the Chinese words were single tokens, which may be why Chinese repetition behaves differently.<sup><a href="#ref-1">[1]</a></sup></p>
+  <h3>Limits the authors point out</h3>
+  <ul>
+    <li>Only the Llama‑2 family was studied, with initial supporting evidence from Mistral‑7B. Closed models can't be examined this way because the logit lens needs the weights.</li>
+    <li>The tasks are simple and tightly controlled: single words, not real conversations.</li>
+    <li>The logit lens is approximate. Anything in h that the vocabulary can't express is invisible to it.</li>
+    <li>The real concept space has thousands of dimensions and its structure is poorly understood. The sphere is a cartoon of it.</li>
+  </ul>
+
+  <h2 id="after"><span class="sn">7</span>What came after</h2>
+  <p><b>Separating tongue from thought.</b> The same group followed up with activation patching: take hidden states from one translation prompt and paste them into another. They found that the output language is encoded in the hidden state at an earlier layer than the concept being translated, and that they could swap the concept while keeping the language, or the other way round. Replacing a concept's hidden state with its average across languages left translation intact and even improved it. That points toward concept representations that don't belong to any one language.<sup><a href="#ref-6">[6]</a></sup> In sphere terms: the "which language" information rides along in the north‑pole directions long before phase 3 uses it.</p>
+  <p><b>Beyond single words.</b> Schut, Gal and Farquhar applied the logit lens to full sentences in French, German, Dutch and Mandarin. They found English‑like representations for semantically loaded words before the model produced them in the target language. Steering vectors also worked better when computed from English than from the input or output language. They argue that key decisions happen in a representation space closest to English.<sup><a href="#ref-7">[7]</a></sup></p>
+  <p>The original code and data are public if you want to run the real measurements yourself.<sup><a href="#ref-8">[8]</a></sup></p>
+
+  <h2 id="refs"><span class="sn">↳</span>References</h2>
+  <ol class="refs">
+    <li id="ref-1">Chris Wendler, Veniamin Veselovsky, Giovanni Monea, Robert West. 2024. <a href="https://arxiv.org/abs/2402.10588"><i>Do Llamas Work in English? On the Latent Language of Multilingual Transformers.</i></a> In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers), pages 15366–15394, Bangkok, Thailand. arXiv:2402.10588. All numbers on this page (phase boundaries, entropy, token energy, embedding norms, dataset sizes) come from this paper unless marked otherwise.</li>
+    <li id="ref-2">nostalgebraist. 2020. <a href="https://www.lesswrong.com/posts/AcKRB8wDpdaN6v6ru/interpreting-gpt-the-logit-lens"><i>interpreting GPT: the logit lens.</i></a> LessWrong.</li>
+    <li id="ref-3">Hugo Touvron, Louis Martin, Kevin Stone, et al. 2023. <a href="https://arxiv.org/abs/2307.09288"><i>Llama 2: Open Foundation and Fine-Tuned Chat Models.</i></a> arXiv:2307.09288. Language distribution of the pretraining data.</li>
+    <li id="ref-4">Nora Belrose, Zach Furman, Logan Smith, Danny Halawi, Igor Ostrovsky, Lev McKinney, Stella Biderman, Jacob Steinhardt. 2023. <a href="https://arxiv.org/abs/2303.08112"><i>Eliciting Latent Predictions from Transformers with the Tuned Lens.</i></a> arXiv:2303.08112.</li>
+    <li id="ref-5">Biao Zhang, Rico Sennrich. 2019. <a href="https://arxiv.org/abs/1910.07467"><i>Root Mean Square Layer Normalization.</i></a> NeurIPS 2019. arXiv:1910.07467.</li>
+    <li id="ref-6">Clément Dumas, Chris Wendler, Veniamin Veselovsky, Giovanni Monea, Robert West. 2025. <a href="https://arxiv.org/abs/2411.08745"><i>Separating Tongue from Thought: Activation Patching Reveals Language-Agnostic Concept Representations in Transformers.</i></a> In Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (ACL 2025). arXiv:2411.08745.</li>
+    <li id="ref-7">Lisa Schut, Yarin Gal, Sebastian Farquhar. 2025. <a href="https://arxiv.org/abs/2502.15603"><i>Do Multilingual LLMs Think In English?</i></a> arXiv:2502.15603.</li>
+    <li id="ref-8">EPFL Data Science Lab. <a href="https://github.com/epfl-dlab/llm-latent-language"><i>llm-latent-language</i></a>: code for [1]. GitHub.</li>
+  </ol>
+  <p class="endnote">The sphere, the path and every number in the playground are a teaching toy built from the paper's qualitative findings; they are not measurements from Llama‑2. For the real curves, see Figures 2–4 of [1]. Written by Nirajan Paudel while working through the paper.</p>
+</article>
+</main>
+
+<script>
+(()=>{
+'use strict';
+const DEG=Math.PI/180, V=32000, BETA=43, C=90*DEG, TOFF=-75*DEG;
+const MODELS={'7B':{L:32,d:4096},'13B':{L:40,d:5120},'70B':{L:80,d:8192}};
+const LANGS=['EN','ZH','DE','FR','RU'];
+const LNAME={EN:'English',ZH:'Chinese',DE:'German',FR:'French',RU:'Russian'};
+const NATIVE={EN:'English',ZH:'中文',DE:'Deutsch',FR:'Français',RU:'Русский'};
+const WORDS={
+  flower:{EN:'flower',ZH:'花',DE:'Blume',FR:'fleur',RU:'цветок'},
+  dog:{EN:'dog',ZH:'狗',DE:'Hund',FR:'chien',RU:'собака'},
+  book:{EN:'book',ZH:'书',DE:'Buch',FR:'livre',RU:'книга'}
+};
+const DEMO={flower:'book',dog:'flower',book:'dog'};
+// cloze: [sentence with ___, answer-cue opener]
+const CLOZE={
+  flower:{ZH:['“___”长在花园里，闻起来很香。','答案：“'],DE:['Eine „___“ wächst im Garten und duftet süß.','Antwort: „'],FR:['Une « ___ » pousse dans le jardin et sent bon.','Réponse : « '],RU:['«___» растёт в саду и приятно пахнет.','Ответ: «']},
+  dog:{ZH:['“___”会汪汪叫，是人类忠实的朋友。','答案：“'],DE:['Ein „___“ bellt und ist der beste Freund des Menschen.','Antwort: „'],FR:['Un « ___ » aboie et c’est le meilleur ami de l’homme.','Réponse : « '],RU:['«___» лает и считается лучшим другом человека.','Ответ: «']},
+  book:{ZH:['你可以在图书馆借一本“___”来读。','答案：“'],DE:['In der Bibliothek kann man ein „___“ ausleihen und lesen.','Antwort: „'],FR:['À la bibliothèque, on peut emprunter un « ___ » pour le lire.','Réponse : « '],RU:['«___» состоит из страниц, и её можно читать.','Ответ: «']}
+};
+
+const S={model:'70B',L:80,d:8192,layer:58,task:'tr',concept:'flower',src:'FR',tgt:'ZH',bias:1,free:null,
+  show:{path:true,shadow:true,planes:true,labels:true}};
+
+const $=id=>document.getElementById(id);
+const ss=(a,b,x)=>{const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t)};
+const wrap=a=>{while(a>Math.PI)a-=2*Math.PI;while(a<-Math.PI)a+=2*Math.PI;return a};
+const pct=(p,dp)=>{const v=p*100;if(v>0&&v<0.1)return '<0.1%';return v.toFixed(dp==null?(v<10?1:0):dp)+'%'};
+const fmtN=n=>n.toLocaleString('en-US');
+const p1=()=>Math.round(S.L*0.5), p2=()=>Math.round(S.L*0.875);
+const phaseOf=l=>l<=p1()?1:l<=p2()?2:3;
+
+/* ---------- geometry of the toy ---------- */
+function slotLon(k){
+  if(k==='EN') return C+(50-35*S.bias)*DEG;
+  if(k===S.tgt) return C+TOFF;
+  const others=['ZH','DE','FR','RU'].filter(x=>x!==S.tgt);
+  return C+[150,-165,-130][others.indexOf(k)]*DEG;
+}
+function wRep(){return S.task==='rep'?(S.tgt==='ZH'?0.4:0.15):0}
+function hAt(l){
+  const t=l/S.L, t1=0.5, t2=0.875, w=wRep(), dT=TOFF;
+  let lat,lon;
+  if(t<=t1){const u=t/t1;lat=90-8*u*u;lon=C+(1-u)*60*DEG;}
+  else if(t<=t2){const u=(t-t1)/(t2-t1);lat=82-10*ss(0,.4,u);lon=C+dT*(w*ss(0,.5,u)+0.1*u*u*(1-w));}
+  else{const u=(t-t2)/(1-t2), w0=w+0.1*(1-w);lat=72-32*ss(0,1,u);lon=C+dT*(w0+(1-w0)*ss(0,.8,u));}
+  return {lat:lat*DEG,lon};
+}
+function curH(){return S.free||hAt(S.layer)}
+function lens(h){
+  const s=Math.cos(h.lat), lg={}; let m=0;
+  LANGS.forEach(k=>{lg[k]=BETA*s*Math.cos(h.lon-slotLon(k));if(lg[k]>m)m=lg[k];});
+  const nb=V-LANGS.length, e={}; let Z=nb*Math.exp(-m);
+  LANGS.forEach(k=>{e[k]=Math.exp(lg[k]-m);Z+=e[k];});
+  const p={}; let H=0;
+  LANGS.forEach(k=>{p[k]=e[k]/Z;if(p[k]>0)H-=p[k]*Math.log2(p[k]);});
+  const pb=nb*Math.exp(-m)/Z; if(pb>0)H-=pb*Math.log2(pb/nb);
+  return {p,pb,H:Math.max(0,H),s,lg};
+}
+function sph(lat,lon,r=1){return [r*Math.cos(lat)*Math.cos(lon),r*Math.sin(lat),r*Math.cos(lat)*Math.sin(lon)]}
+
+/* ---------- colors from CSS ---------- */
+let K={};
+function readColors(){
+  const cs=getComputedStyle(document.documentElement), g=n=>cs.getPropertyValue(n).trim();
+  K={paper:g('--paper'),soft:g('--soft'),ink:g('--ink'),ink2:g('--ink2'),ink3:g('--ink3'),line:g('--line'),
+     concept:g('--concept'),conceptInk:g('--concept-ink'),h:g('--h'),accent:g('--accent'),
+     EN:g('--en'),ZH:g('--zh'),DE:g('--de'),FR:g('--fr'),RU:g('--ru')};
+}
+const _cc=document.createElement('canvas').getContext('2d'), _rgb=new Map();
+function rgba(hex,a){
+  const key=hex+'|'+a;if(_rgb.has(key))return _rgb.get(key);
+  const out=_rgba(hex,a);_rgb.set(key,out);return out;
+}
+function _rgba(hex,a){
+  _cc.fillStyle='#000';_cc.fillStyle=hex;const v=_cc.fillStyle;
+  if(v[0]==='#'){const n=parseInt(v.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`}
+  return v.replace(/rgba?\(([^)]+)\)/,(m,x)=>{const p=x.split(',').slice(0,3);return `rgba(${p.join(',')},${a})`});
+}
+
+/* ---------- canvas ---------- */
+const cv=$('sphere'), ctx=cv.getContext('2d');
+let W=0,Hh=0,R=0,CX=0,CY=0,DPR=1;
+const VIEWS={front:{yaw:0.5,pitch:0.42},above:{yaw:0.5,pitch:1.38},side:{yaw:0.5+Math.PI/2,pitch:0.12}};
+const cam={yaw:VIEWS.front.yaw,pitch:VIEWS.front.pitch}, camT={...cam};
+const disp={tok:{},h:null};
+LANGS.forEach(k=>disp.tok[k]=slotLon(k));
+let dirty=true;
+
+function resize(){
+  const r=cv.getBoundingClientRect();DPR=Math.min(2,window.devicePixelRatio||1);
+  W=r.width;Hh=r.height;cv.width=Math.round(W*DPR);cv.height=Math.round(Hh*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  const touring=$('tour').classList.contains('on')&&innerWidth>640;
+  R=Math.min(W*0.4,Hh*(touring?0.3:0.36));CX=W/2;CY=touring?Hh*0.36:Hh*0.5+(W<640?-Hh*0.03:Hh*0.02);
+  dirty=true;
+}
+function P(v){
+  const ca=Math.cos(cam.yaw),sa=Math.sin(cam.yaw),cb=Math.cos(cam.pitch),sb=Math.sin(cam.pitch);
+  const [x,y,z]=v, x1=x*ca-z*sa, z1=x*sa+z*ca, y2=y*cb-z1*sb, z2=y*sb+z1*cb;
+  return {x:CX+x1*R,y:CY-y2*R,z:z2};
+}
+function unproject(sx,sy){
+  const ca=Math.cos(cam.yaw),sa=Math.sin(cam.yaw),cb=Math.cos(cam.pitch),sb=Math.sin(cam.pitch);
+  let x1=(sx-CX)/R, y2=-(sy-CY)/R, r2=x1*x1+y2*y2;
+  if(r2>1){const r=Math.sqrt(r2);x1/=r;y2/=r;r2=1;}
+  const z2=Math.sqrt(Math.max(0,1-r2)), y1=y2*cb+z2*sb, z1=-y2*sb+z2*cb;
+  const x=x1*ca+z1*sa, z=-x1*sa+z1*ca;
+  return {lat:Math.asin(Math.max(-1,Math.min(1,y1))),lon:Math.atan2(z,x)};
+}
+// draw a 3D polyline, only the segments on the requested side
+function poly(pts3,pass,stroke,width,dash){
+  const pts=pts3.map(P);ctx.beginPath();let pen=false,any=false;
+  for(let i=0;i<pts.length-1;i++){
+    const a=pts[i],b=pts[i+1],front=(a.z+b.z)/2>=0;
+    if(pass==='all'||(pass==='front')===front){if(!pen){ctx.moveTo(a.x,a.y);pen=true;}ctx.lineTo(b.x,b.y);any=true;}else pen=false;
+  }
+  if(!any)return;
+  ctx.strokeStyle=stroke;ctx.lineWidth=width;ctx.setLineDash(dash||[]);ctx.stroke();ctx.setLineDash([]);
+}
+function latLine(latD,n=96){const a=[];for(let i=0;i<=n;i++)a.push(sph(latD*DEG,i/n*2*Math.PI));return a}
+function lonLine(lon,from=-90,to=90,n=64){const a=[];for(let i=0;i<=n;i++)a.push(sph((from+(to-from)*i/n)*DEG,lon));return a}
+function label(text,x,y,{color=K.ink,size=12,weight=500,align='center',font='sans',halo=true,base='middle'}={}){
+  const fam=font==='mono'?'"IBM Plex Mono",monospace':font==='cond'?'"IBM Plex Sans Condensed","IBM Plex Sans",sans-serif':'"IBM Plex Sans","Noto Sans SC",sans-serif';
+  ctx.font=`${weight} ${size}px ${fam}`;ctx.textAlign=align;ctx.textBaseline=base;
+  if(halo){ctx.lineWidth=4;ctx.strokeStyle=rgba(K.paper,0.9);ctx.lineJoin='round';ctx.strokeText(text,x,y);}
+  ctx.fillStyle=color;ctx.fillText(text,x,y);
+}
+function arrowHead(a,b,color,size=8){
+  const ang=Math.atan2(b.y-a.y,b.x-a.x);ctx.beginPath();
+  ctx.moveTo(b.x,b.y);ctx.lineTo(b.x-size*Math.cos(ang-0.4),b.y-size*Math.sin(ang-0.4));
+  ctx.lineTo(b.x-size*Math.cos(ang+0.4),b.y-size*Math.sin(ang+0.4));ctx.closePath();ctx.fillStyle=color;ctx.fill();
+}
+const phaseColor=ph=>ph===1?K.ink3:ph===2?K.concept:K[S.tgt];
+
+let hits=[];
+function draw(){
+  ctx.clearRect(0,0,W,Hh);
+  hits=[];
+  const st=lens(curH()), h=disp.h, hv=sph(h.lat,h.lon), hp=P(hv), O=P([0,0,0]);
+
+  // sphere body
+  const g=ctx.createRadialGradient(CX-R*0.35,CY-R*0.4,R*0.1,CX,CY,R);
+  g.addColorStop(0,rgba(K.ink,0.015));g.addColorStop(1,rgba(K.ink,0.07));
+  ctx.beginPath();ctx.arc(CX,CY,R,0,2*Math.PI);ctx.fillStyle=g;ctx.fill();
+
+  const pathPts=[];
+  if(S.show.path){for(let l=1;l<=S.L;l+=0.25)pathPts.push({v:sph(hAt(l).lat,hAt(l).lon),ph:phaseOf(Math.ceil(l))});}
+
+  const drawPass=pass=>{
+    const back=pass==='back';
+    [-60,-30,30,60].forEach(d=>poly(latLine(d),pass,rgba(K.ink,back?0.06:0.10),1));
+    for(let m=0;m<12;m++)poly(lonLine(m/12*2*Math.PI),pass,rgba(K.ink,back?0.05:0.09),1);
+    poly(latLine(0,160),pass,rgba(K.ink2,back?0.35:0.75),back?1.2:1.6);
+    if(S.show.path&&pathPts.length){
+      for(let ph=1;ph<=3;ph++){
+        const seg=[];pathPts.forEach((p,i)=>{if(p.ph===ph||(pathPts[i+1]&&pathPts[i+1].ph===ph&&p.ph===ph-1))seg.push(p.v)});
+        poly(seg,pass,rgba(phaseColor(ph),back?0.35:0.95),back?2:3);
+      }
+      // phase boundary markers
+      [p1(),p2()].forEach((l,i)=>{const q=P(sph(hAt(l).lat,hAt(l).lon));if((q.z>=0)!==back){
+        ctx.beginPath();ctx.arc(q.x,q.y,4,0,2*Math.PI);ctx.fillStyle=K.paper;ctx.fill();ctx.lineWidth=2;ctx.strokeStyle=phaseColor(i+2);ctx.stroke();
+        if(S.show.labels&&!back&&Math.hypot(q.x-hp.x,q.y-hp.y)>40)label('layer '+l,q.x-9,q.y,{size:11,color:K.ink2,align:'right',font:'mono'});}});
+    }
+    // tokens
+    LANGS.forEach(k=>{
+      const v=sph(0,disp.tok[k]),q=P(v);if((q.z>=0)===back)return;
+      const p=st.p[k], main=k==='EN'||k===S.tgt, col=K[k];
+      const a=back?0.35:(main?1:0.6);
+      if(p>0.02&&!back){ctx.beginPath();ctx.arc(q.x,q.y,7+18*Math.sqrt(p),0,2*Math.PI);ctx.fillStyle=rgba(col,0.22);ctx.fill();}
+      ctx.beginPath();ctx.arc(q.x,q.y,main?7:5,0,2*Math.PI);ctx.fillStyle=rgba(col,a);ctx.fill();
+      ctx.lineWidth=2;ctx.strokeStyle=rgba(K.paper,back?0.5:1);ctx.stroke();
+      hits.push({type:'tok',k,x:q.x,y:q.y,r:12});
+      if(S.show.labels&&(!back||main)){
+        const lv=P(sph(0,disp.tok[k],1.16)), w=WORDS[S.concept][k];
+        const lc=back?rgba(K.ink2,0.55):(main?K.ink:K.ink2);
+        label(w,lv.x,lv.y-6,{size:main?15:12.5,weight:main?600:500,color:lc});
+        label(LNAME[k],lv.x,lv.y+9,{size:10.5,color:back?rgba(K.ink3,0.6):K.ink3,font:'mono'});
+      }
+    });
+    // h dot if on this side
+    if((hp.z>=0)!==back){
+      ctx.beginPath();ctx.arc(hp.x,hp.y,9,0,2*Math.PI);ctx.fillStyle=back?rgba(K.h,0.5):K.h;ctx.fill();
+      ctx.lineWidth=2.5;ctx.strokeStyle=K.paper;ctx.stroke();
+    }
+  };
+
+  drawPass('back');
+  // veil over the back hemisphere
+  ctx.beginPath();ctx.arc(CX,CY,R,0,2*Math.PI);ctx.fillStyle=rgba(K.paper,0.45);ctx.fill();
+  ctx.lineWidth=1.2;ctx.strokeStyle=rgba(K.ink,0.28);ctx.stroke();
+
+  // planes
+  if(S.show.planes){
+    const eq=latLine(0,120).map(P);
+    ctx.beginPath();eq.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));ctx.closePath();
+    ctx.fillStyle=rgba(K.ink3,0.13);ctx.fill();
+    const wedge=[[0,0,0],...lonLine(C,0,90,40)].map(P);
+    ctx.beginPath();wedge.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));ctx.closePath();
+    ctx.fillStyle=rgba(K.concept,0.16);ctx.fill();
+    poly(lonLine(C,0,90,40),'all',rgba(K.concept,0.7),1.5,[5,4]);
+    // concept direction
+    const ce=P(sph(0,C,1.0));
+    ctx.beginPath();ctx.moveTo(O.x,O.y);ctx.lineTo(ce.x,ce.y);ctx.setLineDash([6,4]);ctx.strokeStyle=K.concept;ctx.lineWidth=2;ctx.stroke();ctx.setLineDash([]);
+    arrowHead(O,ce,K.concept,9);
+    if(S.show.labels){
+      const cl=P(sph(38*DEG,C,0.72));
+      label('concept: '+WORDS[S.concept].EN.toUpperCase(),cl.x,cl.y,{size:11.5,weight:600,color:K.conceptInk,font:'mono'});
+      const tl=P(sph(0,C+180*DEG,0.55));
+      if(W>=520)label('token space',tl.x,tl.y,{size:11.5,color:K.ink2,font:'mono'});
+    }
+  }
+
+  // pole axis
+  const N=P([0,1,0]),Np=P([0,1.13,0]),Sp=P([0,-1.1,0]);
+  ctx.beginPath();ctx.moveTo(Sp.x,Sp.y);ctx.lineTo(Np.x,Np.y);ctx.setLineDash([3,4]);ctx.strokeStyle=rgba(K.ink2,0.5);ctx.lineWidth=1;ctx.stroke();ctx.setLineDash([]);
+  ctx.beginPath();ctx.arc(N.x,N.y,3.5,0,2*Math.PI);ctx.fillStyle=K.ink2;ctx.fill();
+  if(S.show.labels){
+    label('north pole',Np.x,Np.y-14,{size:12,weight:600,color:K.ink,font:'cond'});
+    label('orthogonal to every token',Np.x,Np.y-1,{size:10.5,color:K.ink3,font:'mono'});
+  }
+
+  // shadow
+  const s=Math.cos(h.lat), sv=[s*Math.cos(h.lon),0,s*Math.sin(h.lon)], sp=P(sv);
+  let topK=null,topP=st.pb/(V-LANGS.length);
+  LANGS.forEach(k=>{if(st.p[k]>topP){topP=st.p[k];topK=k;}});
+  const scol=topK&&st.p[topK]>0.2?K[topK]:K.ink2;
+  if(S.show.shadow){
+    ctx.beginPath();ctx.moveTo(hp.x,hp.y);ctx.lineTo(sp.x,sp.y);ctx.setLineDash([3,4]);ctx.strokeStyle=rgba(K.ink2,0.8);ctx.lineWidth=1.3;ctx.stroke();
+    const rim=P(sph(0,h.lon,1));
+    ctx.beginPath();ctx.moveTo(sp.x,sp.y);ctx.lineTo(rim.x,rim.y);ctx.strokeStyle=rgba(scol,0.35);ctx.lineWidth=1.2;ctx.stroke();ctx.setLineDash([]);
+    if(s>0.03){
+      ctx.beginPath();ctx.moveTo(O.x,O.y);ctx.lineTo(sp.x,sp.y);ctx.strokeStyle=scol;ctx.lineWidth=3.5;ctx.stroke();
+      if(Math.hypot(sp.x-O.x,sp.y-O.y)>14)arrowHead(O,sp,scol,10);
+    }
+    ctx.beginPath();ctx.arc(sp.x,sp.y,3.5,0,2*Math.PI);ctx.fillStyle=scol;ctx.fill();
+    if(S.show.labels&&s>0.12){label('shadow',sp.x,sp.y+15,{size:11,color:K.ink2,font:'mono'});}
+  }
+
+  // the h vector
+  ctx.beginPath();ctx.moveTo(O.x,O.y);ctx.lineTo(hp.x,hp.y);ctx.strokeStyle=K.h;ctx.lineWidth=2.5;ctx.stroke();
+  ctx.beginPath();ctx.arc(O.x,O.y,3,0,2*Math.PI);ctx.fillStyle=K.ink;ctx.fill();
+
+  drawPass('front');
+  hits.push({type:'h',x:hp.x,y:hp.y,r:16});
+  label(S.free?'h  (yours)':'h  after layer '+S.layer,hp.x+14,hp.y-12,{size:13,weight:600,align:'left',color:K.ink,font:'cond'});
+  dirty=false;
+}
+
+function tick(){
+  let moving=false;
+  const k=0.2;
+  LANGS.forEach(l=>{const tg=slotLon(l),d=wrap(tg-disp.tok[l]);if(Math.abs(d)>1e-4){disp.tok[l]+=d*k;moving=true;}else disp.tok[l]=tg;});
+  const ht=curH();
+  if(!disp.h)disp.h={...ht};
+  const dl=ht.lat-disp.h.lat, dn=wrap(ht.lon-disp.h.lon);
+  if(Math.abs(dl)>1e-4||Math.abs(dn)>1e-4){const kk=S.free?0.6:0.3;disp.h.lat+=dl*kk;disp.h.lon+=dn*kk;moving=true;}else disp.h={...ht};
+  if(camTween){
+    const dy=wrap(camT.yaw-cam.yaw),dp=camT.pitch-cam.pitch;
+    if(Math.abs(dy)>1e-3||Math.abs(dp)>1e-3){cam.yaw+=dy*0.14;cam.pitch+=dp*0.14;moving=true;}else{cam.yaw=camT.yaw;cam.pitch=camT.pitch;camTween=false;}
+  }
+  if(moving||dirty)draw();
+  requestAnimationFrame(tick);
+}
+let camTween=false;
+function setView(v){
+  const b=VIEWS[v];camT.yaw=b.yaw;camT.pitch=b.pitch;camTween=true;
+  document.querySelectorAll('.views .chip').forEach(c=>c.setAttribute('aria-pressed',c.dataset.view===v));
+}
+
+/* ---------- pointer ---------- */
+let drag=null;const tip=$('tip');
+cv.addEventListener('pointerdown',e=>{
+  const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  const hh=hits.find(t=>t.type==='h'&&Math.hypot(t.x-x,t.y-y)<t.r);
+  drag={mode:hh?'h':'cam',x:e.clientX,y:e.clientY};
+  cv.setPointerCapture(e.pointerId);cv.classList.add('dragging');tip.style.display='none';
+  if(hh){stopPlay();S.free={...curH()};update();}
+});
+cv.addEventListener('pointermove',e=>{
+  const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  if(drag){
+    if(drag.mode==='cam'){
+      cam.yaw-=(e.clientX-drag.x)*0.008;cam.pitch=Math.max(-1.5,Math.min(1.5,cam.pitch+(e.clientY-drag.y)*0.008));
+      camTween=false;document.querySelectorAll('.views .chip').forEach(c=>c.setAttribute('aria-pressed','false'));
+      drag.x=e.clientX;drag.y=e.clientY;dirty=true;
+    }else{S.free=unproject(x,y);update();}
+    return;
+  }
+  const hit=hits.slice().reverse().find(t=>Math.hypot(t.x-x,t.y-y)<t.r);
+  cv.classList.toggle('over-h',!!hit&&hit.type==='h');
+  if(hit){
+    const st=lens(curH());let html;
+    if(hit.type==='h'){html=`<b>h</b>${S.free?' (steered by you)':' after layer '+S.layer}<br>${pct(st.s,0)} of its length lies in token space.<br><i>Drag to move it.</i>`;}
+    else{const k=hit.k;html=`<b>${WORDS[S.concept][k]}</b> · ${LNAME[k]} token<br>logit ${st.lg[k].toFixed(1)} · probability ${pct(st.p[k])}`;}
+    tip.innerHTML=html;tip.style.display='block';
+    const tw=tip.offsetWidth;tip.style.left=Math.min(W-tw-8,x+14)+'px';tip.style.top=(y+14)+'px';
+  }else tip.style.display='none';
+});
+const endDrag=e=>{if(!drag)return;drag=null;cv.classList.remove('dragging');};
+cv.addEventListener('pointerup',endDrag);cv.addEventListener('pointercancel',endDrag);
+cv.addEventListener('pointerleave',()=>{tip.style.display='none'});
+
+/* ---------- UI ---------- */
+function renderPrompt(){
+  const c=S.concept,d=DEMO[c],t=S.tgt,src=S.src,w=WORDS,esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  let html='',note='';
+  if(S.task==='tr'){
+    html=`<span class="dim">${esc(NATIVE[src])}: "${esc(w[d][src])}" - ${esc(NATIVE[t])}: "${esc(w[d][t])}"\n… 3 more example pairs …</span>\n<span class="q">${esc(NATIVE[src])}: "${esc(w[c][src])}" - ${esc(NATIVE[t])}: "</span><span class="cur"></span>`;
+    note='Translation: the model must output the word in the new language. In this toy, the input language doesn’t change the path.';
+  }else if(S.task==='rep'){
+    html=`<span class="dim">${esc(NATIVE[t])}: "${esc(w[d][t])}" - ${esc(NATIVE[t])}: "${esc(w[d][t])}"\n… 3 more example pairs …</span>\n<span class="q">${esc(NATIVE[t])}: "${esc(w[c][t])}" - ${esc(NATIVE[t])}: "</span><span class="cur"></span>`;
+    note=t==='ZH'?'Repetition: just copy the word. For Chinese, the paper finds Chinese rising alongside English in the middle layers.':'Repetition: just copy the word. Even here, English still shows up first for this language in the paper.';
+  }else{
+    const cz=CLOZE[c][t];
+    html=`<span class="dim">… 2 example sentences with answers …</span>\n<span class="q">${esc(cz[0])} ${esc(cz[1])}</span><span class="cur"></span>`;
+    note='Cloze: fill in the blank. The examples were written in English with GPT-4 and translated.';
+  }
+  $('prompt').innerHTML=html;
+  $('ans').innerHTML=`Correct next token: <b class="${t==='ZH'?'cjk':''}">${esc(w[c][t])}</b> <span style="color:var(--ink3)">(${LNAME[t]} for “${w[c].EN}”)</span>`;
+  $('tasknote').textContent=note;
+  $('srcWrap').style.display=S.task==='tr'?'':'none';
+}
+function fillSrc(){
+  const sel=$('src'),opts=LANGS.filter(k=>k!==S.tgt);
+  if(!opts.includes(S.src))S.src=S.tgt==='FR'?'DE':'FR';
+  sel.innerHTML=opts.map(k=>`<option value="${k}"${k===S.src?' selected':''}>${LNAME[k]}</option>`).join('');
+}
+function renderTicks(){
+  const L=S.L,el=$('ticks');
+  el.innerHTML=[1,p1(),p2(),L].map(l=>`<span style="left:${((l-1)/(L-1))*100}%">${l}</span>`).join('');
+  const a=(p1()-1)/(L-1)*100,b=(p2()-1)/(L-1)*100;
+  $('layer').style.background=`linear-gradient(90deg,${rgba(K.ink3,0.45)} 0 ${a}%,${rgba(K.concept,0.6)} ${a}% ${b}%,${rgba(K[S.tgt],0.7)} ${b}% 100%)`;
+}
+function phaseText(st){
+  const w=WORDS[S.concept], en=w.EN, tg=w[S.tgt], T=LNAME[S.tgt];
+  if(S.free){
+    let top=null,tp=0;LANGS.forEach(k=>{if(st.p[k]>tp){tp=st.p[k];top=k;}});
+    if(st.s<0.15)return ['Free mode','Near the pole the shadow is tiny, so no token stands out. This is what phase 1 looks like to the lens.',K.ink3];
+    if(tp<0.3)return ['Free mode','The shadow points between tokens or is too short, so the lens is unsure (high entropy).',K.ink3];
+    return ['Free mode',`The shadow points closest to “${w[top]}” (${LNAME[top]}), so the lens reads ${LNAME[top]} with ${pct(tp,0)} probability. Longer shadow, more confident.`,K[top]];
+  }
+  const ph=phaseOf(S.layer);
+  if(ph===1)return [`Phase 1 · input space`,`h is still near the north pole, almost perpendicular to every output token. Its shadow is tiny, so all 32,000 tokens look about equally likely. The model is still reading the prompt.`,K.ink3,`layers 1–${p1()}`];
+  if(ph===2){
+    if(S.bias<0.35)return [`Phase 2 · concept space`,`h has tipped toward the concept “${en}”, but with the English bias turned down no token sits near the concept direction. The lens can’t read a clear word here.`,K.concept,`layers ${p1()+1}–${p2()}`];
+    if(S.task==='rep'&&S.tgt==='ZH')return [`Phase 2 · concept space`,`h has tipped toward the concept, and for Chinese repetition part‑way toward ${tg} too. The shadow lands between “${en}” and “${tg}”, so both show up together, as the paper reports for this task.`,K.concept,`layers ${p1()+1}–${p2()}`];
+    return [`Phase 2 · concept space`,`h has tipped down the pink half‑plane toward the concept. Its shadow points closest to the English token “${en}”, so the lens reads English, even though the answer must be ${T}.`,K.concept,`layers ${p1()+1}–${p2()}`];
+  }
+  return [`Phase 3 · output space`,`h swings through token space toward “${tg}” and drops closer to the equator. The shadow grows (token energy rises) and ${T} overtakes English.`,K[S.tgt],`layers ${p2()+1}–${S.L}`];
+}
+function update(){
+  const st=lens(curH()), w=WORDS[S.concept];
+  $('lnum').textContent=S.free?'—':S.layer;$('lof').textContent=`of ${S.L} layers`;
+  $('layer').max=S.L;$('layer').value=S.layer;
+  $('layerbadge').innerHTML=S.free?'<b>free</b> h':`layer <b>${S.layer}</b> / ${S.L}`;
+  $('free').classList.toggle('on',!!S.free);$('unfree').textContent=`Back to layer ${S.layer}`;
+  const [pn,pd,pc,pr]=phaseText(st);
+  $('pname').innerHTML=pn+(pr?`<small>${pr}</small>`:'');$('pdesc').textContent=pd;$('phase').style.borderLeftColor=pc;
+
+  // readout
+  const rows=LANGS.map(k=>({k,p:st.p[k]})).sort((a,b)=>b.p-a.p);
+  const top=rows[0], bgEach=st.pb/(V-LANGS.length);
+  if(top.p>0.2){$('topw').textContent=w[top.k];$('topw').className='w'+(top.k==='ZH'?' cjk':'');$('topw').style.color='';
+    $('topmeta').innerHTML=`<span class="dot" style="background:${K[top.k]}"></span>${LNAME[top.k]} · ${pct(top.p,0)}`;}
+  else{$('topw').textContent='no clear word';$('topw').className='w none';$('topw').style.color='var(--ink3)';
+    $('topmeta').textContent=top.p>bgEach*5?`best guess “${w[top.k]}” at only ${pct(top.p)}`:'every token about equally likely';}
+  const order=['EN',S.tgt,...LANGS.filter(k=>k!=='EN'&&k!==S.tgt)];
+  $('bars').innerHTML=order.map(k=>{const p=st.p[k],main=k==='EN'||k===S.tgt;
+    return `<div class="bar"><span class="lab">${main?'<b>':''}<span class="${k==='ZH'?'cjk':''}">${w[k]}</span>${main?'</b>':''} <span style="color:var(--ink3)">${k}</span></span><span class="track"><span class="fill" style="display:block;width:${Math.max(0,p*100)}%;background:${K[k]}${main?'':';opacity:.6'}"></span></span><span class="v">${pct(p)}</span></div>`}).join('')+
+    `<div class="bar"><span class="lab">other ${fmtN(V-LANGS.length)}</span><span class="track"><span class="fill" style="display:block;width:${st.pb*100}%;background:var(--ink3)"></span></span><span class="v">${pct(st.pb)}</span></div>`;
+  $('sH').textContent=st.H.toFixed(1)+' bits';$('sE').textContent=pct(st.s,0);$('sR').textContent=Math.sqrt(S.d).toFixed(1);
+  drawCharts();
+  dirty=true;
+}
+
+/* ---------- charts ---------- */
+const NS='http://www.w3.org/2000/svg';
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e};
+let series=[];
+function computeSeries(){series=[];for(let l=1;l<=S.L;l++){const st=lens(hAt(l));series.push({l,H:st.H,E:st.s,p:st.p,pb:st.pb});}}
+function chart(svg,{yMax,yTicks,fmt,lines,guide}){
+  svg.innerHTML='';
+  const bb=svg.getBoundingClientRect(),w=bb.width||300,h=bb.height||180,m={l:40,r:10,t:8,b:22},iw=w-m.l-m.r,ih=h-m.t-m.b;
+  svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  const X=l=>m.l+(l-1)/(S.L-1)*iw, Y=v=>m.t+ih-(v/yMax)*ih;
+  // phase bands
+  el('rect',{x:X(p1()),y:m.t,width:X(p2())-X(p1()),height:ih,fill:rgba(K.concept,0.09)},svg);
+  el('rect',{x:X(p2()),y:m.t,width:X(S.L)-X(p2()),height:ih,fill:rgba(K[S.tgt],0.09)},svg);
+  yTicks.forEach(v=>{el('line',{x1:m.l,x2:m.l+iw,y1:Y(v),y2:Y(v),class:'grid'},svg);const t=el('text',{x:m.l-6,y:Y(v)+3.5,'text-anchor':'end'},svg);t.textContent=fmt(v);});
+  el('line',{x1:m.l,x2:m.l+iw,y1:m.t+ih,y2:m.t+ih,class:'axis'},svg);
+  [1,p1(),p2(),S.L].forEach(l=>{const t=el('text',{x:X(l),y:h-6,'text-anchor':'middle'},svg);t.textContent=l;});
+  if(guide){el('line',{x1:m.l,x2:m.l+iw,y1:Y(guide),y2:Y(guide),stroke:K.ink3,'stroke-width':1.5,'stroke-dasharray':'5 4'},svg);}
+  lines.forEach(L=>{
+    const d=series.map((s,i)=>(i?'L':'M')+X(s.l).toFixed(1)+','+Y(L.f(s)).toFixed(1)).join('');
+    el('path',{d,fill:'none',stroke:L.color,'stroke-width':L.w||2,'stroke-dasharray':L.dash||'','stroke-linejoin':'round','stroke-linecap':'round'},svg);
+  });
+  if(!S.free){
+    const cx=X(S.layer);el('line',{x1:cx,x2:cx,y1:m.t,y2:m.t+ih,stroke:K.ink,'stroke-width':1.5},svg);
+    lines.filter(L=>!L.noDot).forEach(L=>{const s=series[S.layer-1];el('circle',{cx,cy:Y(L.f(s)),r:4.5,fill:L.color,stroke:K.paper,'stroke-width':2},svg);});
+  }
+  // hover layer
+  const hover=el('g',{style:'display:none'},svg);
+  const hl=el('line',{y1:m.t,y2:m.t+ih,stroke:K.ink3,'stroke-width':1,'stroke-dasharray':'3 3'},hover);
+  const box=el('g',{},hover);
+  const hit=el('rect',{x:m.l,y:m.t,width:iw,height:ih,fill:'transparent'},svg);
+  const layerAt=ev=>{const r=svg.getBoundingClientRect();const x=(ev.clientX-r.left)*(w/r.width);return Math.max(1,Math.min(S.L,Math.round((x-m.l)/iw*(S.L-1)+1)))};
+  hit.addEventListener('pointermove',ev=>{
+    const l=layerAt(ev),s=series[l-1],x=X(l);hover.style.display='';hl.setAttribute('x1',x);hl.setAttribute('x2',x);
+    box.innerHTML='';const txt=[`layer ${l}`,...lines.filter(L=>L.label).map(L=>`${L.label}: ${L.tf?L.tf(L.f(s)):fmt(L.f(s))}`)];
+    const bw=Math.max(...txt.map(t=>t.length))*6.4+14,bh=txt.length*15+8,bx=x+bw+10>w?x-bw-8:x+8;
+    el('rect',{x:bx,y:m.t,width:bw,height:bh,rx:5,fill:K.ink,opacity:.92},box);
+    txt.forEach((t,i)=>{const e=el('text',{x:bx+7,y:m.t+16+i*15,style:`fill:${K.paper};font-size:11.5px;font-family:'IBM Plex Mono',monospace`},box);e.textContent=t;});
+  });
+  hit.addEventListener('pointerleave',()=>{hover.style.display='none'});
+  hit.addEventListener('click',ev=>{stopPlay();S.free=null;S.layer=layerAt(ev);update();});
+}
+function drawCharts(){
+  computeSeries();
+  const T=S.tgt,w=WORDS[S.concept];
+  chart($('cH'),{yMax:16,yTicks:[0,5,10,15],fmt:v=>v.toFixed(v%1?1:0),guide:Math.log2(V),
+    lines:[{f:s=>s.H,color:K.ink,label:'entropy',tf:v=>v.toFixed(1)+' bits'}]});
+  chart($('cE'),{yMax:1,yTicks:[0,.25,.5,.75,1],fmt:v=>Math.round(v*100)+'%',
+    lines:[{f:s=>s.E,color:K.ink,label:'energy',tf:v=>Math.round(v*100)+'%'}]});
+  const oth=LANGS.filter(k=>k!=='EN'&&k!==T);
+  chart($('cP'),{yMax:1,yTicks:[0,.5,1],fmt:v=>Math.round(v*100)+'%',
+    lines:[{f:s=>Math.max(...oth.map(k=>s.p[k])),color:K.ink3,dash:'4 4',w:1.5,label:'others',tf:v=>pct(v),noDot:true},
+           {f:s=>s.p.EN,color:K.EN,label:'EN '+w.EN,tf:v=>pct(v)},
+           {f:s=>s.p[T],color:K[T],label:T+' '+w[T],tf:v=>pct(v)}]});
+  $('langKey').innerHTML=`<span><i style="border-color:${K.EN}"></i>English “${w.EN}”</span><span><i style="border-color:${K[T]}"></i>${LNAME[T]} “<span class="${T==='ZH'?'cjk':''}">${w[T]}</span>”</span><span><i class="dash" style="border-color:${K.ink3}"></i>other languages</span>`;
+  // table
+  const rows=series.map(s=>`<tr class="${!S.free&&s.l===S.layer?'cur':''}"><td>${s.l}</td><td>${phaseOf(s.l)}</td><td>${s.H.toFixed(2)}</td><td>${Math.round(s.E*100)}%</td><td>${pct(s.p.EN)}</td><td>${pct(s.p[T])}</td></tr>`).join('');
+  $('ltable').innerHTML=`<thead><tr><th>layer</th><th>phase</th><th>entropy (bits)</th><th>token energy</th><th>P(English)</th><th>P(${LNAME[T]})</th></tr></thead><tbody>${rows}</tbody>`;
+}
+
+/* ---------- controls ---------- */
+let playT=null;
+function stopPlay(){if(playT){clearInterval(playT);playT=null;}$('play').textContent='▶ Play the forward pass';}
+function startPlay(){
+  stopPlay();S.free=null;if(S.layer>=S.L)S.layer=1;update();
+  $('play').textContent='❚❚ Pause';
+  playT=setInterval(()=>{if(S.layer>=S.L){stopPlay();return;}S.layer++;update();},Math.max(70,6400/S.L));
+}
+$('play').onclick=()=>playT?stopPlay():startPlay();
+$('prev').onclick=()=>{stopPlay();S.free=null;S.layer=Math.max(1,S.layer-1);update();};
+$('next').onclick=()=>{stopPlay();S.free=null;S.layer=Math.min(S.L,S.layer+1);update();};
+$('layer').oninput=e=>{stopPlay();S.free=null;S.layer=+e.target.value;update();};
+$('unfree').onclick=()=>{S.free=null;update();};
+document.querySelectorAll('#task button').forEach(b=>b.onclick=()=>{
+  S.task=b.dataset.task;document.querySelectorAll('#task button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderPrompt();update();});
+document.querySelectorAll('#model button').forEach(b=>b.onclick=()=>{
+  const old=S.L;S.model=b.dataset.model;S.L=MODELS[S.model].L;S.d=MODELS[S.model].d;
+  S.layer=Math.max(1,Math.round(S.layer/old*S.L));
+  document.querySelectorAll('#model button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderTicks();update();});
+$('concept').onchange=e=>{S.concept=e.target.value;renderPrompt();update();};
+$('src').onchange=e=>{S.src=e.target.value;renderPrompt();};
+$('tgt').onchange=e=>{S.tgt=e.target.value;fillSrc();renderPrompt();renderTicks();update();};
+$('bias').oninput=e=>{S.bias=e.target.value/100;$('biasv').textContent=e.target.value+'%';update();};
+[['tPath','path'],['tShadow','shadow'],['tPlanes','planes'],['tLabels','labels']].forEach(([id,k])=>$(id).onchange=e=>{S.show[k]=e.target.checked;dirty=true;});
+document.querySelectorAll('.views .chip').forEach(c=>c.onclick=()=>setView(c.dataset.view));
+document.addEventListener('keydown',e=>{
+  if(e.target.closest('input,select,textarea,button'))return;
+  if(e.key==='ArrowRight'||e.key==='ArrowLeft'){
+    const r=$('stage').getBoundingClientRect();if(r.bottom<0||r.top>innerHeight)return;
+    e.preventDefault();stopPlay();S.free=null;S.layer=Math.max(1,Math.min(S.L,S.layer+(e.key==='ArrowRight'?1:-1)));update();
+  }
+});
+
+/* ---------- tour ---------- */
+const TOUR=[
+  {title:'The sphere is the model’s working memory',view:'front',layer:()=>Math.round(S.L*0.72),
+   text:()=>`At every layer, Llama‑2 keeps a long vector <b>h</b> for each token (${fmtN(S.d)} numbers in the ${S.model} model). RMSNorm gives it a fixed length, so every <b>h</b> is a point on a huge sphere. We draw that sphere in 3D. The <b>black dot</b> is h at the end of the prompt, where the next word gets chosen.`},
+  {title:'The gray disk is token space',view:'above',layer:()=>Math.round(S.L*0.72),
+   text:()=>`Every word the model can output sits on the rim of the equator. The logit lens scores words by how well h lines up with them, so it only sees h’s <b>shadow</b> on this disk. The shadow’s direction picks the word; its length sets how sure the lens is.`},
+  {title:()=>`Layers 1–${p1()}: reading the prompt`,view:'front',layer:()=>Math.round(p1()*0.7),
+   text:()=>`h starts at the <b>north pole</b>, perpendicular to every token. Its shadow is almost nothing, so all 32,000 tokens look equally likely: about 15 bits of entropy. The paper measures ≈14 bits here.`},
+  {title:()=>`Layers ${p1()+1}–${p2()}: thinking in concepts`,view:'front',layer:()=>Math.round(S.L*0.72),
+   text:()=>`h tips down the <b>pink half‑plane</b> toward the concept “${WORDS[S.concept].EN}”. Its shadow now points closest to the <b>English</b> word, so the lens reads “${WORDS[S.concept].EN}”, even though the answer has to be ${LNAME[S.tgt]}.`},
+  {title:'Why English?',view:'above',layer:()=>Math.round(S.L*0.72),bias:0,
+   text:()=>`We just set <b>English bias to 0%</b>: the English token moved as far from the concept as the others, and the lens lost its clear word. That is the paper’s explanation: concepts are shared across languages, but English tokens sit closest to them. Drag the slider in “What if…” to bring it back.`},
+  {title:()=>`Layers ${p2()+1}–${S.L}: speaking ${LNAME[S.tgt]}`,view:'front',layer:()=>S.L,bias:1,
+   text:()=>`The last layers turn h through token space toward <b class="${S.tgt==='ZH'?'cjk':''}">${WORDS[S.concept][S.tgt]}</b> and pull it nearer the equator. The shadow grows (token energy rises) and ${LNAME[S.tgt]} overtakes English: the crossover in chart (c) below.`},
+  {title:'Your turn',view:'front',layer:()=>Math.round(S.L*0.72),
+   text:()=>`<b>Drag the black dot</b> anywhere and watch the readout follow. Try <b>Repetition</b> into Chinese, a different model size, or press <b>▶ Play</b>. The article below explains each piece with citations.`}
+];
+let tstep=-1;
+function showTour(i){
+  tstep=i;const t=TOUR[i],ev=f=>typeof f==='function'?f():f;
+  stopPlay();S.free=null;
+  if(i===0){S.task='tr';S.concept='flower';S.tgt='ZH';$('concept').value='flower';$('tgt').value='ZH';fillSrc();
+    document.querySelectorAll('#task button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.task==='tr'));renderPrompt();renderTicks();}
+  if(t.bias!=null||S.bias!==1){S.bias=t.bias!=null?t.bias:1;$('bias').value=S.bias*100;$('biasv').textContent=Math.round(S.bias*100)+'%';}
+  if(t.layer)S.layer=t.layer();
+  if(t.view)setView(t.view);
+  $('tstep').textContent=`Tour · ${i+1} of ${TOUR.length}`;$('ttitle').textContent=ev(t.title);$('ttext').innerHTML=ev(t.text);
+  $('tdots').innerHTML=TOUR.map((_,j)=>`<i class="${j===i?'on':''}"></i>`).join('');
+  $('tprev').disabled=i===0;$('tnext').textContent=i===TOUR.length-1?'Done':'Next';
+  $('tour').classList.add('on');$('legend').open=false;$('hint').style.display='none';
+  resize();update();
+}
+function closeTour(){tstep=-1;$('tour').classList.remove('on');$('hint').style.display='';resize();if(S.bias!==1){S.bias=1;$('bias').value=100;$('biasv').textContent='100%';update();}}
+$('tourBtn').onclick=()=>{showTour(0);$('stage').scrollIntoView({behavior:'smooth',block:'nearest'});};
+$('tnext').onclick=()=>tstep<TOUR.length-1?showTour(tstep+1):closeTour();
+$('tprev').onclick=()=>tstep>0&&showTour(tstep-1);
+$('tclose').onclick=closeTour;
+
+/* ---------- boot ---------- */
+readColors();
+if(window.innerWidth<640)$('legend').open=false;
+fillSrc();renderPrompt();resize();renderTicks();update();
+new ResizeObserver(()=>{resize();drawCharts();}).observe($('stage'));
+let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(drawCharts,120)});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{_rgb.clear();readColors();renderTicks();update();});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{dirty=true;});
+requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
