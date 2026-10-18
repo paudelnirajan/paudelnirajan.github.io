@@ -173,7 +173,8 @@ input[type=range]{width:100%;margin:6px 0 2px;accent-color:var(--ink)}
 .toggles input{accent-color:var(--ink)}
 
 /* charts */
-.charts{grid-column:1/-1;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px 18px 14px}
+.charts-wrap{max-width:1440px;margin:0 auto;padding:10px 24px 8px}
+.charts{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px 18px 14px}
 .charts-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px;margin-bottom:8px}
 .charts-head h2{font-family:var(--cond);font-weight:600;font-size:18px;margin:0}
 .charts-head p{margin:0;font-size:13px;color:var(--ink2);max-width:80ch}
@@ -238,6 +239,7 @@ pre.pr .c{color:var(--ink3)}
 @media (max-width:640px){
   .top-in{padding:16px 16px 14px}
   .play{padding:12px 16px 8px}
+  .charts-wrap{padding:6px 16px 8px}
   .prose{padding:20px 16px 48px}
   .stage{height:auto;min-height:0}
   #sphere{height:min(58vh,115vw);min-height:340px}
@@ -379,7 +381,9 @@ pre.pr .c{color:var(--ink3)}
       </div>
     </section>
   </aside>
+</section>
 
+<section class="charts-wrap">
   <section class="charts" aria-label="Charts across layers">
     <div class="charts-head">
       <h2>The whole forward pass at a glance</h2>
