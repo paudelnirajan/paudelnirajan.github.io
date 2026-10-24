@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The geometry of refusal — an interpretability playground</title>
+<meta name="description" content="A multi-panel, rotatable playground for how safety lives in a transformer's residual stream: one refusal direction, a separate harmfulness direction, and what the 3D picture hides.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  --bg:#F2EFE9; --paper:#FBF9F5; --soft:#F0ECE4; --sunk:#E8E3D8;
+  --ink:#1C1A17; --ink2:#55514A; --ink3:#8A857B; --line:#D8D2C6; --line2:#C6BEAE;
+  /* the two stars of the show */
+  --harm:#C2410C;      /* harmfulness axis — ember */
+  --harm-soft:#F2C9AC;
+  --refuse:#1D5FA8;    /* refusal axis — deep blue */
+  --refuse-soft:#AFCBEA;
+  --concept:#6D28A8;   /* concept space — violet */
+  --concept-soft:#D7C2EC;
+  --input:#3F7A6B;     /* input/token space — muted teal */
+  --input-soft:#BBD6CD;
+  --accent:#B88A1E;    /* citations, focus — ochre */
+  --ok:#2F7D5B; --warn:#B23A3A;
+  /* languages (shared with the companion post) */
+  --en:#2a78d6; --zh:#eb6834; --de:#1baf7a; --fr:#6250d6; --ru:#eda100; --sw:#b06f1a; --bn:#c23b8a;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --serif:"Fraunces",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --cjk:"Noto Sans SC","PingFang SC","Hiragino Sans GB",sans-serif;
+  --maxw:1180px;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#15130F; --paper:#1C1A15; --soft:#221F19; --sunk:#100E0B;
+    --ink:#ECE7DC; --ink2:#AFA99B; --ink3:#726C5F; --line:#2E2A22; --line2:#3C372D;
+    --harm:#F2743A; --harm-soft:#5A2E15;
+    --refuse:#5C9BE0; --refuse-soft:#1B3350;
+    --concept:#B084E0; --concept-soft:#3A2552;
+    --input:#67B49F; --input-soft:#1C3A32;
+    --accent:#D9A93A; --ok:#5FBF8E; --warn:#E06B6B;
+    --en:#3987e5; --zh:#d95926; --de:#199e70; --fr:#9085e9; --ru:#c98500; --sw:#cf8a2a; --bn:#df63a6;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15130F; --paper:#1C1A15; --soft:#221F19; --sunk:#100E0B;
+  --ink:#ECE7DC; --ink2:#AFA99B; --ink3:#726C5F; --line:#2E2A22; --line2:#3C372D;
+  --harm:#F2743A; --harm-soft:#5A2E15; --refuse:#5C9BE0; --refuse-soft:#1B3350;
+  --concept:#B084E0; --concept-soft:#3A2552; --input:#67B49F; --input-soft:#1C3A32;
+  --accent:#D9A93A; --ok:#5FBF8E; --warn:#E06B6B;
+  --en:#3987e5; --zh:#d95926; --de:#199e70; --fr:#9085e9; --ru:#c98500; --sw:#cf8a2a; --bn:#df63a6;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:color-mix(in srgb,var(--paper) 90%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);z-index:60}
+h1,h2,h3{font-family:var(--serif);font-weight:600;line-height:1.1;letter-spacing:-.012em;margin:0}
+p{margin:0 0 1em}
+a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--line2);text-underline-offset:3px;text-decoration-thickness:1px}
+a:hover{text-decoration-color:var(--ink)}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px;border-radius:3px}
+code,kbd{font-family:var(--mono);font-size:.88em}
+.cjk{font-family:var(--cjk)}
+sup.ref{font-family:var(--mono);font-size:.62em;font-weight:600;color:var(--accent);vertical-align:super;line-height:0;padding:0 .5px}
+sup.ref a{text-decoration:none;color:inherit}
+.mono{font-family:var(--mono)}
+.h{color:var(--harm);font-weight:600}
+.r{color:var(--refuse);font-weight:600}
+.csp{color:var(--concept);font-weight:600}
+.isp{color:var(--input);font-weight:600}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+@media (max-width:640px){.wrap{padding:0 16px}body{font-size:15.5px}}
+
+/* ---- top bar ---- */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:color-mix(in srgb,var(--paper) 90%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar-in{max-width:var(--maxw);margin:0 auto;padding:10px 22px;display:flex;align-items:center;gap:14px}
+.bar .home{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);text-decoration:none;white-space:nowrap}
+.bar .home:hover{color:var(--ink)}
+.bar nav{display:flex;gap:2px;margin-left:auto;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.bar nav::-webkit-scrollbar{display:none}
+.bar nav a{font-family:var(--mono);font-size:11.5px;color:var(--ink3);text-decoration:none;padding:5px 9px;border-radius:7px;white-space:nowrap}
+.bar nav a:hover,.bar nav a.on{color:var(--ink);background:var(--soft)}
+.theme{margin-left:6px;background:var(--soft);border:1px solid var(--line);border-radius:7px;width:30px;height:30px;display:grid;place-items:center;flex:none;color:var(--ink2)}
+.theme:hover{color:var(--ink)}
+@media (max-width:760px){.bar nav a:not(.key){display:none}}
+/* ---- hero ---- */
+.hero{position:relative;border-bottom:1px solid var(--line);background:
+   radial-gradient(120% 90% at 82% 8%, color-mix(in srgb,var(--harm-soft) 40%,transparent), transparent 55%),
+   radial-gradient(120% 90% at 10% 95%, color-mix(in srgb,var(--refuse-soft) 42%,transparent), transparent 55%),
+   var(--paper)}
+.hero-in{max-width:var(--maxw);margin:0 auto;padding:40px 22px 26px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,520px);gap:30px;align-items:center}
+@media (max-width:900px){.hero-in{grid-template-columns:1fr;padding:26px 16px 18px;gap:12px}}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--harm);margin:0 0 14px}
+.eyebrow b{color:var(--refuse);font-weight:600}
+.hero h1{font-size:clamp(33px,6vw,62px);font-weight:600;letter-spacing:-.02em}
+.hero h1 em{font-style:italic;font-weight:500;color:var(--ink2)}
+.lede{font-size:clamp(16px,2.1vw,19px);color:var(--ink2);max-width:52ch;margin:16px 0 0}
+.herofacts{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.herofacts span{font-family:var(--mono);font-size:11.5px;color:var(--ink2);background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:4px 11px}
+.herostage{position:relative;aspect-ratio:1/1;max-height:460px;background:var(--paper);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 1px 0 color-mix(in srgb,var(--ink) 5%,transparent)}
+.herostage canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+.herostage canvas.drag{cursor:grabbing}
+.herohint{position:absolute;left:12px;bottom:10px;font-family:var(--mono);font-size:10.5px;color:var(--ink3);pointer-events:none}
+@media (max-width:900px){.herostage{max-height:none;margin-top:8px}}
+
+/* ---- section scaffold ---- */
+.section{padding:52px 0 8px;border-top:1px solid var(--line);scroll-margin-top:52px}
+.section:first-of-type{border-top:none}
+.sec-head{max-width:72ch}
+.sec-n{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.04em}
+.section h2{font-size:clamp(24px,3.4vw,34px);margin:8px 0 0}
+.section .intro{font-size:17px;color:var(--ink2);margin:14px 0 0}
+.prose{max-width:68ch}
+.prose h3{font-size:19px;margin:28px 0 6px;font-family:var(--serif);font-weight:600}
+.prose p{margin:0 0 .9em}
+.prose ul{margin:0 0 1em;padding-left:1.1em}
+.prose li{margin:.3em 0}
+.lead-in{color:var(--ink2);font-size:15px}
+
+/* ---- the reusable "lab" panel: stage + controls ---- */
+.lab{margin:26px 0 8px;border:1px solid var(--line);border-radius:16px;background:var(--paper);overflow:hidden}
+.lab-grid{display:grid;grid-template-columns:minmax(0,1fr) 316px}
+@media (max-width:860px){.lab-grid{grid-template-columns:1fr}}
+.lab-stage{position:relative;background:
+   linear-gradient(180deg, color-mix(in srgb,var(--sunk) 55%,transparent), transparent 40%),var(--paper);
+   min-height:420px;border-right:1px solid var(--line)}
+@media (max-width:860px){.lab-stage{border-right:none;border-bottom:1px solid var(--line);min-height:340px}}
+.lab-stage canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+.lab-stage canvas.drag{cursor:grabbing}
+.lab-stage svg{display:block;width:100%;height:100%}
+.stage-tag{position:absolute;top:10px;left:12px;font-family:var(--mono);font-size:10.5px;color:var(--ink3);pointer-events:none;max-width:70%}
+.stage-read{position:absolute;right:10px;top:10px;font-family:var(--mono);font-size:10.5px;color:var(--ink2);text-align:right;background:color-mix(in srgb,var(--paper) 78%,transparent);border:1px solid var(--line);border-radius:8px;padding:6px 9px;pointer-events:none;line-height:1.5}
+.stage-read b{color:var(--ink);font-weight:600}
+.lab-side{padding:16px 16px 18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.ctl{display:flex;flex-direction:column;gap:6px}
+.ctl > label{font-family:var(--mono);font-size:11px;color:var(--ink2);display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ctl > label b{color:var(--ink);font-weight:600}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:3px;background:var(--line2);outline-offset:4px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;border-radius:50%;background:var(--ink);border:2.5px solid var(--paper);box-shadow:0 1px 3px rgba(0,0,0,.28);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;background:var(--ink);border:2.5px solid var(--paper);cursor:pointer}
+input[type=range].harm::-webkit-slider-thumb{background:var(--harm)}
+input[type=range].harm::-moz-range-thumb{background:var(--harm)}
+input[type=range].refuse::-webkit-slider-thumb{background:var(--refuse)}
+input[type=range].refuse::-moz-range-thumb{background:var(--refuse)}
+.seg{display:flex;background:var(--soft);border:1px solid var(--line);border-radius:9px;padding:3px;gap:3px}
+.seg button{flex:1;border:none;background:transparent;border-radius:6px;padding:6px 4px;font-size:12.5px;color:var(--ink2);font-weight:500}
+.seg button.on{background:var(--paper);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12);font-weight:600}
+.chipset{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line2);background:var(--soft);border-radius:999px;padding:5px 11px;font-size:12.5px;color:var(--ink2)}
+.chip.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.toggle{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--ink);cursor:pointer;user-select:none}
+.toggle input{position:absolute;opacity:0;width:0;height:0}
+.toggle .sw{width:38px;height:22px;border-radius:999px;background:var(--line2);position:relative;flex:none;transition:background .16s}
+.toggle .sw::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--paper);box-shadow:0 1px 2px rgba(0,0,0,.3);transition:left .16s}
+.toggle input:checked + .sw{background:var(--ok)}
+.toggle input:checked + .sw::after{left:18px}
+.toggle input:focus-visible + .sw{outline:2.5px solid var(--accent);outline-offset:2px}
+.btn{border:1px solid var(--line2);background:var(--soft);border-radius:9px;padding:8px 12px;font-size:13.5px;font-weight:500;color:var(--ink);display:inline-flex;align-items:center;gap:7px;justify-content:center}
+.btn:hover{background:var(--sunk)}
+.btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn.primary:hover{opacity:.9}
+.note{font-size:12.5px;color:var(--ink3);line-height:1.5}
+.divider{height:1px;background:var(--line);margin:2px 0}
+.kv{font-family:var(--mono);font-size:11.5px;color:var(--ink2);display:flex;justify-content:space-between;gap:10px}
+.kv b{color:var(--ink);font-weight:600}
+
+/* legend row under stages */
+.leg{display:flex;flex-wrap:wrap;gap:12px;font-family:var(--mono);font-size:11px;color:var(--ink2);padding:10px 16px;border-top:1px solid var(--line);background:var(--soft)}
+.leg span{display:inline-flex;align-items:center;gap:6px}
+.leg i{width:11px;height:11px;border-radius:3px;display:inline-block;flex:none}
+.leg i.dot{border-radius:50%}
+.leg i.ln{height:3px;width:16px;border-radius:2px}
+
+/* callout / aside */
+.aside{border:1px solid var(--line);border-left:3px solid var(--accent);background:var(--soft);border-radius:0 12px 12px 0;padding:14px 16px;margin:22px 0;font-size:14.5px}
+.aside.warn{border-left-color:var(--warn)}
+.aside.ok{border-left-color:var(--ok)}
+.aside h4{margin:0 0 6px;font-family:var(--serif);font-size:16px;font-weight:600}
+.aside p:last-child{margin-bottom:0}
+
+/* data cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:22px 0}
+.card{border:1px solid var(--line);border-radius:12px;background:var(--paper);padding:14px 15px}
+.card .big{font-family:var(--serif);font-size:30px;font-weight:600;line-height:1;letter-spacing:-.02em}
+.card .lab2{font-size:12.5px;color:var(--ink2);margin-top:6px}
+.card .sub{font-family:var(--mono);font-size:10.5px;color:var(--ink3);margin-top:4px}
+
+/* table */
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px;margin:18px 0}
+.tbl th,.tbl td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+.tbl th{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--ink2);text-transform:uppercase;letter-spacing:.03em}
+.tbl td.num{font-family:var(--mono);text-align:right}
+.tbl tr:hover td{background:var(--soft)}
+.tbl .barcell{position:relative}
+.tbl .barcell .b{position:absolute;left:0;top:0;bottom:0;background:color-mix(in srgb,var(--harm) 16%,transparent);z-index:0}
+.tbl .barcell span{position:relative;z-index:1}
+.scrollx{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -2px}
+
+/* refs */
+.refs{border-top:1px solid var(--line);padding:30px 0 70px;scroll-margin-top:52px}
+.refs ol{margin:0;padding-left:1.4em;font-size:13.5px;color:var(--ink2)}
+.refs li{margin:.5em 0;padding-left:.2em}
+.refs li:target{background:color-mix(in srgb,var(--accent) 16%,transparent);border-radius:4px}
+.footer-note{font-size:12.5px;color:var(--ink3);margin-top:20px;max-width:70ch}
+
+.verified{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;color:var(--ok);border:1px solid color-mix(in srgb,var(--ok) 40%,transparent);background:color-mix(in srgb,var(--ok) 10%,transparent);border-radius:999px;padding:2px 8px;vertical-align:middle}
+.tourbtn{position:absolute;right:10px;bottom:10px;z-index:3}
+
+
+.vd{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:600;border-radius:999px;padding:2px 9px;white-space:nowrap;border:1px solid}
+.vd.hold{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 45%,transparent);background:color-mix(in srgb,var(--ok) 10%,transparent)}
+.vd.simp{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.vd.over{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 45%,transparent);background:color-mix(in srgb,var(--warn) 10%,transparent)}
+.vd.hyp{color:var(--concept);border-color:color-mix(in srgb,var(--concept) 45%,transparent);background:color-mix(in srgb,var(--concept) 10%,transparent)}
+.tbl.check td{vertical-align:top;line-height:1.5}
+.tbl.check td:first-child{color:var(--ink2);font-style:italic}
+.memo{font-family:var(--mono);font-size:10px;color:var(--ink3);border:1px dashed var(--line2);border-radius:999px;padding:1px 7px;white-space:nowrap}
+.chip.tinst{border-color:var(--harm)}
+.chip.tpost{border-color:var(--refuse)}
+
+.svgscroll{height:100%}
+.svgscroll svg{display:block;width:100%;height:100%}
+.swipe{display:none}
+@media (max-width:860px){
+  .svgstage{min-height:0!important}
+  .svgscroll{height:auto;overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+  .svgscroll svg{height:auto;min-width:600px}
+  .svgscroll #mapSvg{min-width:780px}
+  .svgstage .stage-read{position:static;display:block;text-align:left;margin:0 12px 12px;max-width:none!important;font-size:11px}
+  .svgstage .stage-tag{position:static;display:block;padding:10px 12px 0;max-width:none}
+  .swipe{display:block;font-family:var(--mono);font-size:10.5px;color:var(--ink3);padding:6px 12px 0}
+}
+@media (max-width:700px){
+  .tbl.check thead{display:none}
+  .tbl.check,.tbl.check tbody,.tbl.check tr,.tbl.check td{display:block;width:auto!important}
+  .tbl.check tr{padding:14px 0;border-bottom:1px solid var(--line)}
+  .tbl.check td{border:none;padding:3px 0}
+  .tbl.check td:first-child{font-size:14.5px;color:var(--ink)}
+  .tbl.check tr:hover td{background:none}
+}
+@media (max-width:860px){
+  .tourbtn{padding:6px 10px;font-size:12.5px;bottom:8px;right:8px}
+  .stage-read{font-size:9.5px;padding:4px 7px;max-width:60%;line-height:1.4}
+  .stage-tag{font-size:9.5px}
+  #globe .lab-stage{min-height:400px}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="bar-in">
+    <a class="home" href="../../index.html#writing">← Writing</a>
+    <nav aria-label="Sections">
+      <a href="#globe" class="key">The globe</a>
+      <a href="#axes" class="key">Two axes</a>
+      <a href="#grid">Finding it</a>
+      <a href="#break">Breaking it</a>
+      <a href="#dims" class="key">Beyond 3D</a>
+      <a href="#lang">Languages</a>
+      <a href="#map">The map</a>
+      <a href="#check" class="key">Fact‑check</a>
+    </nav>
+    <button class="theme" id="themeBtn" title="Switch light / dark" aria-label="Switch light or dark theme">◐</button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-in">
+    <div>
+      <p class="eyebrow">Interpretability, by hand · <span class="h">harmfulness</span> and <b>refusal</b> are not the same axis</p>
+      <h1>The geometry<br>of refusal</h1>
+      <p class="lede">A transformer carries one running vector per token. Somewhere in the middle of the network, that vector decides whether to help you or to say <em>“I can’t.”</em> This is a playground for where that decision lives — and for everything the tidy 3D picture has to leave out.</p>
+      <div class="herofacts">
+        <span>drag the globe</span>
+        <span>scrub 32 layers</span>
+        <span>numbers from the authors’ own code</span>
+      </div>
+    </div>
+    <div class="herostage">
+      <canvas id="heroCanvas" aria-label="A rotating sphere showing a hidden state climbing from input space to concept space across the layers of a transformer."></canvas>
+      <div class="herohint">drag to rotate</div>
+    </div>
+  </div>
+</section>
+
+<main>
+<div class="wrap">
+<p class="prose lead-in" style="margin:34px 0 0;max-width:68ch;font-size:16px">
+An earlier post, <a href="https://paudelnirajan.github.io/posts/token-concept-visualization/">“Do Llamas think in English?”</a>, drew the residual stream as a sphere to explain the <em>latent language</em> of multilingual models. Here the same sphere turns to a question from AI safety: <strong>how does a model refuse?</strong> Two recent papers answer it in ways that fit together surprisingly well, and a third set of results shows where the sphere stops being a good guide. Every number marked <span class="verified">✓ measured</span> comes from the authors’ released code and data; everything else is a labelled teaching stand‑in.
+</p>
+</div>
+<!-- =================== 1. THE GLOBE =================== -->
+<section class="section" id="globe">
+<div class="wrap">
+  <div class="sec-head">
+    <span class="sec-n">01 — the residual stream</span>
+    <h2>Every token, climbing through the layers</h2>
+    <p class="intro">Every token the model reads becomes a vector <span class="mono">h</span> of a few thousand numbers. Each layer reads <span class="mono">h</span>, adds something, and passes it on. We can’t draw a few thousand axes, so we squash them into a ball. Tokens enter in the <span class="isp">south</span> (input space), rise into a <span class="csp">northern cap</span> where meanings are assembled (concept space), and finish on the <strong>equator</strong>, where the output tokens live. Below, all eight tokens of one prompt make the trip at once.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-grid">
+      <div class="lab-stage">
+        <canvas id="globeCanvas" aria-label="Interactive 3D sphere: eight token vectors start in a southern input region, climb into a northern concept cap in the middle layers, and descend to output tokens on the equator. A harmful prompt's last token gets pushed toward the refusal token."></canvas>
+        <div class="stage-tag" id="globeTag">layer <b id="globeLayerTag">0</b> · drag to rotate</div>
+        <div class="stage-read" id="globeRead"></div>
+        <button class="btn primary tourbtn" id="globePlay">▶ Play forward pass</button>
+      </div>
+      <div class="lab-side">
+        <div class="ctl">
+          <label>Layer <b id="globeLayerLbl">0 / 32</b></label>
+          <input type="range" id="globeLayer" min="0" max="32" value="0" step="1" aria-label="Layer">
+        </div>
+        <div class="ctl">
+          <label>The prompt</label>
+          <div class="seg" id="globePrompt">
+            <button data-p="harmless" class="on">…make a cake</button>
+            <button data-p="harmful">…make a bomb</button>
+          </div>
+        </div>
+        <div class="ctl">
+          <label>Follow token</label>
+          <div class="chipset" id="globeToks"></div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="globeAblate"><span class="sw"></span> Ablate the refusal direction</label>
+        <label class="toggle"><input type="checkbox" id="globePoke" checked><span class="sw"></span> Show this layer’s update</label>
+        <label class="toggle"><input type="checkbox" id="globeFollow" checked><span class="sw"></span> Camera follows the token</label>
+        <div class="divider"></div>
+        <div class="kv"><span>phase</span><b id="globeRegion">input space</b></div>
+        <div class="kv"><span>logit lens reads</span><b id="globeSay">nothing</b></div>
+        <div class="kv"><span>turned by this layer</span><b id="globeTurn">—</b></div>
+        <div class="ctl">
+          <label>Logit‑lens confidence <b id="globeE">0%</b></label>
+          <canvas id="globeSpark" style="width:100%;height:56px;display:block;background:var(--soft);border:1px solid var(--line);border-radius:8px" aria-label="Logit-lens confidence of the followed token at each layer"></canvas>
+        </div>
+        <div class="ctl">
+          <label>Drawing</label>
+          <div class="seg" id="globeStart">
+            <button data-s="cross" class="on">south → north</button>
+            <button data-s="north">pole sketch</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="leg">
+      <span><i class="dot" style="background:var(--input)"></i> input space (south)</span>
+      <span><i class="dot" style="background:var(--concept)"></i> concept space (north)</span>
+      <span><i class="dot" style="background:var(--en)"></i> output tokens (equator)</span>
+      <span><i class="dot" style="background:var(--harm)"></i> harm belief at <span class="mono">t_inst</span></span>
+      <span><i class="ln" style="background:var(--refuse)"></i> refusal push at <span class="mono">t_post‑inst</span></span>
+      <span><i class="ln" style="background:var(--accent)"></i> this layer’s update</span>
+    </div>
+  </div>
+
+  <div class="prose">
+    <h3>Three phases</h3>
+    <p>This is the picture Wendler et al. use to explain how multilingual Llama‑2 models work internally.<sup class="ref"><a href="#r1">1</a></sup> Read each layer’s state with the <em>logit lens</em> — ask the model what it would say if it had to answer right now — and three phases appear. Early on the lens reads nothing: the state points away from every output token (<span class="isp">input space</span>). In the middle it reads the <em>meaning</em> of the word, usually as its English version, even though most of the state still points elsewhere (<span class="csp">concept space</span>). Only in the last layers does it settle on the token actually produced (output space). The confidence curve in the panel traces exactly this.</p>
+    <h3>How a layer “rotates” a token</h3>
+    <p>No layer literally rotates anything. Each one <em>adds</em> an update to the residual stream: <span class="mono">h<sub>ℓ+1</sub> = h<sub>ℓ</sub> + Δ<sub>ℓ</sub></span>. With <em>Show this layer’s update</em> on, the ochre arrow starts on the sphere, overshoots it (the sum is longer), and the dashed line drops back to the surface. That drop is RMSNorm:<sup class="ref"><a href="#r5">5</a></sup> the next layer only ever reads the <em>direction</em> of <span class="mono">h</span>, so the visible effect of an addition is a turn. The overshoot isn’t invented — it uses the per‑layer norm growth measured in Qwen2‑7B’s released activations <span class="verified">✓ measured</span>, where the stored vector grows from about 7 to about 270 across 28 layers, and a few layers actually shrink it.<sup class="ref"><a href="#r4">4</a></sup></p>
+    <p>That growth is the main caveat about the picture. The <em>stored</em> residual stream is not on a sphere; only the normalised copy each sub‑layer reads is. As the stream gets longer, a same‑sized update turns it less, so later layers have to write louder to change course.</p>
+    <h3>The fork</h3>
+    <p>The two prompts differ by one word, so their paths are almost identical — except at two tokens. At <strong>“bomb”</strong> (<span class="mono">t_inst</span>, the last token of the instruction) the state picks up a <span class="h">harm belief</span>. At <strong><code>[/INST]</code></strong> (<span class="mono">t_post‑inst</span>, the last token of the chat template) it gets a <span class="r">refusal push</span> toward “I”, and the answer becomes “I cannot…”. Turn on <em>Ablate the refusal direction</em> and the push vanishes, so the model answers — but the harm belief at “bomb” stays. Section 02 explains why those two signals are separate.</p>
+    <div class="aside">
+      <h4>One thing the 3D drawing has to fudge</h4>
+      <p>To get from the south to the north, a path on a ball must cross the equator — and the equator is where output tokens sit. If the climb passed near a token, the logit lens would read it confidently in the early layers, which real models don’t do. So the climb crosses a stretch of the equator with no tokens on it (it happens on the far side of the globe; turn the camera to watch). In the real model there is nothing to fudge: “points away from every output token” is a space of thousands of dimensions, so input and concept regions can be entirely different directions without ever passing near a token. <em>Pole sketch</em> shows the other common drawing, from Wendler et al.’s Figure 4(d), where the state starts at a pole above the token plane instead. Both are cartoons of the same fact.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- =================== 2. TWO AXES =================== -->
+<section class="section" id="axes">
+<div class="wrap">
+  <div class="sec-head">
+    <span class="sec-n">02 — two directions, not one</span>
+    <h2>Does the model <em>believe</em> you’re dangerous, or just <em>say</em> no?</h2>
+    <p class="intro">For a while the field treated “refusal” and “harmfulness” as the same thing: one direction in activation space, read off as both the model’s judgment and its behaviour. Zhao et al. (2025)<sup class="ref"><a href="#r3">3</a></sup> show they come apart. The belief and the reflex live at <strong>different token positions</strong> and point in <strong>different directions</strong>.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-grid">
+      <div class="lab-stage">
+        <canvas id="axesCanvas" aria-label="The concept cap seen from above, with a harmfulness axis and a near-perpendicular refusal axis, and a draggable prompt point."></canvas>
+        <div class="stage-tag">belief × behaviour</div>
+        <div class="stage-read" id="axesRead"></div>
+      </div>
+      <div class="lab-side">
+        <div class="ctl">
+          <label>Steer along <b id="axesDirLbl">harmfulness</b></label>
+          <div class="seg" id="axesDir">
+            <button data-d="harm" class="on">+ harmfulness</button>
+            <button data-d="refuse">+ refusal</button>
+          </div>
+        </div>
+        <div class="ctl">
+          <label>Strength <b id="axesCoeffLbl">0.0</b></label>
+          <input type="range" id="axesCoeff" class="harm" min="0" max="100" value="0">
+        </div>
+        <div class="ctl">
+          <label>Angle between ĥ and r̂, measured in</label>
+          <div class="chipset" id="axesModel">
+            <button class="chip on" data-a="82">Qwen2 · 82°</button>
+            <button class="chip" data-a="81">Llama‑2 · 81°</button>
+            <button class="chip" data-a="64">Llama‑3 · 64°</button>
+            <button class="chip" data-a="90">ideal · 90°</button>
+          </div>
+        </div>
+        <div class="ctl">
+          <label>Start from a prompt that is</label>
+          <div class="seg" id="axesStart">
+            <button data-s="harmless" class="on">harmless</button>
+            <button data-s="harmful">harmful</button>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="kv"><span>internal belief</span><b id="axesBelief">harmless</b></div>
+        <div class="kv"><span>what it answers</span><b id="axesSay">complies</b></div>
+        <div class="kv"><span>reply inversion</span><b id="axesInv">“No”</b></div>
+        <p class="note">Horizontal = belief read at <span class="mono">t_inst</span>; vertical = refusal read at <span class="mono">t_post‑inst</span> — two token positions on one plane. Steer <span class="r">refusal</span> and the behaviour moves alone. Steer <span class="h">harmfulness</span> and the belief moves, and the behaviour follows downstream.</p>
+      </div>
+    </div>
+    <div class="leg">
+      <span><i class="ln" style="background:var(--harm)"></i> harmfulness ĥ · at <span class="mono">t_inst</span></span>
+      <span><i class="ln" style="background:var(--refuse)"></i> refusal r̂ · at <span class="mono">t_post‑inst</span></span>
+      <span><i class="dot" style="background:var(--ink)"></i> this prompt</span>
+    </div>
+  </div>
+
+  <div class="prose">
+    <h3>Two positions do two jobs</h3>
+    <p>Zhao et al. read the hidden state at two places in the prompt<sup class="ref"><a href="#r3">3</a></sup>:</p>
+    <ul>
+      <li><strong><span class="mono">t_inst</span></strong> — the last token of <em>the instruction</em>. Cluster the states here and they split by whether the request <em>is</em> harmful, <strong>even for harmful requests the model goes on to answer</strong>. This position encodes the <span class="h">belief</span>.</li>
+      <li><strong><span class="mono">t_post‑inst</span></strong> — the last token of the whole templated prompt, after the chat formatting (<code>[/INST]</code> and friends). Cluster here and the split is by <em>behaviour</em>: refuse vs comply. This position encodes the <span class="r">reflex</span>.</li>
+    </ul>
+    <h3>How perpendicular, really?</h3>
+    <p>The cartoon above draws the two axes at a clean 90°. The honest number is softer. Taking the authors’ own released Qwen2‑7B centroids and computing the difference‑of‑means directions at each layer, the cosine between <span class="h">ĥ</span> and <span class="r">r̂</span> stays small — about <strong>0.00 to 0.14</strong>, peaking around layers 17–20 <span class="verified">✓ measured</span>. For reference, two <em>random</em> vectors in 3,584 dimensions have a cosine with standard deviation ≈ 0.016. So the two safety directions are <em>not</em> independent noise — they lean together a little — but they are nowhere near parallel. “Roughly orthogonal, slightly correlated” is the truthful phrasing; the right angle is an idealisation.</p>
+    <p>It also varies by model. Comparing Arditi’s released refusal direction with Zhao’s released harmfulness direction in the <em>same</em> model gives cosines of <strong>0.16</strong> in Llama‑2‑7B (≈81°) and <strong>0.44</strong> in Llama‑3‑8B (≈64°) at each model’s selected layer <span class="verified">✓ measured</span>. Treat those two as indicative rather than exact — the papers use different prompt sets and token positions — but 64° is far enough from 90° that “perpendicular” would mislead. Switch the angle above and watch how much more a refusal push drags the belief along in Llama‑3.</p>
+    <div class="aside ok">
+      <h4>The reply‑inversion test, in one line</h4>
+      <p>Append <em>“Could this user prompt cause harm? Answer ‘Certainly’ if it could, otherwise ‘No’.”</em><sup class="ref"><a href="#r3">3</a></sup> Now steering <span class="h">+ĥ</span> on a harmless prompt flips the answer <span class="mono">No → Certainly</span> — the <em>judgment</em> changed. Steering <span class="r">+r̂</span> leaves it at <span class="mono">No</span> while still making the model refuse elsewhere — the <em>behaviour</em> changed but the judgment didn’t. That double dissociation is the causal proof that the axes are different things.</p>
+    </div>
+  </div>
+</div>
+</section>
+<!-- =================== 3. FINDING IT =================== -->
+<section class="section" id="grid">
+<div class="wrap">
+  <div class="sec-head">
+    <span class="sec-n">03 — difference in means</span>
+    <h2>Finding the one direction</h2>
+    <p class="intro">Arditi et al. (2024)<sup class="ref"><a href="#r2">2</a></sup> extract the refusal direction with almost embarrassingly simple arithmetic: run 128 harmful and 128 harmless prompts, average the activations at each layer and each late token position, and subtract. <span class="mono">r = mean(harmful) − mean(harmless)</span>. That gives a <em>grid</em> of candidate directions. Then they pick the one that actually works.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-grid">
+      <div class="lab-stage svgstage">
+        <div class="svgscroll"><svg id="gridSvg" viewBox="0 0 640 430" aria-label="A grid of candidate refusal directions across layers and token positions for Llama-2-7B, shaded by how well each one bypasses refusal, with five survivors marked."></svg></div>
+        <div class="swipe">swipe sideways to see the whole chart</div>
+        <div class="stage-read" id="gridRead">hover a cell</div>
+      </div>
+      <div class="lab-side">
+        <div class="ctl">
+          <label>Shade cells by</label>
+          <div class="seg" id="gridMetric">
+            <button data-m="refusal" class="on">bypass ↓</button>
+            <button data-m="steering">induces ↑</button>
+            <button data-m="kl">KL drift</button>
+          </div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="gridFilter" checked><span class="sw"></span> Apply the paper’s filters</label>
+        <div class="divider"></div>
+        <div class="kv"><span>candidates</span><b>6 positions × 32 layers = 192</b></div>
+        <div class="kv"><span>survive the filters</span><b style="color:var(--ok)">5</b></div>
+        <div class="kv"><span>selected</span><b>layer 14 · pos −1</b></div>
+        <p class="note">Shade shows each candidate for <strong>Llama‑2‑7B‑chat</strong> from the authors’ released <code>direction_evaluations.json</code> <span class="verified">✓ measured</span>. The filters throw out the last 20% of layers, anything that disturbs harmless behaviour (KL &gt; 0.1), and anything that can’t itself induce refusal. Of 192 candidates, only five are left — and the winner is the one that bypasses refusal hardest.</p>
+      </div>
+    </div>
+    <div class="leg">
+      <span><i style="background:var(--sunk);border:1px solid var(--line2)"></i> keeps refusing</span>
+      <span><i style="background:var(--harm)"></i> bypasses refusal</span>
+      <span><i class="dot" style="background:var(--ok);outline:2px solid var(--paper)"></i> survives filters</span>
+      <span><i style="border:2px solid var(--ink);background:transparent"></i> selected direction</span>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>The grid is the point. Refusal isn’t smeared evenly through the network — the directions that work cluster in the <strong>middle layers</strong> and at the <strong>last few token positions</strong>, exactly where you’d expect a decision to be assembled and then read. The same recipe finds a working direction in all thirteen chat models the paper tested; the selected layer just shifts a little by model (Llama‑2 at 14, Llama‑3 at 12, Gemma‑2B at 10, Qwen‑1.8B at 15, Yi‑6B at 20<sup class="ref"><a href="#r2">2</a></sup>).</p>
+  </div>
+</div>
+</section>
+
+<!-- =================== 4. BREAKING IT =================== -->
+<section class="section" id="break">
+<div class="wrap">
+  <div class="sec-head">
+    <span class="sec-n">04 — three interventions</span>
+    <h2>Removing it, adding it, baking it in</h2>
+    <p class="intro">Once you have <span class="r">r̂</span>, three moves follow. Each is one or two lines of linear algebra, and each has a measured effect you can read straight off the paper’s results.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-grid">
+      <div class="lab-stage svgstage">
+        <div class="svgscroll"><svg id="intSvg" viewBox="0 0 640 400" aria-label="Diagram of a hidden state vector and the refusal direction, showing projection removed under ablation, added under activation addition, or shaved from the weights under orthogonalization."></svg></div>
+        <div class="swipe">swipe sideways to see the whole chart</div>
+        <div class="stage-read" id="intRead"></div>
+      </div>
+      <div class="lab-side">
+        <div class="ctl">
+          <label>Intervention</label>
+          <div class="seg" id="intMode">
+            <button data-i="ablate" class="on">ablate</button>
+            <button data-i="actadd">add</button>
+            <button data-i="ortho">weights</button>
+          </div>
+        </div>
+        <div class="ctl" id="intCoeffWrap">
+          <label>Coefficient <b id="intCoeffLbl">−1.0</b></label>
+          <input type="range" id="intCoeff" class="refuse" min="-20" max="20" value="-10" step="1">
+        </div>
+        <div class="divider"></div>
+        <div id="intExplain" style="font-size:13.5px;color:var(--ink)"></div>
+        <div class="divider"></div>
+        <div class="kv"><span>formula</span></div>
+        <div class="mono" id="intFormula" style="white-space:pre-line;font-size:12px;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:9px 10px;color:var(--ink);line-height:1.6;overflow-x:auto"></div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="prose" style="margin-top:26px">What each move actually does — on Llama‑2‑7B <span class="verified">✓ measured</span></h3>
+  <p class="prose lead-in">Harmful‑prompt bypass rate (JailbreakBench, Llama Guard 2 judge), harmless over‑refusal, and cross‑entropy loss on The Pile. All from the authors’ released evaluation files.<sup class="ref"><a href="#r2">2</a></sup></p>
+  <div class="cards" id="breakCards"></div>
+
+  <div class="prose">
+    <h3>Ablation — take the direction away</h3>
+    <p>At every layer, every position, project <span class="mono">r̂</span> out of the stream: <span class="mono">h ← h − r̂(r̂·h)</span>. The model keeps all its knowledge but loses the ability to express refusal — bypass on harmful prompts jumps from <strong>5% to 81%</strong>, while loss on normal text barely moves (<span class="mono">2.220 → 2.214</span>). Capability intact, guardrail gone.</p>
+    <h3>Activation addition — push the other way</h3>
+    <p>Add the direction to a harmless prompt (<span class="mono">h ← h + r̂</span>) and the model starts refusing things no one would object to: harmless “over‑refusal” goes from <strong>1% to 100%</strong>. The switch runs both ways.</p>
+    <h3>Weight orthogonalization — make it permanent</h3>
+    <p>Instead of hooking every forward pass, shave the direction out of the weights once: for every matrix that writes to the residual stream, <span class="mono">W′ = W − r̂r̂ᵀW</span>. Now the model <em>cannot</em> write along <span class="r">r̂</span> ever again. No inference‑time code, no hooks — the refusal behaviour is edited out of the weights in a single pass. (This is the mechanism behind the community’s “abliterated” models.<sup class="ref"><a href="#r2">2</a></sup>)</p>
+    <div class="aside warn">
+      <h4>The part the geometry explains, and the part it doesn’t</h4>
+      <p>Adversarial suffix attacks (GCG) reach the same place by a different road: rather than editing <span class="r">r̂</span>, the paper finds they <em>suppress the component of the middle‑layer update that points along</em> <span class="r">r̂</span><sup class="ref"><a href="#r2">2</a></sup> — a mechanical clamp that keeps the state in the “helpful” zone. Which brings us to the uncomfortable question the next paper answers: if an attack only flattens the <span class="r">refusal</span> reflex, does the model still <span class="h">know</span> the request was dangerous?</p>
+    </div>
+  </div>
+</div>
+</section>
+<!-- =================== 5. BEYOND 3D =================== -->
+<section class="section" id="dims">
+<div class="wrap">
+  <div class="sec-head">
+    <span class="sec-n">05 — what the ball hides</span>
+    <h2>Three axes for a thousand‑dimensional idea</h2>
+    <p class="intro">Everything above lives in a 3D ball because that is what a screen can show. But the model works in 4,096 dimensions (Llama‑2) or more. Two facts about high‑dimensional space do most of the explaining — and both are impossible to feel in 3D. This panel is the one that tries to make them felt.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-grid">
+      <div class="lab-stage svgstage">
+        <div class="svgscroll"><svg id="dimSvg" viewBox="0 0 640 420" aria-label="Histogram of cosine similarity between random vectors, sharpening toward zero as the number of dimensions grows."></svg></div>
+        <div class="swipe">swipe sideways to see the whole chart</div>
+        <div class="stage-read" id="dimRead"></div>
+      </div>
+      <div class="lab-side">
+        <div class="ctl">
+          <label>Dimensions <b id="dimNLbl">3</b></label>
+          <input type="range" id="dimN" min="0" max="5" value="1" step="1">
+          <div class="note" id="dimNNote"></div>
+        </div>
+        <div class="divider"></div>
+        <div class="kv"><span>spread of cos (≈ 1/√d)</span><b id="dimCos">—</b></div>
+        <div class="kv"><span>pairs within 6° of 90°</span><b id="dimSlots">—</b></div>
+        <p class="note">Draw two random directions and measure the angle between them. In 3D they’re often quite oblique. Crank the dimension up and the histogram collapses onto 90°: in high dimensions, <strong>almost every pair of directions is almost perpendicular</strong>. The ember lines are the <em>measured</em> ĥ·r̂ cosines: at <span class="mono">d</span> = 4,096 every one of them sits far outside the random bump — the two safety directions are related, just not parallel.</p>
+      </div>
+    </div>
+    <div class="leg">
+      <span>cosine ≈ 0 means a 90° angle</span>
+      <span>width of the bump ≈ 1⁄√d</span>
+      <span><i class="ln" style="background:var(--harm)"></i> measured ĥ·r̂ cosines ✓</span>
+    </div>
+  </div>
+
+  <div class="prose">
+    <h3>Fact one: perpendicular is the default</h3>
+    <p>Pick two random directions in <span class="mono">d</span> dimensions. Their cosine similarity is centred on zero with standard deviation ≈ <span class="mono">1/√d</span>. In 3D that spread is wide (±0.58), so “perpendicular” feels special. In 4,096D the spread is ±0.016 — so unless two directions were <em>built</em> to align, they are near‑orthogonal by default. Orthogonality isn’t a delicate property the safety axes happen to have; it’s what you get for free.</p>
+    <h3>Fact two: there’s room for far more than <span class="mono">d</span> ideas</h3>
+    <p>If you relax “exactly perpendicular” to “almost perpendicular,” the number of directions you can fit grows <strong>exponentially</strong> with <span class="mono">d</span>, not linearly (Johnson–Lindenstrauss). Models exploit this: the “superposition” work on toy models<sup class="ref"><a href="#r6">6</a></sup> shows networks storing many more features than they have neurons, each as its own nearly‑orthogonal direction. Refusal and harmfulness are just two tenants in a very crowded building.</p>
+
+    <div class="aside">
+      <h4>So what, exactly, is the 3D globe lying about?</h4>
+      <p>It has to <em>merge axes that are genuinely separate</em>. In the real model, “is this harmful,” “should I refuse,” “what concept is this,” and “which language” each get their own direction, all mutually near‑orthogonal. The ball has three axes to spend, so it stacks meanings: the south–north axis stands for both “how far through the network” and “how unlike any output token,” the equator must hold every output token in every language on one circle, and the climb from input to concepts has to sneak across that circle at a spot where no token sits. When two things look like they share an axis in the cartoon, that is almost always the cartoon running out of room, not the model. Read the globe for <em>motion and sequence</em>; trust the measured cosines for <em>independence</em>.</p>
+    </div>
+
+    <h3>The other quiet simplification: the sphere itself</h3>
+    <p>RMSNorm only puts the <em>input to each sub‑layer</em> on the sphere. The residual stream that actually carries information between layers drifts off it and grows in length with depth<sup class="ref"><a href="#r4">4</a></sup>. Drawing everything at unit radius is what lets us compare layers on one picture — but it hides that later layers are writing with a much louder voice. A faithful picture would be less a billiard ball and more an onion whose skin we keep re‑inflating to the same size at every step.</p>
+  </div>
+</div>
+</section>
+
+<!-- =================== 6. LANGUAGES =================== -->
+<section class="section" id="lang">
+<div class="wrap">
+  <div class="sec-head">
+    <span class="sec-n">06 — the cross‑lingual question</span>
+    <h2>Does one language’s refusal cover the others?</h2>
+    <p class="intro">Translate a harmful request into a low‑resource language and safety training often stops working.<sup class="ref"><a href="#r9">9</a>,<a href="#r10">10</a></sup> The geometric question is <em>why</em>: is there one shared refusal direction that these prompts fail to trigger, or does each language get its own? A 2026 study estimated the direction separately in ten languages and released every number.<sup class="ref"><a href="#r7">7</a></sup> Read them directly.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-grid">
+      <div class="lab-stage svgstage">
+        <div class="svgscroll"><svg id="langSvg" viewBox="0 0 640 420" aria-label="Per-language data from Zhang 2026: refusal-direction alignment matrix, baseline refusal rates, and the effect of removing or adding the English refusal direction."></svg></div>
+        <div class="swipe">swipe sideways to see the whole chart</div>
+        <div class="stage-read" id="langRead">hover a cell or bar</div>
+      </div>
+      <div class="lab-side">
+        <div class="ctl">
+          <label>Model</label>
+          <div class="seg" id="langModel">
+            <button data-m="qwen" class="on">Qwen2.5‑7B</button>
+            <button data-m="llama">Llama‑3.2‑3B</button>
+          </div>
+        </div>
+        <div class="ctl">
+          <label>Show</label>
+          <div class="chipset" id="langView">
+            <button class="chip on" data-v="base">refusal rate</button>
+            <button class="chip" data-v="remove">remove English r̂</button>
+            <button class="chip" data-v="add">add English r̂</button>
+            <button class="chip" data-v="cos">alignment</button>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div id="langExplain" style="font-size:13.5px;line-height:1.55"></div>
+        <p class="note">All values from the study’s released <code>steering_transfer.csv</code> and <code>cosine_matrix_*.csv</code> <span class="verified">✓ measured</span>. Languages are grouped by resource tier: high (zh, it, vi), medium (ar, ko, th), low (bn, sw, jv).</p>
+      </div>
+    </div>
+    <div class="leg">
+      <span><i style="background:var(--ink)"></i> English</span>
+      <span><i style="background:var(--refuse)"></i> high‑resource</span>
+      <span><i style="background:var(--concept)"></i> medium</span>
+      <span><i style="background:var(--harm)"></i> low‑resource</span>
+      <span><i style="background:transparent;border:1.5px solid var(--ink2)"></i> language’s own direction</span>
+    </div>
+  </div>
+
+  <div class="prose">
+    <h3>What the numbers say</h3>
+    <ul>
+      <li><strong>The low‑resource gap is real and large.</strong> On the same set of harmful prompts, Qwen2.5‑7B refuses <strong>80%</strong> in English but only <strong>6%</strong> in Swahili, 30% in Bengali, 38% in Javanese. Llama‑3.2‑3B: 72% English, 26% Swahili, 31% Bengali.</li>
+      <li><strong>In the middle layers, the English direction largely <em>is</em> the refusal direction.</strong> In Qwen at layer 16, ablating the <em>English</em> r̂ cuts refusal in Chinese, Italian, Vietnamese, Arabic, Korean and Thai by 48–60 points — about as much as each language’s own direction does. In Llama at layer 13, <em>adding</em> the English r̂ (α = 1) to harmless prompts raises refusal by 62–92 points in six of the nine other languages.</li>
+      <li><strong>English is a strong lever, but not the centre.</strong> Added in Llama, the English direction raises refusal more than most languages’ <em>own</em> directions do (Chinese +62 vs +29). Yet the nine other languages’ directions agree with each other at ≈ 0.9 and with English at only 0.64–0.82. A shared refusal subspace exists; English sits slightly off to one side of it.</li>
+      <li><strong>It frays where resources are thin.</strong> Low‑resource prompts start with far less refusal to remove — Qwen’s Swahili has 6% to begin with, so ablation has nothing to act on. Where there is refusal, removal still transfers (Qwen Bengali: −20 of 30 points, the same as its own direction). Induction is weaker: adding the English r̂ in Llama moves Bengali by only +3 points — and Bengali’s <em>own</em> direction does no better. Swahili and Javanese also have the least‑aligned per‑language directions of all ten.</li>
+    </ul>
+    <h3>Why the study’s headline says the opposite</h3>
+    <p>The paper’s pre‑registered verdict is “no shared subspace” for Qwen (median cosine 0.38) and “English transfers to 0 of 9 languages” for both models. Both come from choices made before any data was seen, and the author’s own deviation log explains what went wrong. The rule that picked the layer landed on Qwen’s <em>final</em> block — the end of a plateau where twelve layers were tied — and there nothing works, not even English (ablation −1 point). At layer 19 the same median cosine is <strong>0.93</strong>.<sup class="ref"><a href="#r7">7</a></sup> And “transfer” required ablation <em>and</em> addition to both exceed 20 points at α = 1, where addition is weak even in English (+7 in Qwen). The pre‑registration did its job — it stopped the author from cherry‑picking — but its verdict and its data point in different directions. The data is the better guide.</p>
+    <h3>So is the simple story right?</h3>
+    <p>Mostly, with an important gap. “Refusal is mediated by a direction largely shared across languages, and low‑resource prompts fail to trigger it” fits these numbers well for high‑ and medium‑resource languages, and agrees with an earlier report that the refusal direction is universal across safety‑aligned languages.<sup class="ref"><a href="#r11">11</a></sup> What is <em>not</em> established is the mechanism of the miss. The playground below shows one candidate.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-grid">
+      <div class="lab-stage svgstage">
+        <div class="svgscroll"><svg id="lateSvg" viewBox="0 0 640 300" aria-label="Toy timeline: more sub-word pieces per word delay when the concept is assembled, possibly past the layers where the refusal update is written."></svg></div>
+        <div class="swipe">swipe sideways to see the whole chart</div>
+        <div class="stage-tag">hypothesis · toy numbers, not measured</div>
+      </div>
+      <div class="lab-side">
+        <div class="ctl">
+          <label>Sub‑word pieces per word <b id="lateNLbl">1.3</b></label>
+          <input type="range" id="lateN" min="10" max="50" value="13" step="1">
+          <div class="note">English ≈ 1.3 in Llama‑style tokenizers; many low‑resource languages run 2–5× higher.<sup class="ref"><a href="#r12">12</a></sup></div>
+        </div>
+        <div class="divider"></div>
+        <div class="kv"><span>concept assembled by</span><b id="lateReady">layer 7</b></div>
+        <div class="kv"><span>refusal update window</span><b>layers 10–18</b></div>
+        <div class="kv"><span>overlap</span><b id="lateOverlap">full</b></div>
+        <p class="note">The <em>late‑arrival</em> idea: gluing more pieces into one word costs early layers,<sup class="ref"><a href="#r13">13</a></sup> so the harm signal may form after the window where the refusal push is written. Plausible, consistent with the gap above — and <strong>untested</strong>. A per‑layer harmfulness probe at <span class="mono">t_inst</span>, run per language, would confirm or kill it.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+<!-- =================== 7. THE MAP =================== -->
+<section class="section" id="map">
+<div class="wrap">
+  <div class="sec-head">
+    <span class="sec-n">07 — the whole thing on one page</span>
+    <h2>How the pieces connect</h2>
+    <p class="intro">One diagram tying the three strands together: where each direction lives, which paper found it, and how an attack and a defence act on the same geometry. Hover a node for the one‑line version.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-stage svgstage" style="min-height:0;border-right:none">
+      <div class="svgscroll"><svg id="mapSvg" viewBox="0 0 960 440" style="height:auto" aria-label="A concept map linking input space, concept space, the harmfulness direction at t_inst, the refusal direction at t_post-inst, and the interventions that act on each."></svg></div>
+        <div class="swipe">swipe sideways to see the whole chart</div>
+      <div class="stage-read" id="mapRead" style="max-width:240px;white-space:normal;top:auto;bottom:10px">hover a node</div>
+    </div>
+  </div>
+
+  <div class="prose" style="margin-top:28px">
+    <h3>The argument in five sentences</h3>
+    <p>A transformer carries one vector per token up through its layers, from <span class="isp">input space</span> into a shared <span class="csp">concept space</span>.<sup class="ref"><a href="#r1">1</a></sup> In that middle region, refusal behaviour is governed by a single direction <span class="r">r̂</span> you can extract by subtracting mean activations — and remove, add, or edit out of the weights.<sup class="ref"><a href="#r2">2</a></sup> But the model’s <em>judgment</em> of harm is a separate, roughly‑orthogonal direction <span class="h">ĥ</span> at an earlier token, so attacks that flatten <span class="r">r̂</span> often leave <span class="h">ĥ</span> intact — which is exactly what lets the model’s own harmfulness signal serve as a tamper‑resistant “latent guard.”<sup class="ref"><a href="#r3">3</a></sup> None of this requires a special claim about high dimensions; near‑orthogonality is the default there, which is also why the 3D globe must merge axes the real model keeps apart.<sup class="ref"><a href="#r6">6</a></sup> And the cross‑lingual corollary — one English refusal direction shared by every language — largely holds in the middle layers, but frays exactly where low‑resource jailbreaks live.<sup class="ref"><a href="#r7">7</a></sup></p>
+    <div class="aside ok">
+      <h4>The payoff: Latent Guard</h4>
+      <p>If the belief <span class="h">ĥ</span> survives the attacks that break the reflex <span class="r">r̂</span>, you can build a classifier that reads <span class="h">ĥ</span> directly instead of trusting the model’s output. Zhao et al. report it beats a dedicated guard model on persuasion‑style jailbreaks (75% vs 17.8% on Qwen2) and stays accurate even after a model is fine‑tuned to comply with harmful requests<sup class="ref"><a href="#r3">3</a></sup> — because fine‑tuning the <em>behaviour</em> doesn’t move the <em>belief</em>. The separation of the two axes isn’t just tidy; it’s the whole security argument.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="section" id="check">
+<div class="wrap">
+  <div class="sec-head">
+    <span class="sec-n">08 — claims, checked</span>
+    <h2>Common claims, checked against the sources</h2>
+    <p class="intro">These papers travel as a handful of memorable one‑liners. Most of them hold up. Here is each one next to what the papers, their code and their released data actually show.</p>
+  </div>
+  <div class="scrollx">
+  <table class="tbl check">
+    <thead><tr><th style="width:34%">The claim</th><th style="width:13%">Verdict</th><th>What the sources show</th></tr></thead>
+    <tbody>
+      <tr><td>The residual stream lives on a sphere: RMSNorm rescales it before every layer, so an update “pokes out” and is pulled back.</td><td><span class="vd simp">simplified</span></td><td>RMSNorm normalises the <em>copy</em> each sub‑layer reads. The stored stream is never renormalised and grows ~40× in norm (Qwen2‑7B, <span class="mono">t_inst</span>: ≈7 → 271) <span class="verified">✓</span>. A learned per‑dimension gain also makes it an ellipsoid, not a sphere.<sup class="ref"><a href="#r4">4</a>,<a href="#r5">5</a></sup></td></tr>
+      <tr><td>Tokens start in a southern input region, climb to a northern concept dome, and finish on the equator.</td><td><span class="vd simp">a drawing</span></td><td>A fair cartoon of the three phases Wendler et al. measure.<sup class="ref"><a href="#r1">1</a></sup> Their own sketch starts the state at a pole above the token plane instead; the exact latitudes are arbitrary. On a ball, a south‑to‑north climb must cross the equator where tokens sit, so the crossing has to happen where no token is (section 01). In thousands of dimensions no crossing is needed.</td></tr>
+      <tr><td>Refusal in 13 chat models is controlled by a single direction r̂.</td><td><span class="vd hold">holds</span></td><td>Shown for 13 open models up to 72B.<sup class="ref"><a href="#r2">2</a></sup> Later work argues some models use a multi‑dimensional “cone” of refusal directions, so “single” is the simplest sufficient model, not the whole story.<sup class="ref"><a href="#r15">15</a></sup></td></tr>
+      <tr><td>The direction is found by subtracting the mean activation of 100 harmless prompts from 100 harmful ones.</td><td><span class="vd simp">minor fix</span></td><td>128 per class for extraction, 32 for validation (100 is the test set) <span class="verified">✓</span>. It is done at every post‑instruction position × layer; only 5 of 192 candidates pass the filters for Llama‑2 <span class="verified">✓</span>.</td></tr>
+      
+      <tr><td>Directional ablation makes the model answer harmful prompts without losing capability.</td><td><span class="vd hold">holds</span></td><td>Llama‑2: bypass 5% → 81% (Llama Guard 2), Pile loss 2.220 → 2.214 <span class="verified">✓</span>. Same pattern in all five released runs.</td></tr>
+      <tr><td>Weight orthogonalisation jailbreaks permanently, in one matrix multiplication.</td><td><span class="vd hold">holds</span></td><td>One projection, applied once to the embedding, every attention output and every MLP down‑projection <span class="verified">✓</span>. “One operation, many matrices” is the precise version.</td></tr>
+      <tr><td>Adversarial (GCG) suffixes work by jamming the middle‑layer push along r̂.</td><td><span class="vd hold">holds</span></td><td>The paper’s mechanistic analysis finds suffixes suppress the refusal direction’s expression by hijacking the attention of the heads that write it.<sup class="ref"><a href="#r2">2</a>,<a href="#r14">14</a></sup></td></tr>
+      <tr><td>Harmfulness ĥ and refusal r̂ are two orthogonal (90°) axes.</td><td><span class="vd over">overstated</span></td><td>Distinct, but not exactly perpendicular: cos 0.00–0.14 in Qwen2‑7B (≈82–90°); 0.16 in Llama‑2; 0.44 in Llama‑3 (≈64°) <span class="verified">✓</span>.</td></tr>
+      <tr><td>ĥ lives at the last instruction token, r̂ at the post‑instruction tokens.</td><td><span class="vd hold">holds</span></td><td>Exactly the paper’s <span class="mono">t_inst</span> / <span class="mono">t_post‑inst</span> split; clustering follows harmfulness at the first, behaviour at the second.<sup class="ref"><a href="#r3">3</a></sup></td></tr>
+      <tr><td>Steering +ĥ flips “No” to “Certainly”; +r̂ forces refusal without changing the belief.</td><td><span class="vd hold">holds</span></td><td>The reply‑inversion result. The authors call it “a proof of existence” and note models sometimes ignore the inversion question.<sup class="ref"><a href="#r3">3</a></sup></td></tr>
+      <tr><td>Jailbreaks suppress r̂ while leaving ĥ completely intact.</td><td><span class="vd over">overstated</span></td><td><em>Some</em> jailbreak methods reduce refusal “without radically suppressing” the harm belief — not all, and not with zero effect.<sup class="ref"><a href="#r3">3</a></sup> Adversarial fine‑tuning leaves ĥ largely unchanged.</td></tr>
+      <tr><td>Latent Guard is an unbreakable intrinsic safeguard.</td><td><span class="vd over">overstated</span></td><td>“Competitive with, and in some cases outperforms” Llama Guard 3 8B; robust to fine‑tuning attacks; 75% vs 17.8% on Qwen2 persuasion prompts.<sup class="ref"><a href="#r3">3</a></sup> No claim of unbreakability.</td></tr>
+      <tr><td>Low‑resource prompts slip past because their meaning forms too late, after the layers that write refusal.</td><td><span class="vd hyp">hypothesis</span></td><td>Untested. Selected refusal layers vary by model (10–20) <span class="verified">✓</span>, and ablation acts at every layer, so the “window” is soft. Plausible given tokenization costs;<sup class="ref"><a href="#r12">12</a>,<a href="#r13">13</a></sup> needs a per‑language, per‑layer probe.</td></tr>
+      <tr><td>One refusal direction is shared across languages: the English r̂ controls refusal in other languages too.</td><td><span class="vd hold">largely holds</span></td><td>At middle layers, removing or adding the English direction moves refusal in most of nine other languages by 48–92 points <span class="verified">✓</span>; weaker for low‑resource languages. The study’s pre‑registered headline says otherwise, for reasons explained in section 06.<sup class="ref"><a href="#r7">7</a>,<a href="#r11">11</a></sup></td></tr>
+      <tr><td>Steer too hard along a direction and the output turns to gibberish.</td><td><span class="vd simp">simplified</span></td><td>Steering does cost fluency: even α = 1 raises Llama‑2’s Pile loss 2.220 → 2.340 <span class="verified">✓</span>. Geometrically, a large added vector swamps the direction that carries the content, so the next layers read mostly the steering vector.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+</section>
+
+<section class="refs" id="refs">
+<div class="wrap">
+  <h2 style="font-size:22px;margin-bottom:6px">References</h2>
+  <p class="lead-in" style="margin-bottom:14px">Every value marked <span class="verified">✓ measured</span> was read or computed from the authors’ released code, tensors or result files [2, 3, 7]. Sphere positions, paths and anything unmarked are teaching stand‑ins built from the papers’ qualitative claims. References tagged <span class="memo">cited from memory</span> could not be checked against a source while building this page; verify details before citing them.</p>
+  <ol>
+    <li id="r1">Chris Wendler, Veniamin Veselovsky, Giovanni Monea, Robert West. <em>Do Llamas Work in English? On the Latent Language of Multilingual Transformers.</em> ACL 2024. <a href="https://arxiv.org/abs/2402.10588">arXiv:2402.10588</a>. Code: <a href="https://github.com/epfl-dlab/llm-latent-language">epfl‑dlab/llm‑latent‑language</a>.</li>
+    <li id="r2">Andy Arditi, Oscar Obeso, Aaquib Syed, Daniel Paleka, Nina Panickssery, Wes Gurnee, Neel Nanda. <em>Refusal in Language Models Is Mediated by a Single Direction.</em> NeurIPS 2024. <a href="https://arxiv.org/abs/2406.11717">arXiv:2406.11717</a>. Code, released directions and scores: <a href="https://github.com/andyrdt/refusal_direction">andyrdt/refusal_direction</a>.</li>
+    <li id="r3">Jiachen Zhao, Jing Huang, Zhengxuan Wu, David Bau, Weiyan Shi. <em>LLMs Encode Harmfulness and Refusal Separately.</em> 2025. <a href="https://arxiv.org/abs/2507.11878">arXiv:2507.11878</a>. Code and released tensors: <a href="https://github.com/CHATS-lab/LLMs_Encode_Harmfulness_Refusal_Separately">CHATS‑lab/LLMs_Encode_Harmfulness_Refusal_Separately</a>.</li>
+    <li id="r4">Computed for this page from the tensors released with [3] (<code>qwen‑hf/hl/refuse/accept‑cls‑all‑layer.pt</code>, Qwen2‑7B) and [2] (<code>direction.pt</code>, <code>mean_diffs.pt</code>): centroid norms at <span class="mono">t_inst</span> and <span class="mono">t_post‑inst</span>, the ĥ·r̂ cosines, and the cross‑paper cosines.</li>
+    <li id="r5">Biao Zhang, Rico Sennrich. <em>Root Mean Square Layer Normalization.</em> NeurIPS 2019. <a href="https://arxiv.org/abs/1910.07467">arXiv:1910.07467</a>.</li>
+    <li id="r6">Nelson Elhage, Tristan Hume, Catherine Olsson, et al. <em>Toy Models of Superposition.</em> Transformer Circuits Thread, 2022. <a href="https://transformer-circuits.pub/2022/toy_model/index.html">transformer‑circuits.pub</a>.</li>
+    <li id="r7">Ruiyang Zhang. <em>Does Safety Live in a Shared Multilingual Subspace? Cross‑Lingual (Non‑)Transfer of the Refusal Direction.</em> MRL 2026 workshop (provisional citation). Code, pre‑registration, deviation log and results: <a href="https://github.com/ryonzhang/refusal-direction-multilingual">ryonzhang/refusal‑direction‑multilingual</a>.</li>
+    <li id="r8">Clément Dumas, Chris Wendler, Veniamin Veselovsky, Giovanni Monea, Robert West. <em>Separating Tongue from Thought: Activation Patching Reveals Language‑Agnostic Concept Representations in Transformers.</em> ACL 2025. <a href="https://arxiv.org/abs/2411.08745">arXiv:2411.08745</a>.</li>
+    <li id="r9">Zheng‑Xin Yong, Cristina Menghini, Stephen H. Bach. <em>Low‑Resource Languages Jailbreak GPT‑4.</em> 2023. arXiv:2310.02446. <span class="memo">cited from memory</span></li>
+    <li id="r10">Yue Deng, Wenxuan Zhang, Sinno Jialin Pan, Lidong Bing. <em>Multilingual Jailbreak Challenges in Large Language Models.</em> ICLR 2024. (Source of the MultiJail prompts used in [7].) <span class="memo">cited from memory</span></li>
+    <li id="r11">Xinpeng Wang, Mingyang Wang, Yihong Liu, Hinrich Schütze, Barbara Plank. <em>Refusal Direction is Universal Across Safety‑Aligned Languages.</em> 2025. <span class="memo">cited from memory</span></li>
+    <li id="r12">Aleksandar Petrov, Emanuele La Malfa, Philip H. S. Torr, Adel Bibi. <em>Language Model Tokenizers Introduce Unfairness Between Languages.</em> NeurIPS 2023. <span class="memo">cited from memory</span></li>
+    <li id="r13">Guy Kaplan, Matanel Oren, Yuval Reif, Roy Schwartz. <em>From Tokens to Words: On the Inner Lexicon of LLMs.</em> ICLR 2025. <span class="memo">cited from memory</span></li>
+    <li id="r14">Andy Zou, Zifan Wang, Nicholas Carlini, Milad Nasr, J. Zico Kolter, Matt Fredrikson. <em>Universal and Transferable Adversarial Attacks on Aligned Language Models</em> (GCG). 2023. arXiv:2307.15043. <span class="memo">cited from memory</span></li>
+    <li id="r15">Tom Wollschläger, Jannes Elstner, Simon Geisler, Vincent Cohen‑Addad, Stephan Günnemann, Johannes Gasteiger. <em>The Geometry of Refusal in Large Language Models: Concept Cones and Representational Independence.</em> ICML 2025. <span class="memo">cited from memory</span></li>
+  </ol>
+  <p class="footer-note">A follow‑up to <a href="https://paudelnirajan.github.io/posts/token-concept-visualization/">“Do Llamas think in English?”</a>. The geometry here is a teaching instrument: it makes the papers’ claims checkable and falsifiable, and does not stand in for running the models yourself. Where a newer result complicates an older intuition, as in section 06, both are shown and labelled.</p>
+</div>
+</section>
+</main>
+<script>
+/* ============ real measured data (from authors' repos) ============ */
+const REAL={"l2grid":[[-6,0,5.379,-12.631,0.0234],[-6,1,2.641,-6.548,0.3158],[-6,2,-9.254,-8.674,10.1837],[-6,3,-9.239,-8.678,9.9203],[-6,4,-9.205,-8.689,9.7793],[-6,5,-9.012,-8.712,10.0625],[-6,6,-9.0,-8.721,10.1567],[-6,7,-8.936,-8.727,10.1395],[-6,8,-8.923,-8.722,10.151],[-6,9,-8.932,-8.728,10.2289],[-6,10,-8.964,-8.719,10.2611],[-6,11,-9.002,-8.732,10.2348],[-6,12,-8.964,-8.746,10.2394],[-6,13,-8.98,-8.76,10.1858],[-6,14,-8.948,-8.756,10.0706],[-6,15,-8.974,-8.747,10.028],[-6,16,-8.92,-8.761,9.9681],[-6,17,-9.167,-8.725,9.9326],[-6,18,-9.215,-8.723,9.9604],[-6,19,-9.168,-8.732,10.0094],[-6,20,-9.304,-8.71,10.042],[-6,21,-9.329,-8.708,10.0214],[-6,22,-9.378,-8.754,10.059],[-6,23,-9.327,-8.805,9.9435],[-6,24,-9.348,-8.83,9.9471],[-6,25,-9.337,-8.876,9.9651],[-6,26,-9.438,-8.924,9.9249],[-6,27,-9.454,-8.9,9.8792],[-6,28,-9.427,-8.865,9.826],[-6,29,-9.547,-8.739,9.9001],[-6,30,NaN,-8.505,NaN],[-6,31,NaN,-9.54,NaN],[-5,0,5.328,-13.16,0.0],[-5,1,5.263,-13.1,0.0279],[-5,2,5.256,-12.673,0.0244],[-5,3,5.416,-12.597,0.0083],[-5,4,5.371,-12.718,0.0119],[-5,5,4.871,-12.757,0.0191],[-5,6,3.92,-11.299,0.0274],[-5,7,2.08,-5.461,0.0597],[-5,8,-1.166,1.45,0.1389],[-5,9,-3.887,3.954,0.2242],[-5,10,-5.265,5.529,0.1494],[-5,11,-5.103,6.024,0.1316],[-5,12,-7.969,5.209,0.1626],[-5,13,-7.753,5.292,0.1857],[-5,14,-6.659,4.421,0.1249],[-5,15,-4.673,3.584,0.1015],[-5,16,-3.704,1.249,0.1107],[-5,17,-1.863,-4.295,0.0555],[-5,18,0.668,-4.885,0.055],[-5,19,2.033,-6.963,0.0703],[-5,20,2.406,-7.832,0.0685],[-5,21,2.613,-8.246,0.0588],[-5,22,3.2,-9.598,0.1037],[-5,23,3.611,-9.673,0.1548],[-5,24,3.736,-9.821,0.085],[-5,25,4.426,-10.082,0.1854],[-5,26,4.462,-10.249,0.2223],[-5,27,4.382,-10.589,0.1613],[-5,28,4.431,-11.053,0.1807],[-5,29,4.413,-11.937,0.1875],[-5,30,4.684,-12.159,0.2039],[-5,31,4.854,-11.97,0.202],[-4,0,5.328,-13.16,0.0],[-4,1,5.582,-13.144,0.0204],[-4,2,5.196,-13.03,0.0759],[-4,3,5.221,-13.018,0.0569],[-4,4,4.506,-13.003,0.1717],[-4,5,4.052,-12.856,0.1635],[-4,6,2.816,-11.797,0.1969],[-4,7,0.315,-11.308,0.222],[-4,8,-3.32,-5.169,0.3239],[-4,9,-5.847,1.705,0.451],[-4,10,-7.964,5.451,0.2456],[-4,11,-9.027,5.188,0.2618],[-4,12,-7.922,4.611,0.2058],[-4,13,-7.155,4.352,0.2099],[-4,14,-6.506,3.687,0.126],[-4,15,-4.271,3.389,0.0946],[-4,16,-2.477,3.012,0.0772],[-4,17,-0.922,-1.93,0.0926],[-4,18,1.098,-3.487,0.1246],[-4,19,1.796,-5.956,0.0854],[-4,20,1.783,-6.815,0.0405],[-4,21,1.37,-6.574,0.0421],[-4,22,1.933,-8.139,0.0412],[-4,23,2.64,-8.503,0.0251],[-4,24,2.906,-8.704,0.0246],[-4,25,3.111,-8.769,0.0225],[-4,26,3.666,-9.266,0.0314],[-4,27,3.643,-10.381,0.0309],[-4,28,3.695,-10.763,0.0347],[-4,29,3.848,-11.034,0.0251],[-4,30,3.968,-11.488,0.0253],[-4,31,4.209,-11.397,0.0533],[-3,0,5.328,-13.16,0.0],[-3,1,5.358,-13.145,0.0256],[-3,2,4.405,-13.061,0.0517],[-3,3,4.807,-13.072,0.0526],[-3,4,3.922,-13.122,0.17],[-3,5,3.034,-12.98,0.0674],[-3,6,2.569,-12.24,0.0464],[-3,7,-2.475,-9.758,0.091],[-3,8,-3.505,-4.605,0.2074],[-3,9,-3.719,0.677,0.2171],[-3,10,-3.258,1.047,0.2008],[-3,11,-2.258,1.556,0.1075],[-3,12,-1.804,-0.124,0.0959],[-3,13,-0.896,-1.078,0.0923],[-3,14,-2.472,-5.273,0.1783],[-3,15,-2.263,-6.197,0.1618],[-3,16,-0.544,-7.462,0.2243],[-3,17,-0.532,-8.676,0.1829],[-3,18,0.866,-8.646,0.159],[-3,19,0.705,-9.11,0.2066],[-3,20,0.261,-9.437,0.2157],[-3,21,-0.521,-10.28,0.2171],[-3,22,-0.018,-10.801,0.2256],[-3,23,0.822,-10.758,0.2263],[-3,24,0.525,-10.904,0.2344],[-3,25,1.193,-10.912,0.1994],[-3,26,1.687,-11.001,0.2082],[-3,27,2.228,-11.231,0.2271],[-3,28,2.737,-11.539,0.1908],[-3,29,3.503,-11.739,0.1367],[-3,30,4.137,-11.298,0.1516],[-3,31,3.906,-11.415,0.0492],[-2,0,5.328,-13.16,0.0],[-2,1,5.493,-13.134,0.0288],[-2,2,4.517,-13.066,0.0554],[-2,3,4.603,-13.028,0.0079],[-2,4,4.628,-13.017,0.0531],[-2,5,4.652,-12.925,0.0737],[-2,6,4.317,-12.56,0.0797],[-2,7,2.171,-12.465,0.2083],[-2,8,-0.645,-12.224,0.3297],[-2,9,-2.805,-10.47,0.4406],[-2,10,-8.116,3.064,0.252],[-2,11,-10.573,4.036,0.1872],[-2,12,-8.46,3.943,0.1536],[-2,13,-3.976,5.824,0.0869],[-2,14,-3.266,6.202,0.0669],[-2,15,0.742,5.379,0.2849],[-2,16,1.003,5.928,0.4713],[-2,17,1.25,5.205,0.7084],[-2,18,1.661,5.479,0.8784],[-2,19,1.595,5.063,0.9298],[-2,20,1.293,4.805,0.9504],[-2,21,-0.022,4.737,0.7144],[-2,22,-1.253,4.289,0.6654],[-2,23,-0.309,3.699,1.0286],[-2,24,0.111,3.568,0.9197],[-2,25,0.543,3.272,0.8483],[-2,26,0.671,2.761,0.7276],[-2,27,1.196,2.172,0.7128],[-2,28,0.811,-0.72,0.5623],[-2,29,1.133,-0.781,0.4667],[-2,30,1.445,-0.72,0.3288],[-2,31,1.405,-2.2,0.1786],[-1,0,5.328,-13.16,0.0],[-1,1,5.491,-13.125,0.1844],[-1,2,3.703,-13.071,0.0828],[-1,3,4.383,-13.075,0.0367],[-1,4,4.457,-13.125,0.2093],[-1,5,5.178,-13.059,0.1677],[-1,6,3.165,-12.57,0.2198],[-1,7,0.309,-12.445,0.4329],[-1,8,-3.799,-11.582,0.401],[-1,9,-5.336,-10.386,0.6347],[-1,10,-7.059,2.622,0.2947],[-1,11,-8.638,2.954,0.1896],[-1,12,-8.704,3.293,0.1871],[-1,13,-5.958,3.963,0.132],[-1,14,-5.617,5.986,0.0712],[-1,15,0.725,5.238,0.1969],[-1,16,0.654,5.734,0.2533],[-1,17,1.156,4.671,0.3624],[-1,18,1.675,4.794,0.5134],[-1,19,1.659,4.361,0.6473],[-1,20,1.37,3.812,0.55],[-1,21,-0.139,4.207,0.4521],[-1,22,-1.67,4.07,0.4299],[-1,23,-0.671,2.969,0.7067],[-1,24,-0.283,3.059,0.714],[-1,25,0.196,2.789,0.7856],[-1,26,0.501,2.268,0.6387],[-1,27,0.712,2.199,0.8461],[-1,28,-1.679,1.952,0.6057],[-1,29,-1.738,2.075,0.5371],[-1,30,-1.344,2.008,0.5374],[-1,31,-1.69,2.14,0.4215]],"l2cos":[[-0.031,-0.007,-0.019,-0.019,-0.019,-0.019,-0.019,-0.019,-0.019,-0.018,-0.018,-0.018,-0.018,-0.017,-0.017,-0.017,-0.017,-0.017,-0.017,-0.017,-0.017,-0.017,-0.017,-0.017,-0.017,-0.017,-0.016,-0.016,-0.016,-0.016,-0.017,0.027],[0.051,0.005,0.025,0.026,0.019,0.058,0.098,0.125,0.156,0.174,0.257,0.292,0.352,0.405,0.539,0.515,0.508,0.483,0.445,0.406,0.384,0.36,0.338,0.317,0.3,0.279,0.264,0.257,0.242,0.233,0.226,0.211],[-0.007,0.018,0.029,0.034,0.031,0.057,0.102,0.157,0.181,0.194,0.298,0.354,0.399,0.447,0.641,0.612,0.58,0.545,0.492,0.428,0.404,0.39,0.358,0.334,0.313,0.298,0.282,0.268,0.255,0.239,0.23,0.213],[0.022,0.021,0.03,0.069,0.072,0.11,0.126,0.145,0.125,0.114,0.159,0.206,0.225,0.257,0.294,0.257,0.204,0.189,0.165,0.157,0.149,0.144,0.132,0.133,0.127,0.121,0.122,0.117,0.122,0.12,0.117,0.114],[0.023,0.008,0.042,0.059,0.041,0.068,0.112,0.157,0.178,0.205,0.358,0.475,0.558,0.657,0.869,0.744,0.649,0.609,0.556,0.518,0.485,0.44,0.395,0.348,0.326,0.309,0.293,0.276,0.262,0.248,0.239,0.223],[-0.021,0.013,0.054,0.074,0.069,0.09,0.135,0.191,0.218,0.24,0.379,0.482,0.592,0.747,1.0,0.776,0.623,0.585,0.515,0.48,0.449,0.414,0.359,0.324,0.3,0.287,0.265,0.254,0.238,0.227,0.222,0.211]],"l2norm":[[0.25,2.88,1323.24,1325.56,1325.5,1331.22,1331.05,1330.94,1330.86,1330.68,1330.6,1330.48,1330.45,1330.42,1329.89,1330.0,1329.59,1331.23,1331.25,1331.01,1330.52,1330.4,1330.21,1330.2,1329.99,1329.59,1329.94,1329.9,1329.38,1329.44,1311.66,111.28],[0.0,0.21,0.79,1.16,1.43,2.27,2.99,3.91,4.57,5.87,7.76,8.46,9.74,10.27,11.35,12.43,13.26,13.99,14.42,15.23,16.35,17.0,18.2,19.72,20.49,22.06,23.3,24.24,25.51,27.39,29.16,31.24],[0.0,0.17,0.41,0.62,0.86,1.22,2.17,2.81,3.64,4.77,7.98,9.0,9.55,9.86,11.14,11.97,13.6,14.65,15.19,16.99,18.36,19.55,21.43,23.46,25.0,26.74,28.16,29.91,31.64,33.36,35.25,37.19],[0.0,0.11,0.28,0.44,0.51,0.96,1.83,3.42,4.21,5.01,6.3,6.72,6.91,7.08,7.84,8.61,9.47,10.61,11.05,11.71,13.08,14.33,15.19,16.22,17.0,17.66,18.3,18.94,19.55,20.3,21.24,23.99],[0.0,0.14,0.31,0.5,0.77,0.96,1.63,1.96,2.45,2.95,5.79,8.38,10.6,14.51,20.16,20.89,22.65,24.5,26.35,28.8,31.22,34.39,38.22,42.35,44.49,47.5,50.94,55.84,59.19,61.46,65.01,68.16],[0.0,0.15,0.26,0.36,0.56,0.79,1.3,1.82,2.48,2.69,5.26,6.4,7.69,9.8,16.21,17.04,20.18,22.2,24.07,26.99,29.23,32.91,39.08,43.94,46.37,49.28,54.29,60.7,67.31,70.12,73.03,78.27]],"qwenCos":[null,0.045,0.066,0.072,0.017,0.004,-0.008,0.008,0.018,0.034,0.009,0.019,0.02,0.025,0.073,0.087,0.125,0.131,0.133,0.136,0.133,0.108,0.115,0.107,0.091,0.088,0.084,0.075,-0.016],"qnormInst":[0.3,7.0,10.3,12.7,12.0,13.5,15.8,19.0,20.2,24.6,25.3,30.4,31.2,32.9,35.6,35.1,42.1,41.6,43.3,51.8,58.9,71.9,84.1,100.1,131.9,166.7,204.1,249.5,271.0],"qnormPost":[0.7,12.6,19.3,23.4,28.3,33.9,35.1,39.7,41.3,49.4,46.5,47.2,48.6,50.8,50.8,54.0,56.6,57.5,61.5,64.4,74.5,87.6,105.0,123.0,146.3,170.9,201.3,233.4,224.2],"cross":{"llama2":[-0.027,-0.017,-0.002,-0.01,0.011,0.039,0.061,0.06,0.06,0.072,0.091,0.116,0.135,0.142,0.16,0.145,0.131,0.131,0.112,0.114,0.111,0.108,0.103,0.103,0.093,0.091,0.089,0.081,0.073,0.063,0.068,0.069,0.041],"llama3":[0.016,0.033,0.076,0.084,0.123,0.162,0.187,0.204,0.265,0.305,0.349,0.383,0.439,0.384,0.348,0.312,0.278,0.263,0.233,0.225,0.207,0.195,0.189,0.179,0.169,0.164,0.164,0.161,0.152,0.14,0.128,0.104,0.011]},"evals":{"llama-2-7b-chat-hf":{"layer":14,"pos":-1,"jb_base_sub":0.03,"jb_base_lg":0.05,"jb_abl_sub":0.93,"jb_abl_lg":0.81,"hl_base":0.99,"hl_act":0.0,"pile_base":2.22,"pile_abl":2.214,"pile_act":2.34},"meta-llama-3-8b-instruct":{"layer":12,"pos":-5,"jb_base_sub":0.05,"jb_base_lg":0.03,"jb_abl_sub":1.0,"jb_abl_lg":0.82,"hl_base":0.99,"hl_act":0.0,"pile_base":2.348,"pile_abl":2.363,"pile_act":2.477},"gemma-2b-it":{"layer":10,"pos":-2,"jb_base_sub":0.09,"jb_base_lg":0.07,"jb_abl_sub":1.0,"jb_abl_lg":0.78,"hl_base":1.0,"hl_act":0.0,"pile_base":3.506,"pile_abl":3.503,"pile_act":3.753},"qwen-1_8b-chat":{"layer":15,"pos":-2,"jb_base_sub":0.3,"jb_base_lg":0.2,"jb_abl_sub":0.99,"jb_abl_lg":0.82,"hl_base":0.97,"hl_act":0.02,"pile_base":2.921,"pile_abl":2.933,"pile_act":3.292},"yi-6b-chat":{"layer":20,"pos":-5,"jb_base_sub":0.38,"jb_base_lg":0.25,"jb_abl_sub":0.98,"jb_abl_lg":0.79,"hl_base":0.95,"hl_act":0.12,"pile_base":2.019,"pile_abl":2.018,"pile_act":2.209}}};
+const RM = (window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches);
+
+/* ---------- theme ---------- */
+(function(){
+  const b=document.getElementById('themeBtn');
+  const sys=()=> (matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
+  let t=null;
+  function apply(){document.documentElement.setAttribute('data-theme', t||sys());window.dispatchEvent(new Event('themechange'));}
+  b.addEventListener('click',()=>{const cur=t||sys();t=(cur==='dark'?'light':'dark');apply();});
+  matchMedia('(prefers-color-scheme:dark)').addEventListener?.('change',()=>{if(!t)apply();});
+})();
+function cssv(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+
+/* ---------- tiny 3D helpers ---------- */
+function rot(p, ry, rx){ // rotate point (x,y,z) around Y then X
+  let {x,y,z}=p;
+  let cy=Math.cos(ry), sy=Math.sin(ry);
+  let x1=x*cy+z*sy, z1=-x*sy+z*cy;
+  let cx=Math.cos(rx), sx=Math.sin(rx);
+  let y1=y*cx-z1*sx, z2=y*sx+z1*cx;
+  return {x:x1,y:y1,z:z2};
+}
+function proj(p, cx, cy, R){ // simple orthographic-ish with slight perspective
+  const d=3.0; const f=d/(d - p.z*0.55);
+  return {x:cx+p.x*R*f, y:cy - p.y*R*f, z:p.z, s:f};
+}
+function setupCanvas(cv){
+  const dpr=Math.min(window.devicePixelRatio||1, 2);
+  const r=cv.getBoundingClientRect();
+  cv.width=Math.max(1,Math.round(r.width*dpr));
+  cv.height=Math.max(1,Math.round(r.height*dpr));
+  const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {ctx,w:r.width,h:r.height};
+}
+function lerp(a,b,t){return a+(b-a)*t;}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+/* a reusable draggable 3D sphere widget */
+function makeSphere(cv, draw){
+  let ry=-0.5, rx=-0.33, dragging=false, lx=0,ly=0, raf=null, dims=setupCanvas(cv);
+  function render(){ dims=dims||setupCanvas(cv); draw(dims.ctx, dims.w, dims.h, ry, rx); }
+  function schedule(){ if(raf) return; raf=requestAnimationFrame(()=>{raf=null; render();}); }
+  function onDown(e){dragging=true;cv.classList.add('drag');const p=pt(e);lx=p.x;ly=p.y;e.preventDefault();}
+  function onMove(e){if(!dragging)return;const p=pt(e);ry+=(p.x-lx)*0.01;rx=clamp(rx+(p.y-ly)*0.01,-1.4,1.4);lx=p.x;ly=p.y;schedule();}
+  function onUp(){dragging=false;cv.classList.remove('drag');}
+  function pt(e){const r=cv.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return{x:t.clientX-r.left,y:t.clientY-r.top};}
+  cv.addEventListener('mousedown',onDown);window.addEventListener('mousemove',onMove);window.addEventListener('mouseup',onUp);
+  cv.addEventListener('touchstart',onDown,{passive:false});cv.addEventListener('touchmove',onMove,{passive:false});window.addEventListener('touchend',onUp);
+  const ro=new ResizeObserver(()=>{dims=setupCanvas(cv);render();}); ro.observe(cv);
+  window.addEventListener('themechange',render);
+  return {render,schedule,get ry(){return ry;},set ry(v){ry=v;},get rx(){return rx;},set rx(v){rx=v;},get dragging(){return dragging;}};
+}
+
+/* draw the common globe scaffolding; returns helper to place a unit vector */
+function drawGlobeBase(ctx,w,h,ry,rx,opts){
+  opts=opts||{};
+  const cx=w/2, cy=h*0.5, R=Math.min(w,h)*(w<520?0.34:0.37);
+  ctx.clearRect(0,0,w,h);
+  const place=(x,y,z)=>proj(rot({x,y,z},ry,rx),cx,cy,R);
+  // sphere fill
+  const g=ctx.createRadialGradient(cx-R*0.3,cy-R*0.3,R*0.2,cx,cy,R*1.05);
+  g.addColorStop(0, cssv('--paper'));
+  g.addColorStop(1, cssv('--soft'));
+  ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.fillStyle=g;ctx.fill();
+  ctx.lineWidth=1;ctx.strokeStyle=cssv('--line2');ctx.stroke();
+  // latitude/longitude wires
+  ctx.strokeStyle=cssv('--line');ctx.lineWidth=1;
+  for(let lat=-60;lat<=60;lat+=30){
+    ctx.beginPath();let first=true;
+    for(let lon=0;lon<=360;lon+=6){
+      const la=lat*Math.PI/180, lo=lon*Math.PI/180;
+      const p=place(Math.cos(la)*Math.sin(lo),Math.sin(la),Math.cos(la)*Math.cos(lo));
+      if(p.z<-0.02 && !opts.wireAll) {first=true;continue;}
+      if(first){ctx.moveTo(p.x,p.y);first=false;}else ctx.lineTo(p.x,p.y);
+    }
+    ctx.globalAlpha=.6;ctx.stroke();ctx.globalAlpha=1;
+  }
+  for(let lon=0;lon<360;lon+=30){
+    ctx.beginPath();let first=true;
+    for(let lat=-90;lat<=90;lat+=4){
+      const la=lat*Math.PI/180, lo=lon*Math.PI/180;
+      const p=place(Math.cos(la)*Math.sin(lo),Math.sin(la),Math.cos(la)*Math.cos(lo));
+      if(p.z<-0.02){first=true;continue;}
+      if(first){ctx.moveTo(p.x,p.y);first=false;}else ctx.lineTo(p.x,p.y);
+    }
+    ctx.globalAlpha=.4;ctx.stroke();ctx.globalAlpha=1;
+  }
+  return {cx,cy,R,place};
+}
+</script>
+<script>
+/* ---------- sphere geometry shared by hero + globe ---------- */
+const D2R=Math.PI/180, R2D=180/Math.PI;
+function vll(lat,lon){const a=lat*D2R,o=lon*D2R;return [Math.cos(a)*Math.sin(o),Math.sin(a),Math.cos(a)*Math.cos(o)];}
+function vdot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
+function vnorm(a){const n=Math.hypot(a[0],a[1],a[2])||1;return [a[0]/n,a[1]/n,a[2]/n];}
+function vslerp(u,v,t){const d=clamp(vdot(u,v),-1,1),th=Math.acos(d);
+  if(th<1e-4) return vnorm([lerp(u[0],v[0],t),lerp(u[1],v[1],t),lerp(u[2],v[2],t)]);
+  const s=Math.sin(th),a=Math.sin((1-t)*th)/s,b=Math.sin(t*th)/s;return [a*u[0]+b*v[0],a*u[1]+b*v[1],a*u[2]+b*v[2]];}
+function vlat(u){return Math.asin(clamp(u[1],-1,1))*R2D;}
+function vlon(u){return Math.atan2(u[0],u[2])*R2D;}
+function easeInOut(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
+function bandFill(ctx,place,color,alpha,latMin,latMax){
+  // one filled path made of small quads -> uniform tint, no stripes
+  const path=new Path2D(), dl=3;
+  for(let lat=latMin;lat<latMax;lat+=dl){const l2=Math.min(latMax,lat+dl);
+    for(let lon=0;lon<360;lon+=6){
+      const q=[place(...vll(lat,lon)),place(...vll(lat,lon+6.4)),place(...vll(l2,lon+6.4)),place(...vll(l2,lon))];
+      if(q.some(p=>p.z<0))continue;
+      path.moveTo(q[0].x,q[0].y);path.lineTo(q[1].x,q[1].y);path.lineTo(q[2].x,q[2].y);path.lineTo(q[3].x,q[3].y);path.closePath();}}
+  ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle=color;ctx.fill(path,'nonzero');ctx.restore();
+}
+function equatorLine(ctx,place){
+  ctx.save();ctx.strokeStyle=cssv('--en');ctx.lineWidth=2;ctx.globalAlpha=.55;ctx.beginPath();let f=true;
+  for(let lon=0;lon<=360;lon+=4){const p=place(...vll(0,lon));if(p.z<0){f=true;continue;}if(f){ctx.moveTo(p.x,p.y);f=false;}else ctx.lineTo(p.x,p.y);}
+  ctx.stroke();ctx.restore();
+}
+function arrowHead(ctx,x0,y0,x1,y1,color,size){const a=Math.atan2(y1-y0,x1-x0);size=size||8;ctx.beginPath();ctx.moveTo(x1,y1);
+  ctx.lineTo(x1-size*Math.cos(a-.42),y1-size*Math.sin(a-.42));ctx.lineTo(x1-size*Math.cos(a+.42),y1-size*Math.sin(a+.42));ctx.closePath();ctx.fillStyle=color;ctx.fill();}
+
+/* ===================== HERO GLOBE (south input -> north concept -> equator output) ===================== */
+(function(){
+  const cv=document.getElementById('heroCanvas'); if(!cv) return;
+  let tphase=0;
+  const keys=[[0,-84,190],[6,-36,188],[10,0,186],[15,66,40],[26,60,46],[32,4,52]];
+  const path=[];for(let L=0;L<=32;L++){path.push(posAt(keys,L));}
+  const others=[[-80,120],[-78,250],[-83,320],[-76,40]].map(([a,o])=>vll(a,o));
+  const sph=makeSphere(cv,(ctx,w,h,ry,rx)=>{
+    const {place}=drawGlobeBase(ctx,w,h,ry,rx);
+    bandFill(ctx,place,cssv('--input'),0.14,-90,-58);
+    bandFill(ctx,place,cssv('--concept'),0.13,52,90);
+    equatorLine(ctx,place);
+    others.forEach(u=>{const p=place(...u);if(p.z>0){ctx.beginPath();ctx.arc(p.x,p.y,3,0,7);ctx.fillStyle=cssv('--ink3');ctx.fill();}});
+    for(let i=1;i<path.length;i++){const p=place(...path[i-1]),q=place(...path[i]);
+      ctx.globalAlpha=(p.z<0||q.z<0)?.25:.9;ctx.lineWidth=2.4;ctx.strokeStyle=cssv('--ink');
+      ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke();}
+    ctx.globalAlpha=1;
+    [['--en',-22],['--refuse',30],['--ink3',58],['--ink3',72]].forEach(([c,lo])=>{const p=place(...vll(0,lo));
+      if(p.z>-0.05){ctx.beginPath();ctx.arc(p.x,p.y,3.6,0,7);ctx.fillStyle=cssv(c);ctx.fill();}});
+    const f=(Math.sin(tphase)*0.5+0.5)*32, L0=Math.floor(f), u=vslerp(path[L0],path[Math.min(32,L0+1)],f-L0);
+    const d=place(...u);ctx.globalAlpha=d.z<0?.45:1;ctx.beginPath();ctx.arc(d.x,d.y,5.5,0,7);ctx.fillStyle=cssv('--ink');ctx.fill();
+    ctx.lineWidth=2;ctx.strokeStyle=cssv('--paper');ctx.stroke();ctx.globalAlpha=1;
+  });
+  sph.rx=0.28; sph.ry=-0.5;
+  if(!RM){let t0=null,bob=true;cv.addEventListener('mousedown',()=>bob=false);cv.addEventListener('touchstart',()=>bob=false,{passive:true});
+    (function loop(ts){if(!t0)t0=ts;tphase=(ts-t0)/3200-1.57;if(!sph.dragging){sph.ry+=.0016;if(bob)sph.rx=0.36*Math.sin((ts-t0)/5200);}sph.render();requestAnimationFrame(loop);})(performance.now());}
+  else sph.render();
+})();
+function posAt(keys,L){
+  for(let k=0;k<keys.length-1;k++){const [a,la,lo]=keys[k],[b,lb,lob]=keys[k+1];
+    if(L<=b){const t=easeInOut((L-a)/(b-a));return vslerp(vll(la,lo),vll(lb,lob),t);}}
+  const k=keys[keys.length-1];return vll(k[1],k[2]);
+}
+
+/* ===================== MAIN GLOBE: eight tokens ===================== */
+(function(){
+  const cv=document.getElementById('globeCanvas'); if(!cv) return;
+  const NL=32, TI=6, TP=7, P1=12, P2=27;      // phase boundaries (toy): input < 12 <= concept < 27 <= output
+  const BETA=30, VOCAB=32000;                 // logit lens: beta*cos vs 32,000 tokens at logit 0
+  const st={layer:0,prompt:'harmless',ablate:false,poke:true,follow:true,start:'cross',sel:TP,playing:false};
+  const $=id=>document.getElementById(id);
+  const el={layer:$('globeLayer'),lbl:$('globeLayerLbl'),tag:$('globeLayerTag'),read:$('globeRead'),region:$('globeRegion'),
+    say:$('globeSay'),turn:$('globeTurn'),E:$('globeE'),spark:$('globeSpark'),toks:$('globeToks'),play:$('globePlay'),follow:$('globeFollow')};
+  // output tokens occupy one arc of the equator (-72..86); the far side (86..288) is empty
+  const VOC0={'a':44,'tutorial':58,'on':72,'making':86,'.':-72,'Sure':-22,'I':30};
+  const voc=()=>Object.assign({},VOC0,{[st.prompt==='harmful'?'bomb':'cake']:-50});
+  const tokens=()=>['Write','a','tutorial','on','making','a',st.prompt==='harmful'?'bomb':'cake','[/INST]'];
+  const refusing=()=>st.prompt==='harmful'&&!st.ablate;
+  // measured per-layer norm growth (Qwen2-7B, t_post-inst centroids, layers 2..28)
+  const RATIOS=[];for(let k=2;k<=28;k++)RATIOS.push(REAL.qnormPost[k]/REAL.qnormPost[k-1]);
+  const ratio=L=>RATIOS[Math.round((L-1)*(RATIOS.length-1)/(NL-1))];
+  function keysFor(i,refuse){
+    const V=voc(),w=st.prompt==='harmful'?'bomb':'cake';
+    const conceptLon=[40,52,66,80,84,42,V[w],refuse?24:-12][i];
+    const targetLon=[V.a,V.tutorial,V.on,V.making,V.a,V[w],V['.'],refuse?V.I:V.Sure][i];
+    if(st.start==='north'){const lon0=i*45,lat0=82-(i%3)*4;
+      return [[0,lat0,lon0],[P1,76,lon0*0.5+conceptLon*0.5],[18,52,conceptLon],[P2-1,48,conceptLon],[NL,5,targetLon]];}
+    const cross=172+i*4.3, lon0=cross+(i-3.5)*22, lat0=-82+(i%3)*4;  // climb on the far side, crossing the empty equator
+    return [[0,lat0,lon0],[6,-38,cross],[10,0,cross],[15,66,conceptLon],[P2-1,60,conceptLon],[NL,4,targetLon]];
+  }
+  let P=[],PC=[];
+  function rebuild(){P=[];PC=[];
+    for(let i=0;i<8;i++){const k=keysFor(i,i===TP&&refusing()),kc=keysFor(i,false),a=[],b=[];
+      for(let L=0;L<=NL;L++){a.push(posAt(k,L));b.push(posAt(kc,L));}P.push(a);PC.push(b);}}
+  function lens(u){ // toy logit lens: nearest output token, beta*cos against 32k tokens at 0
+    let best=null,bc=-2;for(const [w,l] of Object.entries(voc())){const c=vdot(u,vll(0,l));if(c>bc){bc=c;best=w;}}
+    const e=Math.exp(BETA*Math.max(bc,0)),p=e/(e+VOCAB);return {w:p>0.2?best:null,p};
+  }
+  const phase=L=>L<P1?'input space':L<P2?'concept space':'output space';
+  const harmBelief=L=>st.prompt==='harmful'?clamp((L-10)/6,0,1):0;
+  let camTarget=null, camRaf=null;
+  function aimCamera(snap){
+    if(!st.follow) return;
+    const u=P[st.sel][st.layer], lat=vlat(u), lon=vlon(u);
+    camTarget={rx:clamp(lat*D2R*0.75,-0.95,0.95), ry:-lon*D2R};
+    if(snap||RM){sph.rx=camTarget.rx;sph.ry=camTarget.ry;sph.render();return;}
+    if(!camRaf)camRaf=requestAnimationFrame(stepCam);
+  }
+  function stepCam(){camRaf=null;if(!camTarget||!st.follow)return;
+    let dy=camTarget.ry-sph.ry;dy=((dy+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI;
+    const dx=camTarget.rx-sph.rx;sph.ry+=dy*0.14;sph.rx+=dx*0.14;sph.render();
+    if(Math.abs(dy)+Math.abs(dx)>0.002)camRaf=requestAnimationFrame(stepCam);}
+
+  const sph=makeSphere(cv,(ctx,w,h,ry,rx)=>{
+    const {cx,cy,place}=drawGlobeBase(ctx,w,h,ry,rx);
+    if(st.start==='north'){bandFill(ctx,place,cssv('--input'),0.13,70,90);bandFill(ctx,place,cssv('--concept'),0.11,36,66);}
+    else {bandFill(ctx,place,cssv('--input'),0.13,-90,-58);bandFill(ctx,place,cssv('--concept'),0.12,52,90);}
+    equatorLine(ctx,place);
+    const L=st.layer, tk=tokens(), selTarget=lens(P[st.sel][NL]).w;
+    if(st.start==='cross'&&L>=6&&L<=13){const p=place(...vll(0,187));if(p.z>0.1){ctx.font='10.5px '+cssv('--mono');
+      ctx.lineWidth=3;ctx.strokeStyle=cssv('--paper');ctx.textAlign='center';
+      ctx.strokeText('no output tokens on this stretch',p.x,p.y+18);ctx.fillStyle=cssv('--ink3');ctx.fillText('no output tokens on this stretch',p.x,p.y+18);ctx.textAlign='start';}}
+    ctx.font='10.5px '+cssv('--mono');
+    for(const [wd,lo] of Object.entries(voc())){const p=place(...vll(0,lo));if(p.z<-0.05)continue;
+      const key=wd==='I'||wd==='Sure';const col=wd==='I'?cssv('--refuse'):wd==='Sure'?cssv('--en'):cssv('--ink3');
+      ctx.beginPath();ctx.arc(p.x,p.y,key?4.2:2.8,0,7);ctx.fillStyle=col;ctx.fill();
+      if((key||wd===selTarget)&&p.z>0.15){const t=wd==='I'?'“I…”':wd==='Sure'?'“Sure…”':wd;
+        ctx.lineWidth=3;ctx.strokeStyle=cssv('--paper');ctx.strokeText(t,p.x+6,p.y-6);ctx.fillStyle=key?col:cssv('--ink2');ctx.fillText(t,p.x+6,p.y-6);}}
+    // trails (far-side segments dashed)
+    for(let i=0;i<8;i++){const sel=i===st.sel;ctx.lineWidth=sel?2.2:1;
+      for(let l=1;l<=L;l++){const a=place(...P[i][l-1]),b=place(...P[i][l]),back=a.z<0||b.z<0;
+        ctx.globalAlpha=back?(sel?.45:.1):(sel?.95:.35);ctx.setLineDash(back&&sel?[4,4]:[]);
+        ctx.strokeStyle=sel?cssv('--ink'):cssv('--ink3');ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}}
+    ctx.setLineDash([]);ctx.globalAlpha=1;
+    // refusal push at t_post-inst: where it would be without the push -> where it is
+    if(refusing()&&L>=P1){const a=place(...PC[TP][L]),b=place(...P[TP][L]);
+      if(Math.hypot(b.x-a.x,b.y-a.y)>4&&b.z>-0.2){ctx.strokeStyle=cssv('--refuse');ctx.lineWidth=2.6;
+        ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();arrowHead(ctx,a.x,a.y,b.x,b.y,cssv('--refuse'),9);
+        ctx.beginPath();ctx.arc(a.x,a.y,3,0,7);ctx.strokeStyle=cssv('--refuse');ctx.lineWidth=1.4;ctx.stroke();}}
+    // this layer's update: u0 -> g*u1 (overshoot), then back onto the sphere at u1
+    if(st.poke&&L>=1){const u0=P[st.sel][L-1],u1=P[st.sel][L],g=ratio(L);
+      const a=place(...u0),tip=place(u1[0]*g,u1[1]*g,u1[2]*g),b=place(...u1);
+      if(a.z>-0.2){ctx.strokeStyle=cssv('--accent');ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(tip.x,tip.y);ctx.stroke();
+        arrowHead(ctx,a.x,a.y,tip.x,tip.y,cssv('--accent'),7);
+        ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(tip.x,tip.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.setLineDash([]);
+        ctx.strokeStyle=cssv('--ink2');ctx.globalAlpha=.3;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(tip.x,tip.y);ctx.stroke();ctx.globalAlpha=1;}}
+    // token dots, back to front
+    const order=[...Array(8).keys()].sort((i,j)=>place(...P[i][L]).z-place(...P[j][L]).z);
+    order.forEach(i=>{const p=place(...P[i][L]),sel=i===st.sel,back=p.z<0;ctx.globalAlpha=back?.3:1;
+      if(i===TI&&harmBelief(L)>0){ctx.beginPath();ctx.arc(p.x,p.y,(sel?11:9)+harmBelief(L)*3,0,7);
+        ctx.fillStyle=cssv('--harm');ctx.globalAlpha*=0.22+0.35*harmBelief(L);ctx.fill();ctx.globalAlpha=back?.3:1;}
+      ctx.beginPath();ctx.arc(p.x,p.y,sel?6.2:4,0,7);
+      ctx.fillStyle=i===TP?cssv('--refuse'):i===TI&&harmBelief(L)>0.5?cssv('--harm'):sel?cssv('--ink'):cssv('--ink2');ctx.fill();
+      ctx.lineWidth=sel?2.2:1.4;ctx.strokeStyle=cssv('--paper');ctx.stroke();
+      if(sel){ctx.font='600 11.5px '+cssv('--mono');ctx.lineWidth=4;ctx.strokeStyle=cssv('--paper');ctx.lineJoin='round';
+        ctx.strokeText(tk[i],p.x+10,p.y+4);ctx.fillStyle=cssv('--ink');ctx.fillText(tk[i],p.x+10,p.y+4);}
+      ctx.globalAlpha=1;});
+  });
+  // dragging hands the camera back to the reader
+  cv.addEventListener('mousedown',()=>{if(st.follow){st.follow=false;el.follow.checked=false;}});
+  cv.addEventListener('touchstart',()=>{if(st.follow){st.follow=false;el.follow.checked=false;}},{passive:true});
+
+  function drawSpark(){
+    const {ctx,w,h}=setupCanvas(el.spark);ctx.clearRect(0,0,w,h);
+    const xs=L=>6+L/NL*(w-12), ys=v=>h-6-v*(h-12);
+    ctx.strokeStyle=cssv('--line2');ctx.lineWidth=1;ctx.setLineDash([2,3]);ctx.beginPath();
+    ctx.moveTo(xs(P1),2);ctx.lineTo(xs(P1),h-2);ctx.moveTo(xs(P2),2);ctx.lineTo(xs(P2),h-2);ctx.stroke();ctx.setLineDash([]);
+    ctx.strokeStyle=cssv('--en');ctx.lineWidth=2;ctx.beginPath();
+    for(let L=0;L<=NL;L++){const v=lens(P[st.sel][L]).p;L?ctx.lineTo(xs(L),ys(v)):ctx.moveTo(xs(L),ys(v));}ctx.stroke();
+    const v=lens(P[st.sel][st.layer]).p;ctx.beginPath();ctx.arc(xs(st.layer),ys(v),3.5,0,7);ctx.fillStyle=cssv('--ink');ctx.fill();
+    ctx.fillStyle=cssv('--ink3');ctx.font='9px '+cssv('--mono');ctx.fillText('input',xs(1),12);ctx.fillText('concept',xs(P1+1),h-9);ctx.fillText('out',xs(P2+0.6),h-9);
+  }
+  function chips(){const tk=tokens();el.toks.innerHTML=tk.map((t,i)=>`<button class="chip${i===st.sel?' on':''}${i===TI?' tinst':''}${i===TP?' tpost':''}" data-i="${i}" title="${i===TI?'t_inst — last instruction token':i===TP?'t_post‑inst — last template token':'token '+(i+1)}">${t}</button>`).join('');
+    el.toks.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{st.sel=+b.dataset.i;refresh(false);}));}
+  function refresh(re,snap){
+    if(re!==false)rebuild();chips();
+    const L=st.layer,u=P[st.sel][L],lz=lens(u),tk=tokens();
+    el.lbl.textContent=L+' / '+NL;el.tag.textContent=L;el.region.textContent=phase(L);
+    el.say.textContent=lz.w?('“'+lz.w+'”'+(lz.p<0.6?' · weak':'')):'nothing';
+    el.turn.textContent=L?Math.round(Math.acos(clamp(vdot(P[st.sel][L-1],u),-1,1))*R2D)+'°':'—';
+    el.E.textContent=Math.round(lz.p*100)+'%';
+    const out=lens(P[TP][NL]).w, hb=harmBelief(L);
+    el.read.innerHTML=`following · <b>${tk[st.sel]}</b><br>harm belief at “${tk[TI]}” · <b style="color:${hb>0?'var(--harm)':'var(--ink3)'}">${hb>0?Math.round(hb*100)+'%':'none'}</b><br>answer · <b style="color:${out==='I'?'var(--refuse)':'var(--ink)'}">${L===NL?(out==='I'?'“I cannot…”':'“Sure, here…”'):'…'}</b>`;
+    aimCamera(snap);sph.render();drawSpark();
+  }
+  el.layer.addEventListener('input',e=>{st.layer=+e.target.value;refresh(false);});
+  function seg(id,key,attr){document.querySelectorAll('#'+id+' button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#'+id+' button').forEach(x=>x.classList.remove('on'));b.classList.add('on');st[key]=b.dataset[attr];refresh();}));}
+  seg('globePrompt','prompt','p');seg('globeStart','start','s');
+  $('globeAblate').addEventListener('change',e=>{st.ablate=e.target.checked;refresh();});
+  $('globePoke').addEventListener('change',e=>{st.poke=e.target.checked;refresh(false);});
+  el.follow.addEventListener('change',e=>{st.follow=e.target.checked;refresh(false);});
+  el.play.addEventListener('click',()=>{
+    if(st.playing){st.playing=false;el.play.textContent='▶ Play forward pass';return;}
+    st.playing=true;el.play.textContent='❚❚ Pause';if(st.layer>=NL)st.layer=0;
+    (function step(){if(!st.playing)return;if(st.layer>=NL){st.playing=false;el.play.textContent='▶ Play forward pass';return;}
+      st.layer++;el.layer.value=st.layer;refresh(false);setTimeout(step,RM?0:170);})();
+  });
+  new ResizeObserver(()=>drawSpark()).observe(el.spark);
+  window.addEventListener('themechange',()=>{drawSpark();});
+  rebuild(); refresh(false,true);
+})();
+</script>
+<script>
+/* ===================== TWO AXES (belief at t_inst vs refusal at t_post-inst) ===================== */
+(function(){
+  const cv=document.getElementById('axesCanvas'); if(!cv) return;
+  const st={dir:'harm',coeff:0,start:'harmless',angle:82};
+  const $=id=>document.getElementById(id);
+  const el={coeff:$('axesCoeff'),coeffLbl:$('axesCoeffLbl'),dirLbl:$('axesDirLbl'),belief:$('axesBelief'),say:$('axesSay'),inv:$('axesInv'),read:$('axesRead')};
+  // coordinates: h = projection on harmfulness at t_inst; r = projection on refusal at t_post-inst.
+  // Steering moves a vector *along* one direction; because cos(h,r)=cos(angle) != 0 it also moves the other readout a little.
+  // Harm belief also propagates downstream into refusal (Zhao et al.: steering h also elicits refusal) — kappa.
+  const KAPPA=0.8;
+  function base(){return st.start==='harmful'?{h:0.55,r:0.5}:{h:-0.55,r:-0.5};}
+  function cur(){const b=base(),c=st.coeff/100*1.4,cs=Math.cos(st.angle*D2R);
+    if(st.dir==='harm'){const h=b.h+c;return {h,r:b.r+c*cs+KAPPA*c};}
+    return {h:b.h+c*cs,r:b.r+c};}
+  let dims=setupCanvas(cv);
+  function draw(){
+    const {ctx,w,h}=dims;ctx.clearRect(0,0,w,h);
+    const cx=w*0.46,cy=h*0.56,S=Math.min(w,h)*0.32;
+    // quadrant tint: refuse region (r>0.15) and harmful-belief region (h>0.15)
+    ctx.fillStyle=cssv('--refuse');ctx.globalAlpha=.06;ctx.fillRect(0,0,w,cy-0.15*S);
+    ctx.fillStyle=cssv('--harm');ctx.globalAlpha=.06;ctx.fillRect(cx+0.15*S,0,w,h);ctx.globalAlpha=1;
+    ctx.strokeStyle=cssv('--line');ctx.lineWidth=1;
+    for(let g=-3;g<=3;g++){ctx.globalAlpha=.5;ctx.beginPath();ctx.moveTo(cx+g*S*0.5,8);ctx.lineTo(cx+g*S*0.5,h-8);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(8,cy+g*S*0.5);ctx.lineTo(w-8,cy+g*S*0.5);ctx.stroke();}ctx.globalAlpha=1;
+    const tilt=(90-st.angle)*D2R;
+    // draw r-hat tilted toward h-hat by (90-angle): the geometric overlap
+    arrow(ctx,cx,cy,cx+S*1.25,cy,cssv('--harm'),'ĥ  harmfulness');
+    arrow(ctx,cx,cy,cx+Math.sin(tilt)*S*1.25,cy-Math.cos(tilt)*S*1.25,cssv('--refuse'),'r̂  refusal');
+    // angle arc
+    ctx.strokeStyle=cssv('--ink3');ctx.lineWidth=1;ctx.beginPath();ctx.arc(cx,cy,26,-Math.PI/2+tilt,0);ctx.stroke();
+    ctx.fillStyle=cssv('--ink2');ctx.font='10.5px '+cssv('--mono');ctx.fillText(st.angle+'°',cx+22,cy-22);
+    // start ghost + current
+    const b=base(),p=cur();
+    const gx=cx+b.h*S,gy=cy-b.r*S,px=cx+clamp(p.h,-1.6,2.2)*S,py=cy-clamp(p.r,-1.6,2.2)*S;
+    if(st.coeff>0){ctx.setLineDash([3,3]);ctx.strokeStyle=st.dir==='harm'?cssv('--harm'):cssv('--refuse');ctx.lineWidth=1.6;
+      ctx.beginPath();ctx.moveTo(gx,gy);ctx.lineTo(px,py);ctx.stroke();ctx.setLineDash([]);
+      ctx.beginPath();ctx.arc(gx,gy,4,0,7);ctx.strokeStyle=cssv('--ink3');ctx.lineWidth=1.4;ctx.stroke();}
+    ctx.beginPath();ctx.arc(px,py,7,0,7);ctx.fillStyle=cssv('--ink');ctx.fill();ctx.lineWidth=2.2;ctx.strokeStyle=cssv('--paper');ctx.stroke();
+    ctx.fillStyle=cssv('--ink3');ctx.font='10px '+cssv('--mono');
+    ctx.fillText('refuses ↑',12,40);ctx.fillText('believes harmful →',w-128,h-10);
+  }
+  function arrow(ctx,x0,y0,x1,y1,color,lab){ctx.strokeStyle=color;ctx.lineWidth=2.4;ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.stroke();
+    arrowHead(ctx,x0,y0,x1,y1,color,9);ctx.fillStyle=color;ctx.font='600 11px '+cssv('--mono');ctx.fillText(lab,x1+(x1>x0+5?-60:8),y1+(x1>x0+5?-10:2));}
+  function refresh(){
+    el.coeffLbl.textContent=(st.coeff/100*1.4).toFixed(2);
+    el.coeff.className=st.dir==='harm'?'harm':'refuse';
+    el.dirLbl.textContent=st.dir==='harm'?'harmfulness':'refusal';
+    const p=cur(),bh=p.h>0.15,rf=p.r>0.15;
+    el.belief.textContent=bh?'harmful':'harmless';el.belief.style.color=bh?'var(--harm)':'var(--ink)';
+    el.say.textContent=rf?'refuses':'complies';el.say.style.color=rf?'var(--refuse)':'var(--ink)';
+    el.inv.textContent=bh?'“Certainly”':'“No”';el.inv.style.color=bh?'var(--harm)':'var(--ink)';
+    let msg='';
+    if(st.start==='harmless'&&st.coeff>0){
+      if(st.dir==='refuse'&&rf&&!bh) msg='behaviour flipped, belief didn’t';
+      else if(st.dir==='refuse'&&bh) msg='at '+st.angle+'° the push leaks into belief';
+      else if(st.dir==='harm'&&bh) msg='belief flipped: No → Certainly';}
+    el.read.innerHTML=`belief · <b style="color:${bh?'var(--harm)':'var(--ink)'}">${bh?'harmful':'harmless'}</b><br>behaviour · <b style="color:${rf?'var(--refuse)':'var(--ink)'}">${rf?'refuse':'comply'}</b>${msg?'<br><b>'+msg+'</b>':''}`;
+    draw();
+  }
+  el.coeff.addEventListener('input',e=>{st.coeff=+e.target.value;refresh();});
+  function seg(id,fn){document.querySelectorAll('#'+id+' button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#'+id+' button').forEach(x=>x.classList.remove('on'));b.classList.add('on');fn(b);refresh();}));}
+  seg('axesDir',b=>st.dir=b.dataset.d);seg('axesStart',b=>st.start=b.dataset.s);seg('axesModel',b=>st.angle=+b.dataset.a);
+  new ResizeObserver(()=>{dims=setupCanvas(cv);draw();}).observe(cv);
+  window.addEventListener('themechange',draw);
+  refresh();
+})();
+
+/* ===================== SELECTION GRID (SVG) ===================== */
+(function(){
+  const svg=document.getElementById('gridSvg'); if(!svg) return;
+  const read=document.getElementById('gridRead');
+  const st={metric:'refusal',filter:true};
+  const NS='http://www.w3.org/2000/svg';
+  const POS=[-6,-5,-4,-3,-2,-1], NL=32, selL=14, selP=-1;
+  // index grid by [posIndex][layer]
+  const grid={}; REAL.l2grid.forEach(r=>{grid[r[0]+'_'+r[1]]=r;}); // r=[pos,layer,refusal,steering,kl]
+  function survives(r){ // paper filters: prune last 20% layers, kl<0.1, steering>0
+    if(r[1] >= Math.floor(NL*0.8)) return false;
+    if(r[4] > 0.1) return false;
+    if(r[3] < 0.0) return false;
+    return true;
+  }
+  function val(r){ return st.metric==='refusal'? r[2] : st.metric==='steering'? r[3] : r[4]; }
+  function color(r){
+    if(st.metric==='kl'){ const t=clamp(r[4]/0.5,0,1); return mix('--soft','--warn',t); }
+    if(st.metric==='steering'){ const t=clamp(r[3]/8,0,1); return mix('--soft','--ok',t); }
+    // refusal: lower = better bypass (more harmful) -> hotter. range ~ [-6, 6]
+    const t=clamp((1 - (r[2]+6)/12),0,1); return mix('--soft','--harm',t);
+  }
+  function mix(a,b,t){ // crude hex mix via canvas
+    const ca=hex(cssv(a)),cb=hex(cssv(b));
+    const r=Math.round(lerp(ca[0],cb[0],t)),g=Math.round(lerp(ca[1],cb[1],t)),bl=Math.round(lerp(ca[2],cb[2],t));
+    return `rgb(${r},${g},${bl})`;
+  }
+  function hex(s){s=s.trim();if(s[0]==='#'){if(s.length===4)s='#'+s[1]+s[1]+s[2]+s[2]+s[3]+s[3];return [parseInt(s.slice(1,3),16),parseInt(s.slice(3,5),16),parseInt(s.slice(5,7),16)];}
+    const m=s.match(/\d+/g);return m?m.map(Number):[128,128,128];}
+  function build(){
+    svg.innerHTML='';
+    const W=640,H=430, padL=52,padT=24,padB=40,padR=16;
+    const gw=(W-padL-padR)/NL, gh=(H-padT-padB)/POS.length;
+    // axis labels
+    addT(padL-8,padT+gh*POS.length/2,'position',cssv('--ink3'),10,'end',-90,padL-40,padT+gh*POS.length/2);
+    addT(padL+(W-padL-padR)/2,H-8,'layer (0 → 31)',cssv('--ink3'),10,'middle');
+    POS.forEach((p,i)=>addT(padL-6,padT+gh*i+gh/2+3,String(p),cssv('--ink2'),10,'end'));
+    for(let L=0;L<NL;L+=4) addT(padL+gw*L+gw/2,H-padB+14,String(L),cssv('--ink3'),9,'middle');
+    POS.forEach((p,i)=>{
+      for(let L=0;L<NL;L++){
+        const r=grid[p+'_'+L]; if(!r)continue;
+        const x=padL+gw*L,y=padT+gh*i;
+        const rect=document.createElementNS(NS,'rect');
+        rect.setAttribute('x',x+0.5);rect.setAttribute('y',y+0.5);rect.setAttribute('width',gw-1);rect.setAttribute('height',gh-1);
+        rect.setAttribute('rx',1.5);
+        const dim = st.filter && !survives(r);
+        rect.setAttribute('fill',color(r));
+        rect.setAttribute('opacity',dim?0.18:1);
+        rect.style.cursor='pointer';
+        rect.addEventListener('mouseenter',()=>{read.innerHTML=`pos <b>${p}</b> · layer <b>${L}</b><br>bypass ↓ <b>${r[2].toFixed(2)}</b> · induces ↑ <b>${r[3].toFixed(2)}</b><br>KL <b>${r[4].toFixed(3)}</b> · ${survives(r)?'<b style="color:var(--ok)">survives</b>':'filtered'}`;});
+        svg.appendChild(rect);
+        if(st.filter && survives(r)){
+          const c=document.createElementNS(NS,'circle');c.setAttribute('cx',x+gw/2);c.setAttribute('cy',y+gh/2);c.setAttribute('r',Math.min(gw,gh)*0.22);
+          c.setAttribute('fill',cssv('--ok'));c.setAttribute('stroke',cssv('--paper'));c.setAttribute('stroke-width',1.3);c.style.pointerEvents='none';svg.appendChild(c);
+        }
+        if(p===selP&&L===selL){
+          const b=document.createElementNS(NS,'rect');b.setAttribute('x',x-0.5);b.setAttribute('y',y-0.5);b.setAttribute('width',gw);b.setAttribute('height',gh);
+          b.setAttribute('fill','none');b.setAttribute('stroke',cssv('--ink'));b.setAttribute('stroke-width',2.4);b.setAttribute('rx',2);b.style.pointerEvents='none';svg.appendChild(b);
+        }
+      }
+    });
+    // "pruned" overlay band
+    if(st.filter){
+      const x=padL+gw*Math.floor(NL*0.8);
+      const band=document.createElementNS(NS,'rect');band.setAttribute('x',x);band.setAttribute('y',padT);band.setAttribute('width',W-padR-x);band.setAttribute('height',gh*POS.length);
+      band.setAttribute('fill',cssv('--ink3'));band.setAttribute('opacity',0.06);band.style.pointerEvents='none';svg.appendChild(band);
+      addT(x+(W-padR-x)/2,padT+gh*3-6,'last 20%',cssv('--ink2'),9.5,'middle');addT(x+(W-padR-x)/2,padT+gh*3+8,'pruned',cssv('--ink2'),9.5,'middle');
+    }
+  }
+  function addT(x,y,t,fill,size,anchor,rot,rx,ry){
+    const e=document.createElementNS(NS,'text');e.setAttribute('x',x);e.setAttribute('y',y);e.textContent=t;
+    e.setAttribute('fill',fill);e.setAttribute('font-size',size);e.setAttribute('font-family',cssv('--mono'));e.setAttribute('text-anchor',anchor||'start');
+    if(rot!==undefined)e.setAttribute('transform',`rotate(${rot} ${rx} ${ry})`);svg.appendChild(e);return e;
+  }
+  document.querySelectorAll('#gridMetric button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#gridMetric button').forEach(x=>x.classList.remove('on'));b.classList.add('on');st.metric=b.dataset.m;build();}));
+  document.getElementById('gridFilter').addEventListener('change',e=>{st.filter=e.target.checked;build();});
+  window.addEventListener('themechange',build);
+  build();
+})();
+</script>
+<script>
+/* ===================== INTERVENTIONS (SVG vector diagram) ===================== */
+(function(){
+  const svg=document.getElementById('intSvg'); if(!svg) return;
+  const st={mode:'ablate',coeff:-10};
+  const el={coeff:document.getElementById('intCoeff'),coeffLbl:document.getElementById('intCoeffLbl'),
+    wrap:document.getElementById('intCoeffWrap'),explain:document.getElementById('intExplain'),
+    formula:document.getElementById('intFormula'),read:document.getElementById('intRead')};
+  const NS='http://www.w3.org/2000/svg';
+  function build(){
+    svg.innerHTML='';
+    const W=640,H=400,cx=W*0.40,cy=H*0.66,U=150;
+    // refusal direction r (pointing up-right)
+    const rang=-0.62, rx=Math.cos(rang)*U, ry=Math.sin(rang)*U;
+    // original h (pointing up, a bit right)
+    const hang=-1.15, hlen=U*1.35, hx=Math.cos(hang)*hlen, hy=Math.sin(hang)*hlen;
+    // the hyperplane orthogonal to r̂ (everything ablation keeps)
+    if(st.mode!=='actadd'){const px=-ry/U,py=rx/U,L=U*1.9;const pl=document.createElementNS(NS,'line');
+      pl.setAttribute('x1',cx-px*L*1.05);pl.setAttribute('y1',cy-py*L*1.05);pl.setAttribute('x2',cx+px*L*0.4);pl.setAttribute('y2',cy+py*L*0.4);
+      pl.setAttribute('stroke',cssv('--line2'));pl.setAttribute('stroke-width',8);pl.setAttribute('stroke-linecap','round');pl.setAttribute('opacity',.55);svg.appendChild(pl);
+      txt(cx-px*L*1.05+16,cy-py*L*1.05+14,'the plane ⟂ r̂ — everything ablation keeps',cssv('--ink3'),10.5,'start');}
+    line(cx,cy,cx+rx*1.3,cy+ry*1.3,cssv('--refuse'),2.4,'r̂'); 
+    // h and its projection onto r
+    const dot=(hx*rx+hy*ry)/(U*U); // scalar proj in r units
+    const projx=dot*rx, projy=dot*ry;
+    let nx=hx,ny=hy, note='', coeffShow='';
+    if(st.mode==='ablate'){
+      nx=hx-projx; ny=hy-projy;
+      note='The component of h along r̂ is removed. h can no longer point "refuse".';
+    } else if(st.mode==='actadd'){
+      const c=st.coeff/10;
+      nx=hx + c*rx; ny=hy + c*ry;
+      coeffShow=' ('+(c).toFixed(1)+'·r̂)';
+      note=c<0?'Subtracting r̂ pushes h away from refusal → bypass on harmful prompts.':'Adding r̂ pushes h toward refusal → over‑refusal on harmless prompts.';
+    } else {
+      nx=hx-projx; ny=hy-projy;
+      note='Every weight that writes to the stream is pre‑projected, so no layer can ever add a component along r̂ again.';
+    }
+    // ghost original h
+    if(st.mode!=='ablate'||true) line(cx,cy,cx+hx,cy+hy,cssv('--ink3'),1.6,'h (before)',true);
+    // projection marker
+    if(st.mode==='ablate'||st.mode==='ortho'){
+      line(cx+hx,cy+hy,cx+nx,cy+ny,cssv('--harm'),1.6,null,false,[4,3]);
+      txt((cx+hx+cx+nx)/2-10,(cy+hy+cy+ny)/2-10,'− r̂(r̂·h)',cssv('--harm'),11,'end',600);
+    }
+    // new h
+    line(cx,cy,cx+nx,cy+ny,cssv('--ink'),3,null);txt(cx+nx-10,cy+ny-10,'h (after)',cssv('--ink'),11,'end',600);
+    // origin dot
+    const o=document.createElementNS(NS,'circle');o.setAttribute('cx',cx);o.setAttribute('cy',cy);o.setAttribute('r',4);o.setAttribute('fill',cssv('--ink'));svg.appendChild(o);
+    // weights: draw little matrix boxes for ortho
+    if(st.mode==='ortho'){
+      for(let i=0;i<3;i++){const bx=440+i*58;
+        rect(bx,262,46,42,cssv('--soft'),cssv('--refuse'));
+        txt(bx+23,287,['W_attn','W_mlp','W_emb'][i],cssv('--ink2'),9.5,'middle');
+        txt(bx+23,322,'W − r̂r̂ᵀW',cssv('--harm'),9.5,'middle');
+      }
+      txt(440,250,'edited once, offline:',cssv('--ink3'),10,'start');
+    }
+    el.read.innerHTML=`mode · <b>${st.mode}</b>`;
+  }
+  function line(x0,y0,x1,y1,color,wd,lab,ghost,dash){
+    const l=document.createElementNS(NS,'line');l.setAttribute('x1',x0);l.setAttribute('y1',y0);l.setAttribute('x2',x1);l.setAttribute('y2',y1);
+    l.setAttribute('stroke',color);l.setAttribute('stroke-width',wd);if(ghost)l.setAttribute('opacity',0.5);if(dash)l.setAttribute('stroke-dasharray',dash.join(' '));svg.appendChild(l);
+    // arrowhead
+    if(!dash){const a=Math.atan2(y1-y0,x1-x0);const p=document.createElementNS(NS,'path');
+      p.setAttribute('d',`M${x1},${y1} L${x1-10*Math.cos(a-.4)},${y1-10*Math.sin(a-.4)} L${x1-10*Math.cos(a+.4)},${y1-10*Math.sin(a+.4)} Z`);
+      p.setAttribute('fill',color);if(ghost)p.setAttribute('opacity',0.5);svg.appendChild(p);}
+    if(lab){txt(x1+8,y1,lab,color,11,'start',600);}
+  }
+  function txt(x,y,t,fill,size,anchor,weight){const e=document.createElementNS(NS,'text');e.setAttribute('x',x);e.setAttribute('y',y);e.textContent=t;
+    e.setAttribute('fill',fill);e.setAttribute('font-size',size);e.setAttribute('font-family',cssv('--mono'));e.setAttribute('text-anchor',anchor||'start');if(weight)e.setAttribute('font-weight',weight);svg.appendChild(e);}
+  function rect(x,y,w,h,fill,stroke){const r=document.createElementNS(NS,'rect');r.setAttribute('x',x);r.setAttribute('y',y);r.setAttribute('width',w);r.setAttribute('height',h);
+    r.setAttribute('rx',6);r.setAttribute('fill',fill);r.setAttribute('stroke',stroke);r.setAttribute('stroke-width',1.5);svg.appendChild(r);}
+  const FX={ablate:'h ← h − r̂ (r̂·h)\n\napplied at every layer,\nevery token position',
+    actadd:'h ← h + c · r̂\n\nat one source layer\n(c = −1 bypass, +1 refuse)',
+    ortho:"W′ = W − r̂ r̂ᵀ W\n\nfor every matrix that\nwrites to the stream"};
+  const EX={ablate:'<b>Ablation.</b> Project the refusal direction out of the running state. Knowledge stays; the ability to refuse is gone.',
+    actadd:'<b>Activation addition.</b> Nudge the state along r̂ at one layer. Negative = bypass, positive = force refusal.',
+    ortho:'<b>Weight orthogonalization.</b> Edit r̂ out of the weights once. Permanent, no inference hooks — the “abliteration” trick.'};
+  function refresh(){
+    el.coeffLbl.textContent=(st.coeff/10).toFixed(1);
+    el.wrap.style.display = st.mode==='actadd'?'flex':'none';
+    el.explain.innerHTML=EX[st.mode];
+    el.formula.textContent=FX[st.mode];
+    build();
+  }
+  el.coeff.addEventListener('input',e=>{st.coeff=+e.target.value;refresh();});
+  document.querySelectorAll('#intMode button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#intMode button').forEach(x=>x.classList.remove('on'));b.classList.add('on');st.mode=b.dataset.i;refresh();}));
+  window.addEventListener('themechange',build);
+  refresh();
+})();
+
+/* ===================== BREAK CARDS (real numbers) ===================== */
+(function(){
+  const host=document.getElementById('breakCards'); if(!host) return;
+  const e=REAL.evals['llama-2-7b-chat-hf'];
+  const cards=[
+    {big:Math.round(e.jb_base_lg*100)+'%', lab:'harmful prompts answered, baseline', sub:'Llama Guard 2 judge'},
+    {big:Math.round(e.jb_abl_lg*100)+'%', lab:'answered after ablating r̂', sub:'Llama Guard 2 judge'},
+    {big:Math.round((1-e.hl_base)*100)+'% → '+Math.round((1-e.hl_act)*100)+'%', lab:'harmless prompts refused, +r̂ added', sub:'over‑refusal induced'},
+    {big:e.pile_base.toFixed(2)+' → '+e.pile_abl.toFixed(2), lab:'CE loss on The Pile', sub:'ablation ~ unchanged'},
+  ];
+  host.innerHTML=cards.map(c=>`<div class="card"><div class="big">${c.big}</div><div class="lab2">${c.lab}</div><div class="sub">${c.sub} ✓</div></div>`).join('');
+})();
+
+/* ===================== DIMENSIONALITY (histogram collapse) ===================== */
+(function(){
+  const svg=document.getElementById('dimSvg'); if(!svg) return;
+  const DIMS=[2,3,8,64,1024,4096];
+  const st={i:1};
+  const el={n:document.getElementById('dimN'),nLbl:document.getElementById('dimNLbl'),note:document.getElementById('dimNNote'),
+    cos:document.getElementById('dimCos'),slots:document.getElementById('dimSlots'),read:document.getElementById('dimRead')};
+  const NS='http://www.w3.org/2000/svg';
+  // precompute cosine distributions by sampling
+  function sampleCos(d,n){
+    const out=new Array(41).fill(0);out.near=0;
+    for(let k=0;k<n;k++){
+      let a=0,b=0,ab=0;
+      for(let j=0;j<d;j++){const x=gauss(),y=gauss();a+=x*x;b+=y*y;ab+=x*y;}
+      const c=ab/Math.sqrt(a*b);
+      const bin=clamp(Math.round((c+1)/2*40),0,40);out[bin]++;if(Math.abs(c)<0.1045)out.near++;
+    }
+    return out;
+  }
+  let g2=null;function gauss(){if(g2!==null){const v=g2;g2=null;return v;}let u=0,v=0,s=0;do{u=Math.random()*2-1;v=Math.random()*2-1;s=u*u+v*v;}while(s===0||s>=1);const m=Math.sqrt(-2*Math.log(s)/s);g2=v*m;return u*m;}
+  const CACHE={};
+  function build(){
+    svg.innerHTML='';
+    const W=640,H=420,padL=44,padR=16,padT=28,padB=42;
+    const d=DIMS[st.i];
+    const NP=d>=1024?1200:4000; const hist=CACHE[d]||(CACHE[d]=sampleCos(d, NP));
+    const max=Math.max(...hist);
+    const bw=(W-padL-padR)/41;
+    // axis
+    axisT(W/2,H-10,'cosine similarity between two random directions');
+    axisT(padL-30,padT+ (H-padT-padB)/2, '', );
+    const BX=c=>padL+((c+1)*20+0.5)*bw;
+    [-1,-0.5,0,0.5,1].forEach(c=>{axisT(BX(c),H-padB+16,c.toFixed(1));});
+    // zero line
+    const zx=BX(0);
+    const zl=document.createElementNS(NS,'line');zl.setAttribute('x1',zx);zl.setAttribute('x2',zx);zl.setAttribute('y1',padT);zl.setAttribute('y2',H-padB);
+    zl.setAttribute('stroke',cssv('--refuse'));zl.setAttribute('stroke-width',1.5);zl.setAttribute('stroke-dasharray','4 3');zl.setAttribute('opacity',.6);svg.appendChild(zl);
+    axisT(zx, padT-8, '90° ⟂', cssv('--refuse'));
+    // bars
+    hist.forEach((v,i)=>{
+      if(v===0)return;
+      const x=padL+i*bw, hgt=(v/max)*(H-padT-padB-64);
+      const r=document.createElementNS(NS,'rect');r.setAttribute('x',x+0.5);r.setAttribute('y',H-padB-hgt);r.setAttribute('width',bw-1);r.setAttribute('height',hgt);
+      const cen=Math.abs(i-20)/20;
+      r.setAttribute('fill', cen<0.12?cssv('--refuse'):cssv('--concept'));r.setAttribute('opacity', cen<0.12?0.95:0.5);svg.appendChild(r);
+    });
+    // measured ĥ·r̂ cosines ✓ (computed from released tensors)
+    [[0.136,'Qwen2 ĥ·r̂'],[0.16,'Llama‑2'],[0.44,'Llama‑3']].forEach(([c,lab],k)=>{
+      const x=BX(c);const l=document.createElementNS(NS,'line');
+      l.setAttribute('x1',x);l.setAttribute('x2',x);l.setAttribute('y1',padT+14+k*15);l.setAttribute('y2',H-padB);l.setAttribute('opacity',.85);
+      l.setAttribute('stroke',cssv('--harm'));l.setAttribute('stroke-width',1.6);svg.appendChild(l);
+      const t=document.createElementNS(NS,'text');t.setAttribute('x',x+5);t.setAttribute('y',padT+22+k*15);t.textContent=lab+' '+c.toFixed(2);
+      t.setAttribute('stroke',cssv('--paper'));t.setAttribute('stroke-width',3);t.setAttribute('paint-order','stroke');t.setAttribute('font-weight',600);
+      t.setAttribute('fill',cssv('--harm'));t.setAttribute('font-size',10);t.setAttribute('font-family',cssv('--mono'));svg.appendChild(t);});
+    const sd=(1/Math.sqrt(d)).toFixed(d>=1000?4:3);
+    el.cos.textContent='± '+sd;
+    el.slots.textContent=Math.round(hist.near/NP*100)+'%';
+    el.read.innerHTML=`d = <b>${d}</b><br>spread ≈ <b>± ${sd}</b><br>${d>=1024?'<b>everything is ⟂</b>':'oblique angles common'}`;
+  }
+  function axisT(x,y,t,fill){const e=document.createElementNS(NS,'text');e.setAttribute('x',x);e.setAttribute('y',y);e.textContent=t;
+    e.setAttribute('fill',fill||cssv('--ink3'));e.setAttribute('font-size',10);e.setAttribute('font-family',cssv('--mono'));e.setAttribute('text-anchor','middle');svg.appendChild(e);}
+  const NOTES=['a flat plane — angles are all over the place','our 3D globe — still very oblique','a modest hidden size','getting peaky','GPT‑2 small territory','Llama‑2 hidden size — fully collapsed on ⟂'];
+  function refresh(){const d=DIMS[st.i];el.nLbl.textContent=d;el.note.textContent=NOTES[st.i];build();}
+  el.n.addEventListener('input',e=>{st.i=+e.target.value;refresh();});
+  window.addEventListener('themechange',build);
+  refresh();
+})();
+</script>
+<script>
+const LANG={"order":["en","zh","it","vi","ar","ko","th","bn","sw","jv"],"names":{"en":"English","zh":"Chinese","it":"Italian","vi":"Vietnamese","ar":"Arabic","ko":"Korean","th":"Thai","bn":"Bengali","sw":"Swahili","jv":"Javanese"},"tier":{"en":"en","zh":"high","it":"high","vi":"high","ar":"med","ko":"med","th":"med","bn":"low","sw":"low","jv":"low"},"cos":{"llama":[[1.0,0.804,0.791,0.825,0.738,0.782,0.804,0.763,0.642,0.659],[0.804,1.0,0.932,0.946,0.92,0.917,0.951,0.93,0.805,0.736],[0.791,0.932,1.0,0.929,0.909,0.907,0.913,0.917,0.791,0.721],[0.825,0.946,0.929,1.0,0.926,0.952,0.939,0.931,0.844,0.771],[0.738,0.92,0.909,0.926,1.0,0.901,0.916,0.923,0.86,0.728],[0.782,0.917,0.907,0.952,0.901,1.0,0.896,0.909,0.801,0.769],[0.804,0.951,0.913,0.939,0.916,0.896,1.0,0.939,0.811,0.756],[0.763,0.93,0.917,0.931,0.923,0.909,0.939,1.0,0.834,0.742],[0.642,0.805,0.791,0.844,0.86,0.801,0.811,0.834,1.0,0.683],[0.659,0.736,0.721,0.771,0.728,0.769,0.756,0.742,0.683,1.0]],"qwen":[[1.0,0.565,0.339,0.396,0.431,0.518,0.487,0.381,0.089,0.225],[0.565,1.0,0.266,0.406,0.398,0.472,0.508,0.384,0.116,0.149],[0.339,0.266,1.0,0.363,0.398,0.351,0.377,0.323,0.078,0.291],[0.396,0.406,0.363,1.0,0.484,0.511,0.624,0.496,0.147,0.335],[0.431,0.398,0.398,0.484,1.0,0.542,0.686,0.5,0.123,0.275],[0.518,0.472,0.351,0.511,0.542,1.0,0.623,0.652,0.101,0.26],[0.487,0.508,0.377,0.624,0.686,0.623,1.0,0.583,0.107,0.313],[0.381,0.384,0.323,0.496,0.5,0.652,0.583,1.0,0.081,0.303],[0.089,0.116,0.078,0.147,0.123,0.101,0.107,0.081,1.0,0.158],[0.225,0.149,0.291,0.335,0.275,0.26,0.313,0.303,0.158,1.0]]},"qwen16":[[79.7,61.9,61.9,7.0,7.0,28.0],[76.5,51.4,33.7,6.0,8.0,36.0],[71.7,59.7,61.6,17.0,17.0,44.0],[67.9,56.5,56.2,7.0,12.0,48.0],[71.4,50.8,46.7,14.0,17.0,55.0],[70.2,57.8,61.3,7.0,12.0,39.0],[66.0,47.9,43.2,14.0,21.0,42.0],[29.5,19.7,19.4,2.0,3.0,22.0],[5.7,1.0,0.0,4.0,-1.0,21.0],[37.8,16.2,7.6,16.0,8.0,50.0]],"qwen28":[[79.7,-1.3,-1.3,5.0,5.0,-1.0],[76.5,-4.1,1.0,0.0,4.0,-3.0],[71.7,-12.4,13.7,1.0,8.0,0.0],[67.9,-9.2,0.6,0.0,0.0,0.0],[71.4,-8.3,8.3,3.0,6.0,-2.0],[70.2,-7.9,5.1,-2.0,-1.0,-4.0],[66.0,-3.5,13.7,3.0,7.0,-2.0],[29.5,-4.8,7.3,0.0,-1.0,-1.0],[5.7,-7.6,-1.0,47.0,-1.0,-1.0],[37.8,-15.6,12.4,17.0,-2.0,-9.0]],"llama13":[[72.1,-0.6,-0.6,15.0,15.0,83.0],[71.1,-4.8,-5.4,62.0,29.0,69.0],[73.7,-10.2,-16.2,92.0,63.0,98.0],[69.8,-8.6,-5.7,81.0,34.0,70.0],[67.6,-14.6,-19.4,89.0,24.0,29.0],[42.5,-7.6,-5.1,32.0,6.0,21.0],[63.5,-3.8,-9.2,74.0,29.0,66.0],[31.4,3.5,13.7,3.0,3.0,0.0],[25.7,-23.5,-12.1,34.0,10.0,0.0],[64.4,-14.3,-4.8,81.0,35.0,52.0]],"llama9":[[72.1,-2.2,-2.2,3.0,3.0,45.0],[71.1,-2.9,-1.6,17.0,6.0,79.0],[73.7,-4.8,-2.5,19.0,2.0,82.0],[69.8,-3.5,-1.3,15.0,4.0,90.0],[67.6,-6.7,-3.2,29.0,1.0,80.0],[42.5,4.8,7.9,15.0,4.0,72.0],[63.5,-2.5,-9.2,17.0,5.0,95.0],[31.4,7.9,0.0,8.0,1.0,7.0],[25.7,-2.5,2.2,23.0,4.0,60.0],[64.4,-2.5,-2.9,58.0,12.0,82.0]]};
+/* ===================== LANGUAGES ===================== */
+(function(){
+  const svg=document.getElementById('langSvg'); if(!svg) return;
+  const NS='http://www.w3.org/2000/svg', st={model:'qwen',view:'base'};
+  const read=document.getElementById('langRead'), ex=document.getElementById('langExplain');
+  const tierCol=t=>cssv(t==='en'?'--ink':t==='high'?'--refuse':t==='med'?'--concept':'--harm');
+  function T(x,y,t,o){o=o||{};const e=document.createElementNS(NS,'text');e.setAttribute('x',x);e.setAttribute('y',y);e.textContent=t;
+    e.setAttribute('fill',o.fill||cssv('--ink2'));e.setAttribute('font-size',o.size||10.5);e.setAttribute('font-family',cssv('--mono'));
+    e.setAttribute('text-anchor',o.anchor||'start');if(o.weight)e.setAttribute('font-weight',o.weight);svg.appendChild(e);return e;}
+  function R(x,y,w,h,fill,o){o=o||{};const r=document.createElementNS(NS,'rect');r.setAttribute('x',x);r.setAttribute('y',y);r.setAttribute('width',Math.max(0,w));r.setAttribute('height',Math.max(0,h));
+    r.setAttribute('fill',fill);if(o.rx)r.setAttribute('rx',o.rx);if(o.op!==undefined)r.setAttribute('opacity',o.op);if(o.stroke){r.setAttribute('stroke',o.stroke);r.setAttribute('stroke-width',o.sw||1.2);}svg.appendChild(r);return r;}
+  const EX={
+    qwen:{base:'Share of harmful prompts refused, same prompts in each language. English 80%, Swahili <b>6%</b>: the low‑resource gap, directly.',
+      remove:'Refusal drop when the <b>English</b> r̂ is ablated at layer 16 (solid) vs the language’s <b>own</b> r̂ (outline). The English direction matches or beats each language’s own everywhere there is refusal to remove (Chinese 51 vs 34). Swahili starts with almost none.',
+      add:'Refusal rise on harmless prompts when English r̂ is added at layer 16, α = 1. Weak everywhere, English included (+7) — at α = 2 it rises 21–55 points across all ten. The weakness is the dose, not the language.',
+      cos:'Cosine between per‑language refusal directions at the pre‑registered layer 28 — the model’s final block, where nothing steers. Median <b>0.38</b>. At layer 16 the median is 0.875; at 19, 0.93.'},
+    llama:{base:'Share of harmful prompts refused. English 72%, Swahili 26%, Bengali 31% — the same gap, a little smaller.',
+      remove:'Ablation at layer 13 (Llama’s layer of record) barely moves refusal <em>even in English</em> (−0.6). This arm is uninformative here, and it is what sank the study’s “0 of 9” transfer verdict.',
+      add:'Refusal rise on harmless prompts when English r̂ is added at layer 13, α = 1 (solid) vs own direction (outline). +62 to +92 in six languages — more than in English itself. Bengali: +3, and its own direction does no better.',
+      cos:'Cosine between per‑language refusal directions at layer 13, the layer of record. Median <b>0.84</b>: one shared subspace. But English is not its hub: the other languages agree with each other at ≈ 0.9, with English at only 0.64–0.82. Swahili and Javanese sit furthest out.'}};
+  function bars(){
+    const rows=st.model==='qwen'?LANG.qwen16:LANG.llama13, O=LANG.order;
+    const W=640,H=420,pl=96,pr=60,pt=30,pb=34,bh=(H-pt-pb)/O.length;
+    const view=st.view, idx=view==='base'?[0,null]:view==='remove'?[1,2]:[3,4];
+    const vmax=100, x0=pl, X=v=>x0+clamp(v,-30,100)/vmax*(W-pl-pr);
+    // zero line + grid
+    [0,25,50,75,100].forEach(v=>{const x=X(v);const l=document.createElementNS(NS,'line');l.setAttribute('x1',x);l.setAttribute('x2',x);l.setAttribute('y1',pt-6);l.setAttribute('y2',H-pb);
+      l.setAttribute('stroke',cssv(v===0?'--line2':'--line'));svg.appendChild(l);T(x,H-pb+16,v+(view==='base'?'%':''),{anchor:'middle',fill:cssv('--ink3'),size:9.5});});
+    T(x0+(W-pl-pr)/2,H-4,view==='base'?'harmful prompts refused':view==='remove'?'refusal removed (points)':'refusal induced (points)',{anchor:'middle',fill:cssv('--ink3'),size:10});
+    O.forEach((lg,i)=>{const y=pt+i*bh, r=rows[i], v=r[idx[0]], own=idx[1]!==null?r[idx[1]]:null, col=tierCol(LANG.tier[lg]);
+      T(pl-10,y+bh/2+4,LANG.names[lg],{anchor:'end',fill:lg==='en'?cssv('--ink'):cssv('--ink2'),weight:lg==='en'?600:400});
+      const bar=R(Math.min(X(0),X(v)),y+bh*0.2,Math.abs(X(v)-X(0)),bh*0.6,col,{rx:2,op:.88});
+      if(own!==null&&lg!=='en') R(Math.min(X(0),X(own)),y+bh*0.12,Math.abs(X(own)-X(0)),bh*0.76,'none',{rx:2,stroke:cssv('--ink2'),sw:1.3});
+      T(X(Math.max(v,own||0,0))+6,y+bh/2+4,(v>0&&view!=='base'?'+':'')+v.toFixed(0)+(view==='base'?'%':''),{fill:cssv('--ink'),size:10.5});
+      const hit=R(0,y,W,bh,'transparent');hit.addEventListener('mouseenter',()=>{read.innerHTML=`<b>${LANG.names[lg]}</b> · ${LANG.tier[lg]==='en'?'pivot':LANG.tier[lg]+'‑resource'}<br>baseline refusal <b>${r[0]}%</b><br>remove en r̂ <b>${r[1]}</b> · own <b>${r[2]}</b><br>add en r̂ α=1 <b>${r[3]}</b> · α=2 <b>${r[5]}</b>`;});
+    });
+    T(pl,16,(st.model==='qwen'?'Qwen2.5‑7B':'Llama‑3.2‑3B')+(st.view==='base'?' · no intervention':st.model==='qwen'?' · layer 16':' · layer 13 (layer of record)'),{fill:cssv('--ink3'),size:10});
+  }
+  function heat(){
+    const M=LANG.cos[st.model],O=LANG.order,W=640,H=420,pl=60,pt=40,cs=Math.min((W-pl-120)/10,(H-pt-30)/10);
+    O.forEach((lg,i)=>{T(pl-8,pt+i*cs+cs/2+4,lg,{anchor:'end',fill:tierCol(LANG.tier[lg]),weight:600});
+      T(pl+i*cs+cs/2,pt-8,lg,{anchor:'middle',fill:tierCol(LANG.tier[lg]),weight:600});
+      O.forEach((lg2,j)=>{const v=M[i][j],x=pl+j*cs,y=pt+i*cs;
+        const r=R(x+1,y+1,cs-2,cs-2,cssv('--refuse'),{rx:2,op:i===j?0.12:clamp(v,0,1)*0.92+0.04});
+        if(i!==j&&cs>30)T(x+cs/2,y+cs/2+4,v.toFixed(2),{anchor:'middle',size:9.5,fill:v>0.6?cssv('--paper'):cssv('--ink2')});
+        r.addEventListener('mouseenter',()=>{read.innerHTML=`<b>${LANG.names[lg]}</b> × <b>${LANG.names[lg2]}</b><br>cosine <b>${v.toFixed(3)}</b>`;});});});
+    // scale
+    const sx=pl+10*cs+24;for(let k=0;k<=10;k++){R(sx,pt+(10-k)*cs*0.9,16,cs*0.9,cssv('--refuse'),{op:k/10*0.92+0.04});}
+    T(sx+22,pt+8,'1.0',{size:9.5});T(sx+22,pt+cs*9,'0.0',{size:9.5});
+    T(pl,H-8,st.model==='qwen'?'Qwen2.5‑7B · layer 28 (pre‑registered, final block)':'Llama‑3.2‑3B · layer 13 (layer of record)',{fill:cssv('--ink3'),size:10});
+  }
+  function build(){svg.innerHTML='';st.view==='cos'?heat():bars();ex.innerHTML=EX[st.model][st.view];}
+  function seg(id,key){document.querySelectorAll('#'+id+' button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#'+id+' button').forEach(x=>x.classList.remove('on'));b.classList.add('on');st[key]=b.dataset[key==='model'?'m':'v'];build();}));}
+  seg('langModel','model');seg('langView','view');
+  window.addEventListener('themechange',build);build();
+})();
+
+/* ===================== LATE-ARRIVAL HYPOTHESIS (toy) ===================== */
+(function(){
+  const svg=document.getElementById('lateSvg'); if(!svg) return;
+  const NS='http://www.w3.org/2000/svg', inp=document.getElementById('lateN');
+  const $=id=>document.getElementById(id);
+  function T(x,y,t,o){o=o||{};const e=document.createElementNS(NS,'text');e.setAttribute('x',x);e.setAttribute('y',y);e.textContent=t;
+    e.setAttribute('fill',o.fill||cssv('--ink2'));e.setAttribute('font-size',o.size||10.5);e.setAttribute('font-family',cssv('--mono'));e.setAttribute('text-anchor',o.anchor||'start');svg.appendChild(e);}
+  function R(x,y,w,h,fill,o){o=o||{};const r=document.createElementNS(NS,'rect');r.setAttribute('x',x);r.setAttribute('y',y);r.setAttribute('width',Math.max(0,w));r.setAttribute('height',h);
+    r.setAttribute('fill',fill);r.setAttribute('rx',o.rx||3);if(o.op!==undefined)r.setAttribute('opacity',o.op);if(o.stroke){r.setAttribute('stroke',o.stroke);r.setAttribute('stroke-width',o.sw||1.5);}svg.appendChild(r);}
+  function build(){
+    svg.innerHTML='';const p=+inp.value/10, ready=Math.round(3+3.2*p), W=640,pl=30,pr=20,X=L=>pl+L/32*(W-pl-pr);
+    $('lateNLbl').textContent=p.toFixed(1);$('lateReady').textContent='layer '+ready;
+    const ov=clamp(18-Math.max(ready,10),0,8);
+    $('lateOverlap').textContent=ready<=10?'full':ov<=0?'missed':`${ov} of 8 layers`;
+    $('lateOverlap').style.color=ready<=10?'var(--ok)':ov<=0?'var(--warn)':'var(--accent)';
+    // word pieces
+    const n=Math.round(p*3);T(pl,40,'a three‑word phrase, as the tokenizer splits it:',{fill:cssv('--ink3'),size:10});
+    for(let k=0;k<n;k++)R(pl+k*34,50,30,22,cssv('--input'),{op:.75});
+    // timeline
+    const y=130;T(pl,y-12,'layers →',{fill:cssv('--ink3'),size:10});
+    R(X(0),y,X(ready)-X(0),26,cssv('--input'),{op:.55});T(X(0)+6,y+17,'gluing pieces',{fill:cssv('--ink'),size:10});
+    R(X(ready),y,X(32)-X(ready),26,cssv('--concept'),{op:.45});T(X(ready)+6,y+17,'concept available',{fill:cssv('--ink'),size:10});
+    R(X(10),y-8,X(18)-X(10),42,'none',{stroke:cssv('--refuse'),sw:2});T(X(10),y+52,'refusal update window (toy)',{fill:cssv('--refuse'),size:10});
+    if(ready>10)R(X(10),y-8,X(Math.min(ready,18))-X(10),42,cssv('--warn'),{op:.14});
+    for(let L=0;L<=32;L+=4)T(X(L),y+76,String(L),{anchor:'middle',fill:cssv('--ink3'),size:9.5});
+    T(pl,260,ready<=10?'The concept exists before the window opens: the refusal push can be written.':ov<=0?'The window has closed before the concept exists: nothing to refuse yet.':'The concept arrives mid‑window: a shorter, weaker push.',{fill:cssv('--ink'),size:11.5});
+  }
+  inp.addEventListener('input',build);window.addEventListener('themechange',build);build();
+})();
+
+/* ===================== CONCEPT MAP ===================== */
+(function(){
+  const svg=document.getElementById('mapSvg'); if(!svg) return;
+  const NS='http://www.w3.org/2000/svg', read=document.getElementById('mapRead');
+  const N={
+    inp:{x:84,y:70,t:'Input space',c:'--input',sec:'globe',d:'Tokens start far from every output token: the logit lens reads nothing. Wendler et al. [1]'},
+    con:{x:279,y:70,t:'Concept space',c:'--concept',sec:'globe',d:'Middle layers: the state tips toward meanings, leaning English. Wendler et al. [1]'},
+    hh:{x:480,y:70,t:'ĥ · harm belief',s:'at t_inst',c:'--harm',sec:'axes',d:'The model’s judgment that a request is harmful, at the last instruction token. Zhao et al. [3]'},
+    rr:{x:681,y:70,t:'r̂ · refusal',s:'at t_post‑inst',c:'--refuse',sec:'grid',d:'One direction that mediates refusal behaviour, at the template tokens. Arditi et al. [2]'},
+    out:{x:876,y:70,t:'Output',s:'“Sure” / “I…”',c:'--en',sec:'globe',d:'The equator: the next token, which follows r̂.'},
+    low:{x:279,y:220,t:'Low‑resource prompt',c:'--harm',sec:'lang',d:'Refusal falls (Qwen: 80% → 6% in Swahili), yet the English r̂ still transfers to most languages mid‑network. [7] ✓'},
+    lg:{x:480,y:220,t:'Latent Guard',c:'--ok',sec:'map',d:'Reads ĥ directly. Competitive with Llama Guard 3 8B; robust to fine‑tuning attacks. [3]'},
+    att:{x:681,y:220,t:'Ablate · add · ortho',c:'--refuse',sec:'break',d:'Remove, add, or edit r̂ out of the weights. Bypass 5% → 81% on Llama‑2, capability intact. [2] ✓'},
+    gcg:{x:876,y:220,t:'GCG · fine‑tuning',c:'--warn',sec:'break',d:'Attacks that suppress r̂’s expression; the harm belief largely survives. [2][3]'},
+    norm:{x:84,y:360,t:'RMSNorm sphere',c:'--ink2',sec:'globe',d:'Each sub‑layer reads a normalised copy; the stream itself grows ~40×. [5] ✓'},
+    hd:{x:582,y:360,t:'High‑D: ⟂ by default',c:'--ink2',sec:'dims',d:'Random directions are near‑orthogonal in 4,096 dims, so ĥ and r̂ can coexist. [6]'},
+  };
+  const E=[['inp','con','layers'],['con','hh','reads'],['hh','rr','feeds'],['rr','out','decides'],['lg','hh','reads',1],['att','rr','edits',1],['gcg','rr','suppresses',1],['low','con','weak trigger',1],['norm','inp','the sphere picture',2],['hd',null,'why ĥ, r̂ coexist',2]];
+  function build(){
+    svg.innerHTML='';
+    const mk=(tag,a)=>{const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);svg.appendChild(e);return e;};
+    const defs=mk('defs',{});const m=document.createElementNS(NS,'marker');
+    m.setAttribute('id','ah');m.setAttribute('viewBox','0 0 10 10');m.setAttribute('refX',9);m.setAttribute('refY',5);m.setAttribute('markerWidth',7);m.setAttribute('markerHeight',7);m.setAttribute('orient','auto-start-reverse');
+    const pth=document.createElementNS(NS,'path');pth.setAttribute('d','M0,0 L10,5 L0,10 z');pth.setAttribute('fill',cssv('--ink3'));m.appendChild(pth);defs.appendChild(m);
+    const BW=148,BH=52;
+    E.forEach(([a,b,lab,kind])=>{const A=N[a],B=b?N[b]:{x:A.x,y:70+BH/2+1};let x1=A.x,y1=A.y,x2=B.x,y2=B.y;
+      if(!b){y1-=BH/2;mk('circle',{cx:x2,cy:70,r:3.5,fill:cssv('--ink3')});y2=74;}else
+      if(A.y===B.y){x1+=BW/2*(B.x>A.x?1:-1);x2-=BW/2*(B.x>A.x?1:-1);}else{y1+=BH/2*(B.y>A.y?1:-1);y2-=BH/2*(B.y>A.y?1:-1);}
+      mk('line',{x1,y1,x2,y2,stroke:cssv(kind===2?'--line2':'--ink3'),'stroke-width':kind===2?1.2:1.6,'stroke-dasharray':kind===2?'3 4':kind===1?'5 3':'','marker-end':kind===2?'':'url(#ah)'});
+      if(lab){const t=mk('text',{x:(x1+x2)/2+(A.y===B.y?0:6),y:kind===2?y1-12:(y1+y2)/2+(A.y===B.y?-7:4),fill:cssv('--ink3'),'font-size':10,'font-family':cssv('--mono'),'text-anchor':A.y===B.y?'middle':'start'});t.textContent=lab;}});
+    for(const k in N){const n=N[k],g=mk('g',{tabindex:0,role:'button','aria-label':n.t+': '+n.d});g.style.cursor='pointer';
+      const r=document.createElementNS(NS,'rect');[['x',n.x-BW/2],['y',n.y-BH/2],['width',BW],['height',BH],['rx',10],['fill',cssv('--paper')],['stroke',cssv(n.c)],['stroke-width',2]].forEach(([a,v])=>r.setAttribute(a,v));g.appendChild(r);
+      const t=document.createElementNS(NS,'text');[['x',n.x],['y',n.y+(n.s?-2:4)],['text-anchor','middle'],['fill',cssv('--ink')],['font-size',12],['font-weight',600],['font-family',cssv('--sans')]].forEach(([a,v])=>t.setAttribute(a,v));t.textContent=n.t;g.appendChild(t);
+      if(n.s){const s=document.createElementNS(NS,'text');[['x',n.x],['y',n.y+14],['text-anchor','middle'],['fill',cssv(n.c)],['font-size',10],['font-family',cssv('--mono')]].forEach(([a,v])=>s.setAttribute(a,v));s.textContent=n.s;g.appendChild(s);}
+      const show=()=>{read.innerHTML=`<b>${n.t}</b><br>${n.d}`;};
+      g.addEventListener('mouseenter',show);g.addEventListener('focus',show);
+      g.addEventListener('click',()=>document.getElementById(n.sec).scrollIntoView({behavior:RM?'auto':'smooth'}));
+      g.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById(n.sec).scrollIntoView();});}
+    mk('text',{x:12,y:428,fill:cssv('--ink3'),'font-size':10,'font-family':cssv('--mono')}).textContent='solid: the forward pass · dashed: interventions and readers · dotted: the geometry underneath';
+  }
+  window.addEventListener('themechange',build);build();
+})();
+
+/* ===================== in-page links (work inside the viewer) ===================== */
+(function(){
+  document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{
+    const t=document.getElementById(a.getAttribute('href').slice(1));if(!t)return;e.preventDefault();
+    t.scrollIntoView({behavior:RM?'auto':'smooth',block:'start'});}));
+  const go=()=>{const id=(location.hash||'').slice(1);if(/^[A-Za-z0-9_~.-]+$/.test(id)){const t=document.getElementById(id);if(t)t.scrollIntoView();}};
+  window.addEventListener('load',()=>setTimeout(go,60));window.addEventListener('hashchange',go);
+})();
+/* ===================== nav highlight ===================== */
+(function(){
+  const links=[...document.querySelectorAll('.bar nav a')];const ids=links.map(a=>a.getAttribute('href').slice(1));
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.toggle('on',l.getAttribute('href')==='#'+e.target.id));}});},{rootMargin:'-40% 0px -55% 0px'});
+  ids.forEach(id=>{const s=document.getElementById(id);if(s)io.observe(s);});
+})();
+</script>
+</body>
+</html>

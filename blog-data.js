@@ -7,6 +7,14 @@
 ================================================================= */
 const blogPosts = [
     {
+        slug:    "latent-visualization",
+        href:    "posts/latent-visualization/",
+        title:   "The Geometry of Refusal",
+        date:    "October 23, 2026",
+        excerpt: "A rotatable, multi-panel playground for how safety lives in a transformer's residual stream: one refusal direction, a separate harmfulness direction, and what the 3D picture hides. A follow-up to the Llama sphere.",
+        tags:    ["Interpretability", "AI Safety", "Refusal", "Interactive"]
+    },
+    {
         slug:    "token-concept-visualization",
         href:    "posts/token-concept-visualization/",
         title:   "Do Llamas Think in English? A Sphere You Can Rotate",
