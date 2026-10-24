@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script>(function(){var d=document.documentElement,mq=matchMedia('(prefers-color-scheme: dark)');function saved(){try{return localStorage.getItem('np-theme');}catch(e){return null;}}function sys(){return mq.matches?'dark':'light';}d.setAttribute('data-theme',saved()||sys());mq.addEventListener&&mq.addEventListener('change',function(){if(!saved()){d.setAttribute('data-theme',sys());window.dispatchEvent(new Event('themechange'));}});})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>The geometry of refusal — an interpretability playground</title>
 <meta name="description" content="A multi-panel, rotatable playground for how safety lives in a transformer's residual stream: one refusal direction, a separate harmfulness direction, and what the 3D picture hides.">
@@ -81,7 +82,7 @@ sup.ref a{text-decoration:none;color:inherit}
 .bar-in{max-width:var(--maxw);margin:0 auto;padding:10px 22px;display:flex;align-items:center;gap:14px}
 .bar .home{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);text-decoration:none;white-space:nowrap}
 .bar .home:hover{color:var(--ink)}
-.bar nav{display:flex;gap:2px;margin-left:auto;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.bar nav{display:flex;gap:2px;margin-left:auto;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .bar nav::-webkit-scrollbar{display:none}
 .bar nav a{font-family:var(--mono);font-size:11.5px;color:var(--ink3);text-decoration:none;padding:5px 9px;border-radius:7px;white-space:nowrap}
 .bar nav a:hover,.bar nav a.on{color:var(--ink);background:var(--soft)}
@@ -125,7 +126,7 @@ sup.ref a{text-decoration:none;color:inherit}
 /* ---- the reusable "lab" panel: stage + controls ---- */
 .lab{margin:26px 0 8px;border:1px solid var(--line);border-radius:16px;background:var(--paper);overflow:hidden}
 .lab-grid{display:grid;grid-template-columns:minmax(0,1fr) 316px}
-@media (max-width:860px){.lab-grid{grid-template-columns:1fr}}
+@media (max-width:860px){.lab-grid{grid-template-columns:minmax(0,1fr)}}
 .lab-stage{position:relative;background:
    linear-gradient(180deg, color-mix(in srgb,var(--sunk) 55%,transparent), transparent 40%),var(--paper);
    min-height:420px;border-right:1px solid var(--line)}
@@ -168,6 +169,32 @@ input[type=range].refuse::-moz-range-thumb{background:var(--refuse)}
 .divider{height:1px;background:var(--line);margin:2px 0}
 .kv{font-family:var(--mono);font-size:11.5px;color:var(--ink2);display:flex;justify-content:space-between;gap:10px}
 .kv b{color:var(--ink);font-weight:600}
+/* grid inspector card */
+#gridSvg{-webkit-tap-highlight-color:transparent}
+#gridSvg:focus:not(:focus-visible){outline:none}
+#gridSvg:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.cc{border:1px solid var(--line);border-radius:12px;background:var(--soft);padding:12px;display:flex;flex-direction:column;gap:11px}
+.cc-head{display:flex;justify-content:space-between;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--ink2)}
+.cc-head b{color:var(--ink);font-weight:600}.cc-head i{color:var(--ink3);font-style:normal}
+.cc-badge{font-size:10px;border-radius:999px;padding:2px 8px;border:1px solid var(--line2);color:var(--ink3);white-space:nowrap}
+.cc-badge.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,transparent);background:color-mix(in srgb,var(--ok) 10%,transparent)}
+.cc-badge.pick{color:var(--paper);background:var(--ink);border-color:var(--ink)}
+.cc-m{display:flex;flex-direction:column;gap:5px}
+.cc-m .top{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:11px;color:var(--ink2)}
+.cc-m .v{font-size:18px;font-weight:600;color:var(--ink)}
+.cc-bar{position:relative;height:8px;border-radius:4px;background:var(--sunk);margin:2px 6px}
+.cc-bar .zone{position:absolute;top:0;bottom:0;background:color-mix(in srgb,var(--ok) 28%,transparent);border-radius:4px}
+.ghost{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:var(--ink);opacity:.55}
+.cc-bar .dot{position:absolute;top:50%;width:13px;height:13px;border-radius:50%;transform:translate(-50%,-50%);border:2px solid var(--paper);box-shadow:0 1px 2px rgba(0,0,0,.3)}
+.cc-m .cap{font-size:11px;color:var(--ink3);line-height:1.4}.cc-m .off{color:var(--warn)}
+.cc-checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px;font-family:var(--mono);font-size:11px}
+.cc-checks li{display:flex;gap:7px}.cc-checks .pass{color:var(--ok)}.cc-checks .fail{color:var(--warn)}
+.cc-verdict{margin:0;font-size:12.5px;color:var(--ink2);line-height:1.45}.cc-verdict b{color:var(--ink)}
+.cc-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.cc-foot .btn{padding:5px 10px;font-size:12px}
+.cc-key{position:relative;font-family:var(--mono);font-size:10.5px;color:var(--ink3);padding-left:10px}.cc-key .ghost{left:1px;top:0;bottom:0}
+.cc-hint{margin:-4px 0 0;font-size:11.5px;color:var(--ink3);line-height:1.45}
+@media (max-width:860px){.lab-side .cc{order:-1}.lab-side .cc-hint{order:-1}}
 
 /* legend row under stages */
 .leg{display:flex;flex-wrap:wrap;gap:12px;font-family:var(--mono);font-size:11px;color:var(--ink2);padding:10px 16px;border-top:1px solid var(--line);background:var(--soft)}
@@ -204,7 +231,7 @@ input[type=range].refuse::-moz-range-thumb{background:var(--refuse)}
 /* refs */
 .refs{border-top:1px solid var(--line);padding:30px 0 70px;scroll-margin-top:52px}
 .refs ol{margin:0;padding-left:1.4em;font-size:13.5px;color:var(--ink2)}
-.refs li{margin:.5em 0;padding-left:.2em}
+.refs li{margin:.5em 0;padding-left:.2em;overflow-wrap:anywhere}
 .refs li:target{background:color-mix(in srgb,var(--accent) 16%,transparent);border-radius:4px}
 .footer-note{font-size:12.5px;color:var(--ink3);margin-top:20px;max-width:70ch}
 
@@ -461,9 +488,8 @@ An earlier post, <a href="https://paudelnirajan.github.io/posts/token-concept-vi
   <div class="lab">
     <div class="lab-grid">
       <div class="lab-stage svgstage">
-        <div class="svgscroll"><svg id="gridSvg" viewBox="0 0 640 430" aria-label="A grid of candidate refusal directions across layers and token positions for Llama-2-7B, shaded by how well each one bypasses refusal, with five survivors marked."></svg></div>
+        <div class="svgscroll"><svg id="gridSvg" viewBox="0 0 640 430" tabindex="0" aria-label="A grid of candidate refusal directions across layers and token positions for Llama-2-7B, shaded by how well each one bypasses refusal, with five survivors marked. Click a cell, or use the arrow keys, to inspect its scores."></svg></div>
         <div class="swipe">swipe sideways to see the whole chart</div>
-        <div class="stage-read" id="gridRead">hover a cell</div>
       </div>
       <div class="lab-side">
         <div class="ctl">
@@ -478,7 +504,9 @@ An earlier post, <a href="https://paudelnirajan.github.io/posts/token-concept-vi
         <div class="divider"></div>
         <div class="kv"><span>candidates</span><b>6 positions × 32 layers = 192</b></div>
         <div class="kv"><span>survive the filters</span><b style="color:var(--ok)">5</b></div>
-        <div class="kv"><span>selected</span><b>layer 14 · pos −1</b></div>
+        <div class="kv"><span>paper’s pick</span><b>layer 14 · pos −1</b></div>
+        <div class="cc" id="gridCard" aria-live="polite"></div>
+        <p class="cc-hint">Click a cell to pin it, hover to preview, or click the grid and step with the arrow keys.</p>
         <p class="note">Shade shows each candidate for <strong>Llama‑2‑7B‑chat</strong> from the authors’ released <code>direction_evaluations.json</code> <span class="verified">✓ measured</span>. The filters throw out the last 20% of layers, anything that disturbs harmless behaviour (KL &gt; 0.1), and anything that can’t itself induce refusal. Of 192 candidates, only five are left — and the winner is the one that bypasses refusal hardest.</p>
       </div>
     </div>
@@ -486,7 +514,9 @@ An earlier post, <a href="https://paudelnirajan.github.io/posts/token-concept-vi
       <span><i style="background:var(--sunk);border:1px solid var(--line2)"></i> keeps refusing</span>
       <span><i style="background:var(--harm)"></i> bypasses refusal</span>
       <span><i class="dot" style="background:var(--ok);outline:2px solid var(--paper)"></i> survives filters</span>
-      <span><i style="border:2px solid var(--ink);background:transparent"></i> selected direction</span>
+      <span><i style="border:2px solid var(--ink);background:transparent"></i> paper’s pick</span>
+      <span><i style="border:2px solid var(--accent);background:transparent"></i> cell you pinned</span>
+      <span><i style="background:repeating-linear-gradient(45deg,var(--soft) 0 2px,var(--line2) 2px 4px)"></i> no data</span>
     </div>
   </div>
 
@@ -780,12 +810,15 @@ const RM = (window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').m
 
 /* ---------- theme ---------- */
 (function(){
-  const b=document.getElementById('themeBtn');
+  // shares the site-wide np-theme choice; the <head> script handles following the system
+  const b=document.getElementById('themeBtn'), d=document.documentElement;
   const sys=()=> (matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
-  let t=null;
-  function apply(){document.documentElement.setAttribute('data-theme', t||sys());window.dispatchEvent(new Event('themechange'));}
-  b.addEventListener('click',()=>{const cur=t||sys();t=(cur==='dark'?'light':'dark');apply();});
-  matchMedia('(prefers-color-scheme:dark)').addEventListener?.('change',()=>{if(!t)apply();});
+  b.addEventListener('click',()=>{
+    const next=d.getAttribute('data-theme')==='dark'?'light':'dark';
+    d.setAttribute('data-theme',next);
+    try{ if(next===sys()) localStorage.removeItem('np-theme'); else localStorage.setItem('np-theme',next); }catch(e){}
+    window.dispatchEvent(new Event('themechange'));
+  });
 })();
 function cssv(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
 
@@ -1141,18 +1174,28 @@ function posAt(keys,L){
 /* ===================== SELECTION GRID (SVG) ===================== */
 (function(){
   const svg=document.getElementById('gridSvg'); if(!svg) return;
-  const read=document.getElementById('gridRead');
+  const card=document.getElementById('gridCard');
   const st={metric:'refusal',filter:true};
   const NS='http://www.w3.org/2000/svg';
-  const POS=[-6,-5,-4,-3,-2,-1], NL=32, selL=14, selP=-1;
-  // index grid by [posIndex][layer]
+  const POS=[-6,-5,-4,-3,-2,-1], NL=32, selL=14, selP=-1, CUT=Math.floor(NL*0.8);
+  const W=640,H=430, padL=52,padT=24,padB=40,padR=16;
+  const gw=(W-padL-padR)/NL, gh=(H-padT-padB)/POS.length;
+  // index grid by [pos_layer]
   const grid={}; REAL.l2grid.forEach(r=>{grid[r[0]+'_'+r[1]]=r;}); // r=[pos,layer,refusal,steering,kl]
+  const pick=grid[selP+'_'+selL];
+  let pin={p:selP,L:selL}, hov=null, hoverBox=null, pinBox=null;
   function survives(r){ // paper filters: prune last 20% layers, kl<0.1, steering>0
-    if(r[1] >= Math.floor(NL*0.8)) return false;
+    if(r[1] >= CUT) return false;
     if(r[4] > 0.1) return false;
     if(r[3] < 0.0) return false;
     return true;
   }
+  const ok=v=>!Number.isNaN(v);
+  // ranks: bypass among all scored cells, and among survivors
+  const scored=REAL.l2grid.filter(r=>ok(r[2])).sort((a,b)=>a[2]-b[2]);
+  const surv=REAL.l2grid.filter(survives).sort((a,b)=>a[2]-b[2]);
+  const ext=i=>{const v=REAL.l2grid.map(r=>r[i]).filter(ok);return [Math.min(...v),Math.max(...v)];};
+  const RANGE={refusal:ext(2),steering:ext(3),kl:[0,1.1]}; // KL has a few huge outliers (~10); clip the bar
   function val(r){ return st.metric==='refusal'? r[2] : st.metric==='steering'? r[3] : r[4]; }
   function color(r){
     if(st.metric==='kl'){ const t=clamp(r[4]/0.5,0,1); return mix('--soft','--warn',t); }
@@ -1167,10 +1210,13 @@ function posAt(keys,L){
   }
   function hex(s){s=s.trim();if(s[0]==='#'){if(s.length===4)s='#'+s[1]+s[1]+s[2]+s[2]+s[3]+s[3];return [parseInt(s.slice(1,3),16),parseInt(s.slice(3,5),16),parseInt(s.slice(5,7),16)];}
     const m=s.match(/\d+/g);return m?m.map(Number):[128,128,128];}
+  const fmt=v=>ok(v)?v.toFixed(v>-1&&v<1&&v!==0?3:2).replace('-','−'):'—';
   function build(){
     svg.innerHTML='';
-    const W=640,H=430, padL=52,padT=24,padB=40,padR=16;
-    const gw=(W-padL-padR)/NL, gh=(H-padT-padB)/POS.length;
+    // hatch for cells the released file has no score for
+    const defs=document.createElementNS(NS,'defs');
+    defs.innerHTML=`<pattern id="gridNoData" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="${cssv('--soft')}"/><line x1="0" y1="0" x2="0" y2="5" stroke="${cssv('--line2')}" stroke-width="2"/></pattern>`;
+    svg.appendChild(defs);
     // axis labels
     addT(padL-8,padT+gh*POS.length/2,'position',cssv('--ink3'),10,'end',-90,padL-40,padT+gh*POS.length/2);
     addT(padL+(W-padL-padR)/2,H-8,'layer (0 → 31)',cssv('--ink3'),10,'middle');
@@ -1182,12 +1228,13 @@ function posAt(keys,L){
         const x=padL+gw*L,y=padT+gh*i;
         const rect=document.createElementNS(NS,'rect');
         rect.setAttribute('x',x+0.5);rect.setAttribute('y',y+0.5);rect.setAttribute('width',gw-1);rect.setAttribute('height',gh-1);
-        rect.setAttribute('rx',1.5);
+        rect.setAttribute('rx',1.5);rect.dataset.cell=p+'_'+L;
         const dim = st.filter && !survives(r);
-        rect.setAttribute('fill',color(r));
+        rect.setAttribute('fill',ok(val(r))?color(r):'url(#gridNoData)');
         rect.setAttribute('opacity',dim?0.18:1);
         rect.style.cursor='pointer';
-        rect.addEventListener('mouseenter',()=>{read.innerHTML=`pos <b>${p}</b> · layer <b>${L}</b><br>bypass ↓ <b>${r[2].toFixed(2)}</b> · induces ↑ <b>${r[3].toFixed(2)}</b><br>KL <b>${r[4].toFixed(3)}</b> · ${survives(r)?'<b style="color:var(--ok)">survives</b>':'filtered'}`;});
+        rect.addEventListener('mouseenter',()=>{hov={p,L};place(hoverBox,hov);render();});
+        rect.addEventListener('click',()=>setPin(p,L));
         svg.appendChild(rect);
         if(st.filter && survives(r)){
           const c=document.createElementNS(NS,'circle');c.setAttribute('cx',x+gw/2);c.setAttribute('cy',y+gh/2);c.setAttribute('r',Math.min(gw,gh)*0.22);
@@ -1201,25 +1248,82 @@ function posAt(keys,L){
     });
     // "pruned" overlay band
     if(st.filter){
-      const x=padL+gw*Math.floor(NL*0.8);
+      const x=padL+gw*CUT;
       const band=document.createElementNS(NS,'rect');band.setAttribute('x',x);band.setAttribute('y',padT);band.setAttribute('width',W-padR-x);band.setAttribute('height',gh*POS.length);
       band.setAttribute('fill',cssv('--ink3'));band.setAttribute('opacity',0.06);band.style.pointerEvents='none';svg.appendChild(band);
       addT(x+(W-padR-x)/2,padT+gh*3-6,'last 20%',cssv('--ink2'),9.5,'middle');addT(x+(W-padR-x)/2,padT+gh*3+8,'pruned',cssv('--ink2'),9.5,'middle');
     }
+    // hover + pinned outlines sit on top and just move around
+    hoverBox=box(cssv('--ink2'),1.2,'3 2'); pinBox=box(cssv('--accent'),2.6,null);
+    place(hoverBox,hov); place(pinBox,pin); render();
+  }
+  function box(stroke,w,dash){
+    const b=document.createElementNS(NS,'rect');b.setAttribute('fill','none');b.setAttribute('stroke',stroke);b.setAttribute('stroke-width',w);b.setAttribute('rx',2);
+    if(dash)b.setAttribute('stroke-dasharray',dash);b.style.pointerEvents='none';svg.appendChild(b);return b;
+  }
+  function place(b,c){
+    if(!b)return; if(!c){b.setAttribute('visibility','hidden');return;}
+    const i=POS.indexOf(c.p), inset=b===pinBox?2.2:1.2;
+    b.setAttribute('visibility','visible');
+    b.setAttribute('x',padL+gw*c.L+inset);b.setAttribute('y',padT+gh*i+inset);
+    b.setAttribute('width',gw-2*inset);b.setAttribute('height',gh-2*inset);
+  }
+  function setPin(p,L){pin={p,L};place(pinBox,pin);render();}
+  // one metric row: value, a bar over the whole grid's range, the pass zone, and a tick for the paper's pick
+  function bar(key,label,v,pv,cvar,zone,cap){
+    const [a,b]=RANGE[key], at=x=>clamp((x-a)/(b-a),0,1)*100;
+    const z=zone?`<span class="zone" style="left:${at(zone[0])}%;width:${at(zone[1])-at(zone[0])}%"></span>`:'';
+    const tick=ok(pv)?`<span class="ghost" style="left:${at(pv)}%" title="paper’s pick"></span>`:'';
+    const dot=ok(v)?`<span class="dot" style="left:${at(v)}%;background:var(${cvar})"></span>`:'';
+    const off=ok(v)&&(v>b)?' <span class="off">off the scale →</span>':'';
+    return `<div class="cc-m"><div class="top"><span>${label}</span><span class="v">${fmt(v)}</span></div>
+      <div class="cc-bar">${z}${tick}${dot}</div><div class="cap">${cap}${off}</div></div>`;
+  }
+  function render(){
+    const c=hov||pin, r=grid[c.p+'_'+c.L], isPick=c.p===selP&&c.L===selL;
+    const nodata=!ok(r[2]);
+    const sv=survives(r), sr=surv.indexOf(r)+1, ar=scored.indexOf(r)+1;
+    const badge=isPick?'<span class="cc-badge pick">paper’s pick</span>':nodata?'<span class="cc-badge no">no data</span>':sv?'<span class="cc-badge ok">survives</span>':'<span class="cc-badge no">filtered</span>';
+    const chk=(pass,txt)=>`<li class="${pass?'pass':'fail'}"><span>${pass?'✓':'✗'}</span> ${txt}</li>`;
+    let verdict;
+    if(nodata) verdict='The released evaluation file has no bypass or KL score for this cell, so it was never a candidate.';
+    else if(isPick) verdict=`Passes all three filters and has the lowest bypass score of the ${surv.length} survivors, so this is the direction the paper uses.`;
+    else if(sv) verdict=`Passes all three filters. It ranks <b>#${sr} of ${surv.length}</b> survivors by bypass; the paper takes #1.`;
+    else verdict='Thrown out by the filters marked ✗ above.';
+    card.innerHTML=`
+      <div class="cc-head"><span>pos <b>${String(c.p).replace('-','−')}</b> · layer <b>${c.L}</b>${hov&&!(hov.p===pin.p&&hov.L===pin.L)?' <i>(preview)</i>':''}</span>${badge}</div>
+      ${bar('refusal','bypass ↓',r[2],pick[2],'--harm',null,nodata?'no score':`rank #${ar} of ${scored.length} · lower = more refusal removed`)}
+      ${bar('steering','induces ↑',r[3],pick[3],'--ok',[0,RANGE.steering[1]],'adding it to a harmless prompt; must be ≥ 0')}
+      ${bar('kl','KL drift',r[4],pick[4],'--warn',[0,0.1],'change on harmless prompts; must be ≤ 0.1')}
+      <ul class="cc-checks">
+        ${chk(c.L<CUT,`layer ${c.L} ${c.L<CUT?'<':'≥'} ${CUT} (last 20% pruned)`)}
+        ${chk(ok(r[4])&&r[4]<=0.1,`KL ${fmt(r[4])} ${ok(r[4])?(r[4]<=0.1?'≤':'>'):''} 0.1`)}
+        ${chk(r[3]>=0,`induces ${fmt(r[3])} ${r[3]>=0?'≥':'<'} 0`)}
+      </ul>
+      <p class="cc-verdict">${verdict}</p>
+      <div class="cc-foot"><span class="cc-key"><span class="ghost"></span> paper’s pick</span>${isPick&&!hov?'':'<button class="btn" type="button" data-reset>Back to the paper’s pick</button>'}</div>`;
+    const rb=card.querySelector('[data-reset]'); if(rb) rb.addEventListener('click',()=>{hov=null;place(hoverBox,null);setPin(selP,selL);});
   }
   function addT(x,y,t,fill,size,anchor,rot,rx,ry){
     const e=document.createElementNS(NS,'text');e.setAttribute('x',x);e.setAttribute('y',y);e.textContent=t;
     e.setAttribute('fill',fill);e.setAttribute('font-size',size);e.setAttribute('font-family',cssv('--mono'));e.setAttribute('text-anchor',anchor||'start');
+    e.style.pointerEvents='none';
     if(rot!==undefined)e.setAttribute('transform',`rotate(${rot} ${rx} ${ry})`);svg.appendChild(e);return e;
   }
+  svg.addEventListener('mouseleave',()=>{hov=null;place(hoverBox,null);render();});
+  // arrow keys step the pinned cell
+  svg.addEventListener('keydown',e=>{
+    const d={ArrowLeft:[0,-1],ArrowRight:[0,1],ArrowUp:[-1,0],ArrowDown:[1,0]}[e.key]; if(!d)return;
+    e.preventDefault(); const i=clamp(POS.indexOf(pin.p)+d[0],0,POS.length-1);
+    hov=null;place(hoverBox,null);setPin(POS[i],clamp(pin.L+d[1],0,NL-1));
+  });
   document.querySelectorAll('#gridMetric button').forEach(b=>b.addEventListener('click',()=>{
     document.querySelectorAll('#gridMetric button').forEach(x=>x.classList.remove('on'));b.classList.add('on');st.metric=b.dataset.m;build();}));
   document.getElementById('gridFilter').addEventListener('change',e=>{st.filter=e.target.checked;build();});
   window.addEventListener('themechange',build);
   build();
 })();
-</script>
-<script>
+
 /* ===================== INTERVENTIONS (SVG vector diagram) ===================== */
 (function(){
   const svg=document.getElementById('intSvg'); if(!svg) return;
