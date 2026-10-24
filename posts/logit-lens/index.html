@@ -51,15 +51,7 @@
     <link rel="stylesheet" href="../../styles.css">
 
     <script>
-        (function () {
-            try {
-                var saved = localStorage.getItem('np-theme');
-                var theme = saved || 'light';
-                document.documentElement.setAttribute('data-theme', theme);
-            } catch (e) {
-                document.documentElement.setAttribute('data-theme', 'light');
-            }
-        })();
+        (function(){var d=document.documentElement,mq=matchMedia('(prefers-color-scheme: dark)');function saved(){try{return localStorage.getItem('np-theme');}catch(e){return null;}}function sys(){return mq.matches?'dark':'light';}d.setAttribute('data-theme',saved()||sys());mq.addEventListener&&mq.addEventListener('change',function(){if(!saved()){d.setAttribute('data-theme',sys());window.dispatchEvent(new Event('themechange'));}});})();
     </script>
 
     <style>

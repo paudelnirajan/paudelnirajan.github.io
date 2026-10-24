@@ -17,8 +17,7 @@
 <meta name="twitter:creator" content="@paudelnirajan17">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' font-family='Georgia,serif'>न</text></svg>">
 <script>
-(function(){try{document.documentElement.setAttribute('data-theme',localStorage.getItem('np-theme')||'light');}
-catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+(function(){var d=document.documentElement,mq=matchMedia('(prefers-color-scheme: dark)');function saved(){try{return localStorage.getItem('np-theme');}catch(e){return null;}}function sys(){return mq.matches?'dark':'light';}d.setAttribute('data-theme',saved()||sys());mq.addEventListener&&mq.addEventListener('change',function(){if(!saved()){d.setAttribute('data-theme',sys());window.dispatchEvent(new Event('themechange'));}});})();
 </script>
 <style>
 :root{--bg:#FAFAF8;--surf:#fff;--ink:#1A1A1A;--soft:#6b6a63;--border:#E4E1D8;

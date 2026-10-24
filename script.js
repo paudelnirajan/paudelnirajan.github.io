@@ -37,7 +37,17 @@ function initTheme() {
         const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', next);
         paintThemeIcon(next);
-        try { localStorage.setItem('np-theme', next); } catch (e) { /* private mode */ }
+        try {
+            // picking the system's theme again means "follow the system"
+            const sys = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            if (next === sys) localStorage.removeItem('np-theme');
+            else localStorage.setItem('np-theme', next);
+        } catch (e) { /* private mode */ }
+    });
+
+    // the inline script in <head> follows system changes when nothing is saved
+    window.addEventListener('themechange', () => {
+        paintThemeIcon(document.documentElement.getAttribute('data-theme'));
     });
 }
 
